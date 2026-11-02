@@ -186,7 +186,8 @@
      release round is exercised against real 9.4, 9.6, 10, 11, 12, 13, 14 and
      18 servers. Below 9.4 the catalogues have diverged too far and the app
      does not claim to work.</p>
-  <p>PostgreSQL 19 is measured too: every check runs on it, and
+  <p>PostgreSQL 19 is measured too - on 19rc1, the release candidate, since 19.0
+     is not out yet: every check runs on it, and
      <b>Tuning &amp; diagnostics &rarr; Ready for PostgreSQL 19?</b> goes through
      19's list of incompatibilities against your server before you upgrade.</p>
 
@@ -209,16 +210,43 @@
      text, and leaves sending it to you - nothing goes anywhere on its own.</p>
 
   <h2>Terms and privacy</h2>
-  <p>DBApguin 1.0.x is free for private and commercial use alike - no licence
+  <p>DBApguin is free for private and commercial use alike - no licence
      key, no activation, no trial that runs out, and no feature held back. Use it
      freely, do not sell it, and do not present it as your own work.</p>
   <p><b>Nothing is sent anywhere.</b> No telemetry, no update check, no
      account, no network traffic beyond the database connections you
      configure yourself. The one exception is a plugin you choose to install:
      its traffic is its own.</p>
-  <p><a href="EULA.md">Licence agreement</a> &middot;
+  <p><a href="EULA.hr.md">Licence agreement</a> (written in Croatian - the
+     Croatian text governs) &middot; <a href="EULA.md">English translation</a> &middot;
      <a href="PRIVACY.md">Privacy notice</a> &middot;
      <a href="THIRD_PARTY.md">Third-party components</a></p>
+
+  <h2>The SQL it runs</h2>
+  <p>The application's source is not published. <b>The SQL it sends to your
+     servers is</b>: every statement DBApguin can run, with where it lives in the
+     app, read out of the source by a script rather than written by hand, under
+     the PostgreSQL Licence - <a href="sql/README.md">the SQL catalogue</a>. None
+     of it is secret anyway: it is in your server's <code>pg_stat_statements</code>
+     and log the moment it runs, and the user guide explains what each check is
+     for.</p>
+
+  <h2>How DBApguin is made</h2>
+  <p>DBApguin started as a personal project: a tool to make everyday database
+     work easier, for experienced DBAs and just as much for people who know less
+     about databases. It is free of charge.</p>
+  <p>It is written with the help of AI coding assistants. Every change is
+     designed, reviewed and tested by me - automated tests against PostgreSQL 9.4
+     to 19 (19rc1), and by hand in the app itself. Testing goes on with every
+     release, on a best-effort basis: DBApguin is provided as is, without
+     warranty. Bug reports are welcome.</p>
+
+  <h2>Credits</h2>
+  <p>DBApguin is built on open-source components, each listed with its licence
+     in the <a href="THIRD_PARTY.md">third-party components</a>, with the full
+     licence texts shipped in the app. Where a query follows someone else's
+     method - the bloat estimate follows check_postgres - that is credited there
+     too.</p>
 
   <h2>Supporting it</h2>
   <p>DBApguin is written in the evenings and at weekends, on hardware and test

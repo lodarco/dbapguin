@@ -112,7 +112,7 @@ exact text, and leaves sending it to you.
 
 ## Terms
 
-DBApguin 1.0.x is free for private and commercial use alike - no licence key,
+DBApguin is free for private and commercial use alike - no licence key,
 no activation, no trial that runs out, and no feature held back. Use it
 freely, do not sell it, and do not present it as your own work. The full text:
 [licence agreement](docs/EULA.hr.md) (written in Croatian - the Croatian text governs) ·
