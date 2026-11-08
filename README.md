@@ -6,6 +6,7 @@
 
 <p align="center">
   A desktop PostgreSQL DBA console.<br>
+  I built it for my own daily work as a DBA, and I share it in case it helps you too.<br>
   Free for everyone - no licence key, no trial, no account, nothing held back.
 </p>
 
@@ -139,9 +140,10 @@ for.
 
 ## How DBApguin is made
 
-DBApguin started as a personal project: a tool to make everyday database work
-easier, for experienced DBAs and just as much for people who know less about
-databases. It is free of charge.
+I built DBApguin for my own daily work as a DBA - one window for the everyday
+questions instead of ten tools - and I share it because it may help others too:
+experienced DBAs, and just as much people who know less about databases. It is
+free of charge.
 
 It is written with the help of AI coding assistants. Every change is designed,
 reviewed and tested by me - automated tests against PostgreSQL 9.4 to 19 (19rc1),
