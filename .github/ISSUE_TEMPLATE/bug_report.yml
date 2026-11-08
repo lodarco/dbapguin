@@ -1,0 +1,103 @@
+name: Bug report
+description: Something in DBApguin does not work, shows a wrong result, or says something that is not true.
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for taking the time. The quickest way: in DBApguin open **Settings**, and under
+        **About this app** press **Report a bug**, then **Copy report** and paste it below. That report
+        already has the version, the build, the operating system and the last errors, with passwords
+        and connection details removed before it leaves your machine.
+
+        **Never paste** passwords, connection strings, host names, IP addresses or data from your
+        tables. Screenshots: please check them for the same.
+  - type: textarea
+    id: report
+    attributes:
+      label: Report from the app (optional)
+      description: Settings → About this app → Report a bug → Copy report.
+      render: text
+  - type: textarea
+    id: did
+    attributes:
+      label: What I did
+      description: The steps, one per line, from opening the app.
+      placeholder: |
+        1. Connected to a PostgreSQL 16 server
+        2. Opened Cluster health → Vacuum status
+        3. ...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What I expected
+    validations:
+      required: true
+  - type: textarea
+    id: happened
+    attributes:
+      label: What happened instead
+      description: The message exactly as the app showed it, if there was one.
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: DBApguin version
+      description: Help → About DBApguin (already in the report above, if you pasted it).
+      placeholder: 1.0.0
+  - type: dropdown
+    id: os
+    attributes:
+      label: Operating system
+      options:
+        - Linux (AppImage)
+        - Linux (.deb)
+        - Windows
+        - macOS
+    validations:
+      required: true
+  - type: input
+    id: pg
+    attributes:
+      label: PostgreSQL version
+      description: "SELECT version(); - or the version in the app's header bar."
+      placeholder: "16.4"
+  - type: dropdown
+    id: where
+    attributes:
+      label: Where the server runs
+      options:
+        - Self-hosted (own server, VM, container)
+        - Amazon RDS
+        - Amazon Aurora
+        - Google Cloud SQL
+        - Google AlloyDB
+        - Azure Database for PostgreSQL
+        - Other managed service
+        - Not relevant
+  - type: dropdown
+    id: role
+    attributes:
+      label: The role the app connected as
+      description: Many differences come from privileges, so this helps a lot.
+      options:
+        - Superuser
+        - Platform admin role (rds_superuser, cloudsqlsuperuser, azure_pg_admin, ...)
+        - Member of pg_monitor / pg_read_all_stats
+        - Ordinary role
+        - Not sure
+  - type: textarea
+    id: more
+    attributes:
+      label: Anything else
+      description: Screenshots (checked for host names and data), how often it happens, whether it started after an update.
+  - type: checkboxes
+    id: privacy
+    attributes:
+      label: Before you send
+      options:
+        - label: I removed passwords, connection details, host names and any real data from everything above.
+          required: true

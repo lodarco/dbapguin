@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Security problem
+    url: https://github.com/lodarco/dbapguin/security/advisories/new
+    about: Please report anything that could put someone's data or servers at risk privately, not as a public issue.
+  - name: User guide
+    url: https://github.com/lodarco/dbapguin/blob/main/docs/USER_GUIDE.en.md
+    about: What each check does and why - your answer may already be there.
+  - name: The SQL DBApguin runs
+    url: https://github.com/lodarco/dbapguin/tree/main/docs/sql
+    about: Every statement the app sends to your server, and where it lives in the app.
