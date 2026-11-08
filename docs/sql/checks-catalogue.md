@@ -1,10 +1,260 @@
 # Checks (catalogue)
 
-[All parts](README.md) · 13 statements
+[All parts](README.md) · 18 statements
+
+## check_sql.py
+
+**INDEX_ADVISOR_ONE** - `(module)` line 38
+
+```sql
+-- one index, the same arithmetic as db-bloat-indexes / bloat_estimate.py.
+WITH {index_bloat_cte('AND n.nspname = %s AND c.relname = %s')}
+SELECT  idx.expected_pages,
+        idx.idx_bytes                                                 AS size_bytes,
+        idx.waste_bytes::bigint                                       AS bloat_bytes,
+        pg_size_pretty(idx.idx_bytes::bigint)                         AS size,
+        pg_size_pretty(idx.waste_bytes::bigint)                       AS bloat,
+        CASE WHEN idx.reltuples IS NULL OR idx.idx_bytes = 0 THEN NULL
+             ELSE round(100.0 * idx.waste_bytes::numeric / idx.idx_bytes, 1)
+        END                                                           AS bloat_pct
+FROM idx
+```
+
+**db-locks** - `(module)` line 119
+
+```sql
+SELECT a.pid,
+       COALESCE(a.usename, px.owner)              AS usename,
+       l.locktype,
+       l.relation::regclass::text AS table,
+       l.mode,
+       l.granted,
+       a.query AS _query_full,
+       COALESCE(left(a.query, 100),
+                CASE WHEN px.gid IS NOT NULL
+                     THEN 'prepared transaction ' || px.gid END) AS query
+FROM pg_locks l
+-- LEFT, not JOIN: a prepared (two-phase) transaction holds locks with
+-- pid IS NULL. An inner join dropped every one of those rows, so a
+-- session queued behind an orphaned PREPARE TRANSACTION showed as
+-- waiting on nothing.
+LEFT JOIN pg_stat_activity a ON l.pid = a.pid
+LEFT JOIN LATERAL (
+    SELECT p.gid, p.owner
+      FROM pg_locks tl
+      JOIN pg_prepared_xacts p ON p.transaction = tl.transactionid
+     WHERE tl.pid IS NULL AND tl.locktype = 'transactionid'
+       AND tl.virtualtransaction = l.virtualtransaction
+     LIMIT 1
+) px ON l.pid IS NULL
+WHERE NOT l.granted
+   OR l.pid IS NULL
+   -- Every lock held by a session that blocks a waiter. Asked of
+   -- pg_blocking_pids() (9.6+; app.py swaps a relation join back in
+   -- below that): the join on relation only ever matched table-level
+   -- queues, and the common case - a row lock, which waits on a
+   -- transactionid lock with relation NULL - listed the waiter alone,
+   -- with nothing about what the blocker held to judge a terminate.
+   OR l.pid IN (
+       SELECT unnest(pg_blocking_pids(waiting.pid))
+       FROM pg_locks waiting
+       WHERE NOT waiting.granted
+   )
+ORDER BY l.granted, a.pid NULLS FIRST
+```
+
+**db-index-unused** - `(module)` line 165
+
+```sql
+SELECT s.schemaname   AS schema,
+       s.relname      AS table,
+       s.indexrelname AS index,
+       pg_size_pretty(pg_relation_size(s.indexrelid)) AS size,
+       s.idx_scan     AS scans,
+       pg_get_indexdef(s.indexrelid)                  AS definition,
+       'DROP INDEX CONCURRENTLY ' || quote_ident(s.schemaname)
+         || '.' || quote_ident(s.indexrelname) || ';'  AS drop_statement,
+       -- No scans in a window is not "unused": a quarterly or yearly
+       -- report may be the only reader. Every row says how long the
+       -- window is and that, so it reads as a candidate to review,
+       -- never as a verdict.
+       CASE WHEN r.at IS NULL THEN 'never reset - counters cover the whole life of this database'
+            WHEN r.at > now() - interval '7 days'
+              THEN '!! statistics were reset ' || age(now(), r.at)::text
+                   || ' ago - too recent to call anything unused'
+            ELSE 'counters cover ' || age(now(), r.at)::text
+       END || '; a quarterly or yearly report may still need it - check before dropping' AS confidence
+FROM pg_stat_user_indexes s
+JOIN pg_index i   ON i.indexrelid = s.indexrelid
+JOIN pg_class ic  ON ic.oid = s.indexrelid
+-- PostgreSQL 19 keeps a stats_reset per index as well as per database.
+-- The later of the two bounds what the scan counter covers. Read
+-- through JSON so the same text runs on a server whose view has no
+-- such column (it is simply NULL there) - naming s.stats_reset would
+-- be a parse error on 18 and older.
+-- contype filter is load-bearing: pg_constraint.conindid is also set on
+-- FOREIGN KEY rows, pointing at the unique index they reference, so an
+-- unfiltered NOT EXISTS would hide every referenced primary key twice
+-- over and an unfiltered join would list it once per inbound FK.
+CROSS JOIN (SELECT stats_reset FROM pg_stat_database
+             WHERE datname = current_database()) d
+CROSS JOIN LATERAL (SELECT GREATEST((row_to_json(s)::jsonb ->> 'stats_reset')::timestamptz,
+                                    d.stats_reset) AS at) r
+WHERE s.idx_scan = 0
+  AND NOT i.indisprimary
+  AND NOT i.indisunique
+  AND NOT i.indisreplident
+  AND NOT EXISTS (
+        SELECT 1 FROM pg_constraint c
+         WHERE c.conindid = s.indexrelid
+           AND c.contype IN ('p', 'u', 'x'))
+  -- An index on a foreign key column is never offered: it reports no
+  -- scans because DELETE and UPDATE on the parent use it internally,
+  -- and without it each of them scans this table under a lock. The
+  -- same test as the table Advisor and db-health: the index's first
+  -- column is one of a foreign key's columns. The check lists the
+  -- ones it kept back (checks/index_safety.py).
+  AND NOT EXISTS (
+        SELECT 1 FROM pg_constraint f
+         WHERE f.contype = 'f' AND f.conrelid = i.indrelid
+           AND i.indkey[0] = ANY(f.conkey))
+  -- An index still being built reports no scans because it is not in
+  -- service yet, not because nobody wants it.
+  AND i.indisvalid
+  AND i.indisready
+ORDER BY pg_relation_size(s.indexrelid) DESC
+LIMIT 50
+```
+
+**db-index-usage** - `(module)` line 225
+
+```sql
+-- "scans = 0" on its own is a trap. Three things decide whether an
+-- index is really droppable, and the previous version of this query
+-- showed none of them:
+--   * an index backing a PRIMARY KEY or UNIQUE constraint reports zero
+--     scans and still cannot be dropped - it enforces correctness, and
+--     DROP INDEX refuses it anyway. On a demo database here, three of
+--     the five zero-scan indexes were constraint-backed.
+--   * the counters are cumulative since the last statistics reset, so
+--     zero after a reset an hour ago means nothing.
+--   * an index used only by read replicas reports zero on the primary.
+SELECT s.schemaname   AS schema,
+       s.relname      AS table,
+       s.indexrelname AS index,
+       s.idx_scan     AS scans,
+       s.idx_tup_read AS rows_read,
+       pg_size_pretty(pg_relation_size(s.indexrelid)) AS size,
+       CASE c.contype
+            WHEN 'p' THEN 'PRIMARY KEY - cannot drop'
+            WHEN 'u' THEN 'UNIQUE constraint - cannot drop'
+            WHEN 'x' THEN 'EXCLUDE constraint - cannot drop'
+            ELSE CASE WHEN i.indisunique THEN 'unique index'
+                      WHEN NOT i.indisvalid THEN 'INVALID - rebuild or drop'
+                      -- DELETE and UPDATE on the parent use it; the
+                      -- counter does not show that. Never "unused".
+                      WHEN EXISTS (SELECT 1 FROM pg_constraint f
+                                    WHERE f.contype = 'f' AND f.conrelid = i.indrelid
+                                      AND i.indkey[0] = ANY(f.conkey))
+                           THEN CASE WHEN s.idx_scan = 0 THEN 'backs a foreign key - keep (DELETE/UPDATE on the parent use it)'
+                                     ELSE 'backs a foreign key' END
+                      WHEN s.idx_scan = 0 THEN 'unused since stats reset - a quarterly or yearly report may still need it'
+                      ELSE '' END
+       END AS note,
+       d.stats_reset,
+       CASE WHEN d.stats_reset IS NULL THEN 'never reset'
+            ELSE age(now(), d.stats_reset)::text END AS stats_age
+FROM pg_stat_user_indexes s
+JOIN pg_index i        ON i.indexrelid = s.indexrelid
+-- contype filter is load-bearing: pg_constraint.conindid is also set on
+-- FOREIGN KEY rows, pointing at the unique index they reference, so an
+-- unfiltered join lists a referenced primary key once per inbound FK.
+LEFT JOIN pg_constraint c ON c.conindid = s.indexrelid
+                         AND c.contype IN ('p', 'u', 'x')
+CROSS JOIN (SELECT stats_reset FROM pg_stat_database
+             WHERE datname = current_database()) d
+ORDER BY s.idx_scan ASC, pg_relation_size(s.indexrelid) DESC
+LIMIT 25
+```
+
+**db-index-advisor** - `(module)` line 273
+
+```sql
+WITH table_stats AS (
+    SELECT
+        t.schemaname,
+        t.relname,
+        t.seq_scan,
+        t.idx_scan,
+        t.n_live_tup                                             AS rows,
+        CASE WHEN t.seq_scan = 0 THEN NULL
+             ELSE round(t.seq_tup_read::numeric / t.seq_scan, 0)
+        END                                                      AS avg_rows_per_seqscan,
+        -- COALESCE, because idx_scan is NULL and not 0 for a table
+        -- with no indexes on it. Without it the seq% column - the
+        -- one this section is named after - came out empty for
+        -- exactly the tables whose sequential scans matter most.
+        CASE WHEN t.seq_scan + COALESCE(t.idx_scan, 0) = 0 THEN NULL
+             ELSE round(100.0 * t.seq_scan /
+                  (t.seq_scan + COALESCE(t.idx_scan, 0)), 1)
+        END                                                      AS seq_pct
+    FROM pg_stat_user_tables t
+    WHERE t.n_live_tup > 100
+),
+index_info AS (
+    SELECT
+        n.nspname                                                AS schemaname,
+        t.relname,
+        count(*)                                                 AS idx_count,
+        string_agg(ix.relname, ', ' ORDER BY ix.relname)        AS index_names
+    FROM pg_class t
+    JOIN pg_namespace n  ON n.oid = t.relnamespace
+    JOIN pg_index i      ON t.oid = i.indrelid
+    JOIN pg_class ix     ON i.indexrelid = ix.oid
+    WHERE t.relkind = 'r'
+    GROUP BY n.nspname, t.relname
+)
+SELECT
+    ts.schemaname                                                AS schema,
+    ts.relname                                                   AS "table",
+    ts.rows                                                      AS rows,
+    ts.seq_scan,
+    ts.idx_scan,
+    ts.seq_pct                                                   AS "seq%",
+    ts.avg_rows_per_seqscan                                      AS avg_rows_seqscan,
+    COALESCE(ii.idx_count, 0)                                    AS index_count,
+    CASE
+        WHEN ts.seq_scan = 0 AND COALESCE(ts.idx_scan, 0) = 0
+            THEN ' - no activity (stats reset?)'
+        WHEN COALESCE(ii.idx_count, 0) = 0 AND ts.seq_scan > 50
+            THEN '!! NO INDEX - table is being seq scanned'
+        WHEN ts.seq_pct > 80 AND ts.rows > 10000
+            THEN '!! high seq% on a large table'
+        WHEN ts.seq_pct > 50 AND ts.rows > 1000
+            THEN '!  moderate seq% - check WHERE columns'
+        WHEN ts.avg_rows_per_seqscan < 10 AND ts.seq_scan > 100
+            THEN '!  small avg_rows - filter without index?'
+        ELSE 'ok'
+    END                                                          AS recommendation,
+    COALESCE(ii.index_names, ' - none')                          AS existing_indexes
+FROM table_stats ts
+LEFT JOIN index_info ii
+       ON ii.schemaname = ts.schemaname AND ii.relname = ts.relname
+ORDER BY
+    CASE WHEN ts.seq_scan + ts.idx_scan = 0 THEN 1 ELSE 0 END,
+    ts.seq_scan DESC,
+    ts.rows DESC
+-- Bounded like every other check. This one scans pg_class and
+-- pg_stat_user_tables, so on a database with tens of thousands of
+-- tables it returned a row per table into the UI. The ordering above
+-- already puts the tables worth acting on first, so the tail was
+-- volume without information.
+LIMIT 100
+```
 
 ## db_queries.py
 
-**db-connections** - `(module)` line 254
+**db-connections** - `(module)` line 252
 
 ```sql
 SELECT state,
@@ -18,7 +268,7 @@ GROUP BY state, wait_event_type, wait_event
 ORDER BY connections DESC
 ```
 
-**db-users** - `(module)` line 265
+**db-users** - `(module)` line 263
 
 ```sql
 SELECT usename, application_name, client_addr::text,
@@ -30,7 +280,7 @@ GROUP BY usename, application_name, client_addr, state
 ORDER BY connections DESC
 ```
 
-**db-active-queries** - `(module)` line 274
+**db-active-queries** - `(module)` line 272
 
 ```sql
 SELECT pid,
@@ -50,7 +300,7 @@ WHERE state = 'active'
 ORDER BY duration DESC NULLS LAST
 ```
 
-**db-long-queries** - `(module)` line 291
+**db-long-queries** - `(module)` line 289
 
 ```sql
 SELECT pid,
@@ -79,7 +329,7 @@ WHERE state = 'active'
 ORDER BY duration DESC
 ```
 
-**db-table-sizes** - `(module)` line 320
+**db-table-sizes** - `(module)` line 318
 
 ```sql
 -- Rolled up to the partition root. pg_stat_user_tables lists every
@@ -124,7 +374,7 @@ ORDER BY sum(pg_total_relation_size(r.relid)) DESC
 LIMIT 1000
 ```
 
-**db-vacuum** - `(module)` line 362
+**db-vacuum** - `(module)` line 360
 
 ```sql
 -- Dead tuples on their own do not answer the question the user has,
@@ -186,7 +436,7 @@ ORDER BY (av_enabled <> 'true') DESC,
 LIMIT 1000
 ```
 
-**db-cache-hit** - `(module)` line 421
+**db-cache-hit** - `(module)` line 419
 
 ```sql
 -- Counts index and TOAST blocks, not only heap. A table read entirely
@@ -224,7 +474,7 @@ ORDER BY heap_blks_read + COALESCE(idx_blks_read, 0)
 LIMIT 1000
 ```
 
-**db-schema-sizes** - `(module)` line 456
+**db-schema-sizes** - `(module)` line 454
 
 ```sql
 -- Between "Database sizes" and "Table sizes" there was nothing, so
@@ -322,7 +572,7 @@ SELECT c.schema                                            AS schema,
  ORDER BY COALESCE(a.total, 0) DESC, c.schema
 ```
 
-**db-sizes** - `(module)` line 551
+**db-sizes** - `(module)` line 549
 
 ```sql
 SELECT d.datname                                          AS database,
@@ -345,7 +595,7 @@ WHERE d.datistemplate = false
 ORDER BY pg_database_size(d.datname) DESC
 ```
 
-**db-conn-limits** - `(module)` line 613
+**db-conn-limits** - `(module)` line 611
 
 ```sql
 WITH s AS (
@@ -405,7 +655,7 @@ SELECT s.max_conn,
 FROM s, r, c, bg
 ```
 
-**db-replication** - `(module)` line 670
+**db-replication** - `(module)` line 668
 
 ```sql
 -- The lag columns below were all measured from sent_lsn, which only
@@ -452,7 +702,7 @@ ORDER BY pg_wal_lsn_diff(pg_current_wal_lsn(), r.replay_lsn) DESC NULLS LAST,
          r.application_name
 ```
 
-**db-settings** - `(module)` line 714
+**db-settings** - `(module)` line 712
 
 ```sql
 SELECT name,
@@ -475,7 +725,7 @@ WHERE name IN (
 ORDER BY category, name
 ```
 
-**db-index-sizes** - `(module)` line 743
+**db-index-sizes** - `(module)` line 741
 
 ```sql
 SELECT n.nspname || '.' || c.relname                      AS "table",

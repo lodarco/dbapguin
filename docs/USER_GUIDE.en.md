@@ -217,21 +217,18 @@ Tick **Do not show this again** and it stops appearing. To bring it back:
 Turning it off hides the reminder. It does not change the terms it points to - 
 those are in Help → Licence agreement.
 
-## 2.5 Licensing
+## 2.5 Terms of use
 
-DBApguin 1.0.x - every release whose version begins with 1.0, this one
-included - is **free for everyone**, private use and commercial use alike.
-There is no licence key to enter, no activation step, no trial that runs out,
-and no feature held back.
+DBApguin is **free for everyone**, private use and commercial use alike, with
+every feature included.
 
 What that means in practice:
 
 - **Every feature is available from the first run**, on as many machines as you
   like: the advisors, workload analysis, AWR snapshots, query history, index
   and bloat analysis, the comparison and migration tools - all of it.
-- **No limit** on saved connections or open tabs.
-- **Nothing is checked over the network.** There is no licence check, so
-  nothing phones home. The app talks only to the database servers you configure - and, if you
+- **Nothing is checked over the network**, so nothing phones home. The app
+  talks only to the database servers you configure - and, if you
   install plugins, to whatever those plugins are set up to reach (section 7,
   Plugins).
 - **No account, no sign-in, no registration.**
@@ -984,6 +981,13 @@ The Advisor tab's **Maintenance actions** section also shows any VACUUM / ANALYZ
 
 `db-sequences` and `db-seq-usage` list sequences by how close they are to their maximum, with the owning column and every default that references each. An `integer` sequence at 80% is a change to `bigint` you want to plan, not discover when `nextval` throws.
 
+The maximum that counts is the smaller of two: the sequence's own `MAXVALUE`, and the largest value the column it feeds can hold (32,767 for `smallint`, 2,147,483,647 for `integer`). Before PostgreSQL 10 a sequence had no type - every one was `bigint` - so every `serial` made then is an `integer` column fed by a `bigint` sequence, and an upgraded schema keeps that shape. Measured against the sequence alone such a column reads 0% used while it has a few thousand ids left; the next insert past the edge fails with *integer out of range*. `db-sequences`, `db-seq-usage` and the health overview's SEQUENCES row measure against the column, and grade on two things, either one enough:
+
+- **the share of the range used**: amber from 80%, red from 95%;
+- **the time left**: the ids left divided by the inserts a day into the column's table (its insert counter over the statistics window - the same window the table Advisor states): amber under 180 days, red under 30. A window shorter than an hour makes the rate a projection: the time is shown and said to be one, and does not change the colour.
+
+Each one running out names the foreign key columns that point at it and are narrower than `bigint`: moving the column to `bigint` moves the problem to them, so they change in the same migration. Once the column itself is `bigint`, a narrower foreign key column is the ceiling: the first id past its maximum cannot be referenced, so the room left is measured against it and it is named. `ALTER COLUMN ... TYPE bigint` rewrites the whole table under an `ACCESS EXCLUSIVE` lock - nothing reads or writes it until it is done; the way without the outage is a new `bigint` column kept in step by a trigger, a backfill in batches, and a swap.
+
 `db-seq-sync` writes a `SELECT setval(...)` for every sequence, setting each to just past the largest value currently in its owning column. Run it after a logical-replication cutover or a `pg_dump --data-only` load, where the rows arrive but the sequences stay at 1 and the next `INSERT` collides with an existing key. It is a generated script like any other - review it, then run it on the target.
 
 `db-checkpoints` shows how checkpoints fire: **timed** (good, driven by `checkpoint_timeout`) versus **requested** (forced by `max_wal_size` pressure), the average gap between them, and write and sync time. A high requested share means `max_wal_size` is too low for the write rate - raising it trades disk space for much less checkpoint I/O.
@@ -1142,7 +1146,22 @@ Below the editor, output panel with:
 - Live + stat history (collapsible)
 - Per-execution timing + row count
 
-Saved queries: click the "Saved" tab to browse your saved snippets. Per-conn workspace persistence keeps your open tabs across restarts.
+**Saved queries.** **Save query** (Ctrl+S) stores the editor's text under a
+name; the **saved** list beside it opens one in a tab. **SQL → Saved
+queries…** (or *manage saved queries…* at the end of that list) opens their
+own dialog: a list you can search by name, note and SQL, and for the one
+chosen its name, a note and the SQL to edit, **Open in the editor**,
+**Duplicate** and **Delete**. A change is saved only after **Review and
+save** has shown it side by side with what is saved now - before on the
+left, after on the right, a line only one side has in red or green, changed
+words marked - and you press **Save changes**. Every saved change keeps the
+version before it (the last 25): **Earlier versions** compares any of them
+with the current one the same way and can put it back into the fields, to
+review and save. A tab opened from a saved query remembers it: **Save
+query** there shows what changed side by side and offers **Update** or
+**Save as new**. Saved queries have no limit; the **history** list beside
+them keeps the last 30 queries you ran. Per-conn workspace persistence keeps
+your open tabs across restarts.
 
 #### EXPLAIN as a tree {#explain-as-a-tree}
 
@@ -1233,7 +1252,9 @@ The dropdown next to Run decides what happens around the statements in a run:
   end the run. Every statement is tried, each failure is listed against its
   own line with the error, and the ones that worked are committed. This is the
   mode for a file of DDL where part of it is already applied: you want the
-  rest to land and a list of what did not.
+  rest to land and a list of what did not. The result is the raw output only,
+  as `psql -f` prints it - each statement's tag or rows, its notices, its
+  error - with **Copy** beside it; there is no grid.
 - **keep open (commit yourself)** - the transaction stays open *between* Runs
   and ends when you press Commit or Rollback, which appear beside the mode
   while one is open. Run something, look at what it did, then decide.
@@ -1575,14 +1596,61 @@ over one of those, materialized views, a function whose argument is the
 table's row type and the foreign keys of other tables; a `DROP TYPE ...
 CASCADE` takes the columns of that type out of other tables, values and all;
 a dropped trigger function takes its triggers, a dropped sequence the
-defaults that call it. The dialog lists them before you drop, and the copy
-names them at the top. When the rehearsal cannot run - a table too busy to
-lock within three seconds, or event triggers that would fire on it - the
-list is read from the dependency graph and the copy says it is an estimate.
-What the copy cannot write is named under *NOT in this copy*.
+defaults that call it. The dialog lists them when you ask (**Work out what the drop
+takes**), read from the dependency graph: nothing is rehearsed and nothing
+is locked to show the list, also for a schema of hundreds of tables.
+The copy names them at the top, exactly as the rehearsal found them. When
+the rehearsal cannot run - a table too busy to lock within three seconds, or
+event triggers that would fire on it - the copy's list is read from the
+dependency graph too and the copy says it is an estimate. What the copy
+cannot write is named under *NOT in this copy*.
 
-**The rows.** The definitions are not the data. **Keep the rows too**, ticked
-by default up to 1 GB, writes the rows of every table the drop takes to the
+**What to copy first.** The drop dialog, and the dialog that drops several
+selected objects, open without asking the server anything. Under the
+statement and its options (**CASCADE**, **IF EXISTS**, the SQL) they ask,
+in this order:
+
+1. **Keep a copy before the drop?** **No copy - run only the DROP** is the
+   first choice: nothing is saved and nothing is worked out first, only the
+   DROP statement runs (for a schema with **CASCADE**, `DROP SCHEMA ...
+   CASCADE` on that schema and nothing else). It cannot be undone, except
+   from a backup. **Keep a copy first** opens the next question.
+2. **What to keep:** **Copy definitions only** (the definitions of
+   everything the drop takes; a table comes back empty) or **Copy
+   definitions and rows** (the rows of the tables that go are written to
+   the data folder too).
+3. **Work out what the drop takes** - only when you click it: the objects
+   **CASCADE** removes and, for the tables that go, how many there are,
+   about how many rows and how much data. A copy needs this before **Drop**
+   is enabled; without a copy you can ask for it too, but you do not have
+   to.
+
+The sizes are the estimate the server keeps (rows and pages from its
+statistics), read without opening a table; a table never vacuumed or
+analyzed has no size yet, and the dialog says so. A copy first rehearses the
+drop to find exactly what goes, and that holds the drop's locks for a moment
+(it waits at most three seconds for them). The dialog remembers your last
+choice until the application is closed (it is not saved anywhere): the next
+drop starts on it, except that rows over 50 MB are turned into the
+definitions only once the analysis shows it, and the dialog says why.
+Without a copy, when the drop can take data or other objects (a table, a
+schema, anything with **CASCADE**, unless the analysis showed nothing goes),
+you type the name of the object (for several objects, how many) before
+**Drop** is enabled. A kind no copy can be written for (an extension, a
+trigger, a role ...) says so and offers only the analysis.
+
+**While it runs.** The drop is a background job, and the dialog follows it
+step by step: working out exactly what the drop removes, copying the
+definitions, copying the rows (so many of so many tables, how much is
+written), dropping - with the time it has taken so far. Until the DROP
+itself starts, **Cancel** reads **Stop**: it stops at the next safe point,
+nothing is dropped, and a copy taken up to then is removed with its rows.
+Once the DROP runs it cannot be stopped, and the button says so. Closing the
+dialog does not stop the job; it stays in Background jobs. Moving and
+cloning from the same dialog show the same busy state.
+
+**The rows.** The definitions are not the data. **Copy definitions and
+rows** writes the rows of every table the drop takes to the
 data folder next to the copy, and the values of a column a cascade takes out
 of a table that stays (matched back by its primary key; a table without one
 cannot have them back, and the copy says so). To undo a drop: open the copy,
@@ -1598,7 +1666,7 @@ only on a tab connected to that database, and says so when there is none. A fore
 `NOT VALID` when that table has rows pointing at a table that comes back
 empty, and checked once the rows are back; materialized views are refreshed
 then too. A foreign table's rows live on the other server and are not kept.
-Without the rows ticked, the copy says at the top that it holds the
+With the definitions only, the copy says at the top that it holds the
 definitions only.
 
 ### 5.4 Sessions
@@ -2739,6 +2807,34 @@ carries its sequence settings too - `START WITH`, `INCREMENT BY`, `MINVALUE`,
 `MAXVALUE`, `CACHE`, `CYCLE` - so the copy is not silently reset to the
 defaults.
 
+The rows are taken **exactly as they are**, whatever is in them. Anything that
+judges or rewrites a row while it is written waits until the rows are in:
+
+- a constraint the source has `NOT VALID` (a `CHECK`, a foreign key, a domain's
+  `CHECK`, PostgreSQL 18's `NOT NULL ... NOT VALID`) is added `NOT VALID`
+  after the rows, so rows the source never checked are not checked in the copy
+  either, and new rows are;
+- triggers and rules are created after the rows, so none of them refuses,
+  rewrites or adds to a copied row;
+- row level security and its policies are switched on after the rows;
+- an index a failed `CREATE INDEX CONCURRENTLY` left invalid is not copied
+  (it enforces nothing in the source, and built again on the same rows it
+  fails again) - as `pg_dump` leaves it out.
+
+Row level security does not refuse a read, it shortens it. If its policies
+apply to the role you are connected as (you are not the table's owner, or the
+table has `FORCE ROW LEVEL SECURITY`, and you are neither a superuser nor a role
+with `BYPASSRLS`), or you may not read one of its columns, the clone names the
+table and the reason **before** anything runs and copies nothing, rather than
+copying the rows you happen to see.
+
+**Table by table** shows, for every table, the rows copied, what was added
+`NOT VALID` as in the source, what was created after the rows and what was not
+copied. If a row cannot be copied after all, the message names the table, the
+column, the constraint, the failing row and the rows in the source by their
+primary key. **Clone table**, **Copy table** and the *copy* choice of
+**Merge schema** take the rows the same way.
+
 **Show the script** prints the whole thing before anything runs. The clone
 itself runs as one transaction: it either arrives whole or not at all. It
 runs as a server-side job, so a clone of a large schema with its rows - which
@@ -3649,7 +3745,7 @@ Every number in these reports is a **delta over the window** - the count between
 
 **Findings** is the report's own reading of the window, worst first, drawn like the ASH findings: each with the statement behind it and its buttons. Beyond the thresholds above (deadlocks, rollback share, cache hit) it names a statement that took 30% or more of all execution time, statements averaging over 500 ms per call, statements that spilled 64 MB or more to temp files (`work_mem`), checkpoints forced by WAL volume more often than by the clock (`max_wal_size`), backends writing a fifth or more of the dirty buffers themselves (`bgwriter_*`), and a heavily updated table with fewer than half its updates HOT (`fillfactor`). Every statement threshold here needs the window to hold at least ten seconds of execution time in total, so a quiet test database does not read like a server in trouble. Four findings are judged on their own volume instead - a pure N+1 workload, a fast lookup run hundreds of thousands of times with nothing slow beside it, never reaches ten seconds and used to read "Nothing stood out in this window":
 
-- **1+N pattern**: one statement (B) runs k times for every run of another (A), in the same database as the same user, with k at least 5 and B run at least 1,000 times. The ratio alone could be chance, so it needs one piece of evidence as well: A returned (within 5%) as many rows as B ran - once per row; or the ratio held within 10% in at least three intervals between snapshots while A's own rate changed by half or more (an interval in which A started or stopped does not count, and under a flat load any two statements keep their ratio, which proves nothing); or B's calls are a whole multiple of A's to within two calls, A having run at least 500 times. A stored comparison reads the snapshots taken between the two you picked (up to 24 of them); a workload report counts the statements about a dozen times while it records. Amber when B runs 200 times a second or takes 10% of the execution time, blue below that. Statements run inside a function are left out - they loop in the server, with no round trip to save. The finding says what pg_stat_statements cannot: every call also costs the application a round trip, usually more than the query itself.
+- **1+N pattern**: one statement (B) runs k times for every run of another (A), in the same database as the same user, with k at least 5 and B run at least 1,000 times. The ratio alone could be chance, so it needs one piece of evidence as well: A returned (within 5%) as many rows as B ran - once per row; or the ratio held within 10% in at least three intervals between snapshots while A's own rate changed by half or more (an interval in which A started or stopped does not count, and under a flat load any two statements keep their ratio, which proves nothing); or B's calls are a whole multiple of A's to within two calls, A having run at least 500 times. A rows match is one number for the whole window, so when A also ran at least three times in each of three intervals between snapshots, B's calls must follow A's rows in each of them as well (within 10%, beside the rows of two of A's calls whose lookups ran after the snapshot); a match the intervals contradict is not evidence. When several statements could be A, the one with the strongest evidence is named: rows that held in every interval, then a steady ratio, then rows the intervals could not measure, then a whole multiple. Statements that read only the server's catalogs and statistics views (pg_stat_statements, pg_stat_activity, pg_class, information_schema and the like) are never A or B: they are a monitor's polls, this report's own counts among them, and their row totals follow the size of the server, not a loop. A stored comparison reads the snapshots taken between the two you picked (up to 24 of them); a workload report counts the statements about a dozen times while it records. Amber when B runs 200 times a second or takes 10% of the execution time, blue below that. Statements run inside a function are left out - they loop in the server, with no round trip to save. The finding says what pg_stat_statements cannot: every call also costs the application a round trip, usually more than the query itself.
 - **A sub-millisecond statement run very often**: at least 10,000 calls under 1 ms each AND either 10% of all execution time (the share) or 200 calls a second (the rate), whichever comes first; a statement already named in a 1+N finding is not repeated.
 - **Connection churn** (PostgreSQL 14+): amber at 20 new sessions a second, blue at one new session for every two transactions, both with at least 200 new sessions in the window. It names the databases, and adds the sessions the client dropped without closing, that ended in a fatal error or that were terminated.
 - **Optimistic locking**: an UPDATE or DELETE whose WHERE compares a version column with a parameter and wrote no row on some of its calls - those lost the race to another writer and were retried. Amber when at least 5% of at least 100 calls, or 1,000 calls, wrote nothing; see [Connections, sessions and load](#connections-sessions-and-load).
@@ -4116,13 +4212,13 @@ Everything DBApguin keeps between runs lives in one directory (its path is shown
 
 **Import app data** reads such an archive, lists what it holds beside what is already here, and takes what you tick (again everything by default). It merges rather than replaces: stored history (AWR snapshots, ASH days, session traces, saved reports, job logs, the audit log, plugins) is added and never overwrites a file that is already here; saved connections are merged by id, a name already taken gets a number, and their passwords are re-encrypted for this installation's own key; a single file such as the preferences or the saved queries replaces yours. An archive whose key is missing, or protected by a master password, imports the connections without their passwords, and says so. This is how a DBA takes the collected history and the setup to another computer; there is no shared store between installations.
 
-> The backup **includes `key`, `connections.json` and `license.json`** - the data key and your encrypted connection passwords. That is deliberate: a backup of your setup without them is not one. But it means the archive is sensitive. Save it somewhere private and **never in a folder that syncs to a cloud service** (Dropbox, OneDrive, iCloud, Nextcloud, a synced Documents folder). If a master password is set, the passwords in the archive stay encrypted with it; without one they are only lightly obfuscated.
+> The backup **includes `key` and `connections.json`** - the data key and your encrypted connection passwords. That is deliberate: a backup of your setup without them is not one. But it means the archive is sensitive. Save it somewhere private and **never in a folder that syncs to a cloud service** (Dropbox, OneDrive, iCloud, Nextcloud, a synced Documents folder). If a master password is set, the passwords in the archive stay encrypted with it; without one they are only lightly obfuscated.
 
 The backup also carries your **installed plugins** (`plugins/`) and what they keep (`plugin-data/`) - their settings and any passwords they store, encrypted with the same `key` - so restoring it brings the plugins back, working. The folder you write your own plugins in, if you do, is not in it: it is wherever you chose to keep it.
 
 Exporting connections from the connection manager is a different thing: it writes only the connections and their groups, without passwords, settings or plugins.
 
-**Clear app data** shows a checklist with each item's size. Reports and logs - AWR snapshots, job logs, saved check reports, the error log - are ticked by default; preferences, saved queries and the SQL workspace are listed but unticked. Saved connections (`connections.json` + `key`) and the licence (`license.json`) are in a separate section and require typing the word `DELETE` to confirm, because clearing them loses every saved connection and its password. `license.json` is listed in that section too, but a free installation has none, and clearing it changes nothing. Installed plugins are listed unticked; their settings and stored passwords (`plugin-data/`) are in the same protected section as the connections, since clearing them loses those passwords. `trial.json`, left behind by versions from before DBApguin was free, is never offered here. A directory that still holds a running background job is refused; cancel the job first. Every clear is written to the audit log.
+**Clear app data** shows a checklist with each item's size. Reports and logs - AWR snapshots, job logs, saved check reports, the error log - are ticked by default; preferences, saved queries and the SQL workspace are listed but unticked. Saved connections (`connections.json` + `key`) are in a separate section and require typing the word `DELETE` to confirm, because clearing them loses every saved connection and its password. Installed plugins are listed unticked; their settings and stored passwords (`plugin-data/`) are in the same protected section as the connections, since clearing them loses those passwords. A directory that still holds a running background job is refused; cancel the job first. Every clear is written to the audit log.
 
 ### Plugins {#plugins}
 
@@ -4147,7 +4243,19 @@ Click the toast stack to expand and scroll. Wheel scrolls. Click outside to coll
 
 While a window is open, notifications keep clear of its buttons. A new one stands above them, or in the room beside the window, and when neither leaves room it goes straight into the counter, whose number and colour still tell you it came. The counter itself stays above the window's buttons; if not even it fits, it is hidden until the window closes. Everything goes back to the corner when the window closes.
 
-One action offers an Undo: deleting a saved connection, which the toast can put back for about six seconds. A toast cannot undo what reached a database. What the application does instead is show you the statement before it runs, ask once, and record it in the audit log; a setting changed here can be undone from the settings view, and a drop, a move or an owner change leaves a copy - for a drop with the rows, when ticked - that puts the objects back (see *A copy of the definitions before the change*).
+One action offers an Undo: deleting a saved connection, which the toast can put back for about six seconds. A toast cannot undo what reached a database. What the application does instead is show you the statement before it runs, ask once, and record it in the audit log; a setting changed here can be undone from the settings view, and a drop, a move or an owner change leaves a copy - for a drop with the rows, when chosen, and none when you choose to drop without one - that puts the objects back (see *A copy of the definitions before the change*).
+
+### 8.1 While something is running {#while-something-runs}
+
+Anything you asked for that takes longer than a quarter of a second says so, in the same places every time:
+
+- A thin bar slides along the top edge of the window, and a ring turns at the right end of the row of tabs below the menus. Point at the ring, or move to it with Tab, for the list of what is running, the step each one is on and how long it has taken; past three seconds the ring shows the time itself. Where the work can be stopped - a check, a statement in the SQL editor - its line in the list has a Cancel.
+- The button you pressed shows a ring in place of its label and does not take a second press until the work has ended. Nothing beside it moves: the button keeps its size, and the bar, the ring and the list take no room from the page.
+- A part of the window that is loading says so ("Reading the jobs…", "loading columns…") instead of showing an empty list or values that are about to change, and past three seconds it shows how long it has been waiting. A setting whose saved value is still being read is dimmed and cannot be changed until the value is in.
+
+Exports and reports name each step: building the report, waiting for your choice in the file dialog (if the dialog opened behind the window, that line is the clue), writing the file or the PDF. The busy state ends the moment the work does, whether it worked or failed, and a notification says where the file went or why it did not.
+
+What the application does on its own - the dashboard's refresh, the connection checks, the job watcher, the collectors' polls - never shows here, so a turning ring always means something you asked for is still on its way.
 
 ## 9. Keyboard shortcuts
 

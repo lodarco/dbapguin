@@ -1,10 +1,10 @@
 # The rest of the app
 
-[All parts](README.md) · 748 statements
+[All parts](README.md) · 780 statements
 
 ## app.py
 
-**a** - `_downgrade_check_sql` line 2028
+**a** - `_downgrade_check_sql` line 1974
 
 ```sql
 SELECT unnest(pg_blocking_pids(waiting.pid))
@@ -12,7 +12,7 @@ FROM pg_locks waiting
 WHERE NOT waiting.granted
 ```
 
-`_downgrade_check_sql` line 2033
+`_downgrade_check_sql` line 1979
 
 ```sql
 SELECT blocking.pid
@@ -23,7 +23,7 @@ JOIN pg_locks waiting ON blocking.relation = waiting.relation
     AND blocking.pid <> waiting.pid
 ```
 
-**sql** - `_replication_sql_94` line 2081
+**sql** - `_replication_sql_94` line 2027
 
 ```sql
 SELECT r.pid,
@@ -44,7 +44,7 @@ SELECT r.pid,
           DESC NULLS LAST, r.application_name
 ```
 
-**sql** - `_connections_sql_pre96` line 2107
+**sql** - `_connections_sql_pre96` line 2053
 
 ```sql
 SELECT state,
@@ -57,7 +57,7 @@ GROUP BY state, waiting
 ORDER BY connections DESC
 ```
 
-**sql** - `_long_queries_sql` line 2126
+**sql** - `_long_queries_sql` line 2072
 
 ```sql
 SELECT pid,
@@ -73,7 +73,7 @@ WHERE state = 'active'
 ORDER BY duration DESC
 ```
 
-**sql** - `_sizes_sql_pre10` line 2150
+**sql** - `_sizes_sql_pre10` line 2096
 
 ```sql
 SELECT d.datname                                          AS database,
@@ -93,7 +93,7 @@ WHERE d.datistemplate = false
 ORDER BY pg_database_size(d.datname) DESC
 ```
 
-`_lock_stats_section` line 2191
+`_lock_stats_section` line 2137
 
 ```sql
 SELECT locktype, waits, round(wait_time::numeric, 1) AS wait_time_ms,
@@ -102,31 +102,31 @@ SELECT locktype, waits, round(wait_time::numeric, 1) AS wait_time_ms,
  ORDER BY wait_time DESC, waits DESC, fastpath_exceeded DESC
 ```
 
-`run_db_check` line 2422
+`run_db_check` line 2368
 
 ```sql
 SET application_name = %s
 ```
 
-`run_db_check` line 2423
+`run_db_check` line 2369
 
 ```sql
 SELECT pg_backend_pid() AS pid
 ```
 
-`run_db_check` line 2594
+`run_db_check` line 2516
 
 ```sql
 SELECT 1 FROM pg_roles WHERE rolname = %s
 ```
 
-`run_db_check` line 2622
+`run_db_check` line 2544
 
 ```sql
 SELECT 1 FROM pg_namespace WHERE nspname = %s
 ```
 
-`_move_summary` line 2954
+`_move_summary` line 2876
 
 ```sql
 SELECT
@@ -140,7 +140,7 @@ FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace
 WHERE n.nspname = %s AND c.relname = %s
 ```
 
-`_search_path_levels` line 3029
+`_search_path_levels` line 2951
 
 ```sql
 SELECT COALESCE(d.datname, '') AS datname, s.setconfig
@@ -150,7 +150,7 @@ SELECT COALESCE(d.datname, '') AS datname, s.setconfig
  WHERE r.rolname = %s
 ```
 
-`_search_path_levels` line 3054
+`_search_path_levels` line 2976
 
 ```sql
 SELECT s.setconfig
@@ -159,43 +159,43 @@ SELECT s.setconfig
  WHERE d.datname = %s AND s.setrole = 0
 ```
 
-`_search_path_levels` line 3074
+`_search_path_levels` line 2996
 
 ```sql
 SELECT boot_val FROM pg_settings WHERE name = 'search_path'
 ```
 
-`_apply_search_path` line 3153
+`_apply_search_path` line 3075
 
 ```sql
 ALTER ROLE {role} SET search_path TO
 ```
 
-`api_db_check_cancel` line 3418
+`api_db_check_cancel` line 3340
 
 ```sql
 SET statement_timeout = 5000
 ```
 
-`api_db_check_cancel` line 3420
+`api_db_check_cancel` line 3342
 
 ```sql
 SELECT {fn}(%s)
 ```
 
-`api_db_check_cancel` line 3425
+`api_db_check_cancel` line 3347
 
 ```sql
 SELECT pid, {fn}(pid) FROM pg_stat_activity WHERE application_name = %s AND pid <> pg_backend_pid()
 ```
 
-`api_db_check_cancel` line 3435
+`api_db_check_cancel` line 3357
 
 ```sql
 SELECT {fn}({', '.join((str(p) for p in signalled))})
 ```
 
-`_schema_extensions` line 3739
+`_schema_extensions` line 3661
 
 ```sql
 WITH owned AS (
@@ -227,13 +227,13 @@ SELECT e.extname AS name, e.extversion AS version,
  ORDER BY owned.n DESC, e.extname
 ```
 
-`_schema_extensions` line 3770
+`_schema_extensions` line 3692
 
 ```sql
 CREATE EXTENSION IF NOT EXISTS %s SCHEMA %s;
 ```
 
-`_schema_extensions` line 3787
+`_schema_extensions` line 3709
 
 ```sql
 SELECT DISTINCT e.extname AS name, e.extversion AS version,
@@ -261,13 +261,13 @@ SELECT DISTINCT e.extname AS name, e.extversion AS version,
  ORDER BY 1
 ```
 
-`_schema_extensions` line 3818
+`_schema_extensions` line 3740
 
 ```sql
 CREATE EXTENSION IF NOT EXISTS %s SCHEMA %s;
 ```
 
-`_schema_extension_config_tables` line 3850
+`_schema_extension_config_tables` line 3772
 
 ```sql
 SELECT e.extname                        AS extension,
@@ -284,25 +284,25 @@ SELECT e.extname                        AS extension,
  ORDER BY e.extname, n.nspname, c.relname
 ```
 
-`_schema_extension_config_tables` line 3883
+`_schema_extension_config_tables` line 3805
 
 ```sql
 SELECT count(*) AS n FROM %s %s
 ```
 
-`_schema_extension_config_tables` line 3895
+`_schema_extension_config_tables` line 3817
 
 ```sql
 SELECT * FROM %s %s;
 ```
 
-`_schema_extension_config_tables` line 3895
+`_schema_extension_config_tables` line 3817
 
 ```sql
 SELECT * FROM %s;
 ```
 
-`_schema_superuser_objects` line 3922
+`_schema_superuser_objects` line 3844
 
 ```sql
 SELECT p.proname AS name,
@@ -322,13 +322,13 @@ SELECT p.proname AS name,
  ORDER BY p.proname
 ```
 
-`_fetch_pg_files` line 4030
+`_fetch_pg_files` line 3952
 
 ```sql
 SELECT name, setting FROM pg_settings WHERE name = ANY(%s)
 ```
 
-`_detect_provider` line 4349
+`_detect_provider` line 4271
 
 ```sql
 SELECT
@@ -362,37 +362,37 @@ SELECT
                                                                             AS session_superuser
 ```
 
-`_hba_write_copy` line 4472
+`_hba_write_copy` line 4394
 
 ```sql
 COPY (SELECT nullif(l, '') FROM unnest(%s::text[])         WITH ORDINALITY t(l, n) ORDER BY n) TO %s (FORMAT csv, DELIMITER E'\x01', QUOTE E'\x02', ESCAPE E'\x02')
 ```
 
-`_hba_write_file_lines` line 4511
+`_hba_write_file_lines` line 4433
 
 ```sql
 SELECT lo_export(%s, %s)
 ```
 
-`_hba_write_file_lines` line 4512
+`_hba_write_file_lines` line 4434
 
 ```sql
 SELECT lo_unlink(%s)
 ```
 
-`_hba_write_file_lines` line 4520
+`_hba_write_file_lines` line 4442
 
 ```sql
 SELECT lo_unlink(%s)
 ```
 
-`_hba_peers` line 4561
+`_hba_peers` line 4483
 
 ```sql
 SELECT pg_is_in_recovery() AS rec
 ```
 
-`_hba_peers` line 4567
+`_hba_peers` line 4489
 
 ```sql
 SELECT COALESCE(host(client_addr), 'local') AS client,
@@ -401,7 +401,7 @@ SELECT COALESCE(host(client_addr), 'local') AS client,
   FROM pg_stat_replication
 ```
 
-`_hba_peers` line 4578
+`_hba_peers` line 4500
 
 ```sql
 SELECT slot_name, slot_type, active
@@ -409,13 +409,13 @@ SELECT slot_name, slot_type, active
  WHERE slot_type = 'physical'
 ```
 
-`_hba_list_backups` line 4599
+`_hba_list_backups` line 4521
 
 ```sql
 SELECT n.name AS name, (pg_stat_file(%s || '/' || n.name)).size AS size FROM pg_ls_dir(%s) AS n(name)
 ```
 
-`_hba_list_backups` line 4610
+`_hba_list_backups` line 4532
 
 ```sql
 SELECT pg_ls_dir(%s) AS name
@@ -607,43 +607,43 @@ SELECT pg_catalog.format_type(a.atttypid, a.atttypmod) FROM pg_catalog.pg_attrib
 SELECT DISTINCT proname::text FROM pg_catalog.pg_proc WHERE proname = ANY(%s) AND provolatile = 'v'
 ```
 
-`copy_targets` line 1081
+`copy_targets` line 1099
 
 ```sql
 SELECT pg_catalog.current_setting('search_path')
 ```
 
-`copy_targets` line 1083
+`copy_targets` line 1101
 
 ```sql
 SELECT pg_catalog.set_config('search_path', '', false)
 ```
 
-`copy_targets` line 1101
+`copy_targets` line 1119
 
 ```sql
 SELECT c.relkind FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace WHERE n.nspname = %s AND c.relname = %s
 ```
 
-`copy_targets` line 1110
+`copy_targets` line 1128
 
 ```sql
 SELECT 1 FROM pg_namespace WHERE nspname = %s
 ```
 
-`copy_targets` line 1118
+`copy_targets` line 1136
 
 ```sql
 SELECT c.relname FROM pg_trigger t JOIN pg_class c ON c.oid = t.tgrelid JOIN pg_namespace n ON n.oid = c.relnamespace WHERE n.nspname = %s AND c.relname || '.' || t.tgname = %s
 ```
 
-`copy_targets` line 1122
+`copy_targets` line 1140
 
 ```sql
 SELECT c.relname FROM pg_rewrite r JOIN pg_class c ON c.oid = r.ev_class JOIN pg_namespace n ON n.oid = c.relnamespace WHERE n.nspname = %s AND c.relname || '.' || r.rulename = %s
 ```
 
-`copy_targets` line 1144
+`copy_targets` line 1162
 
 ```sql
 SELECT p.proname, pg_catalog.pg_get_function_identity_arguments(p.oid)
@@ -653,79 +653,79 @@ SELECT p.proname, pg_catalog.pg_get_function_identity_arguments(p.oid)
  LIMIT 1
 ```
 
-`copy_targets` line 1158
+`copy_targets` line 1176
 
 ```sql
 SELECT 1 FROM pg_type t JOIN pg_namespace n ON n.oid = t.typnamespace WHERE n.nspname = %s AND t.typname = %s
 ```
 
-`copy_targets` line 1161
+`copy_targets` line 1179
 
 ```sql
 SELECT 1 FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace WHERE n.nspname = %s AND c.relname = %s
 ```
 
-`copy_targets` line 1169
+`copy_targets` line 1187
 
 ```sql
 SELECT pg_catalog.set_config('search_path', %s, false)
 ```
 
-`permission_problems` line 1182
+`permission_problems` line 1200
 
 ```sql
 SELECT current_setting('server_version_num')::int
 ```
 
-`permission_problems` line 1192
+`permission_problems` line 1210
 
 ```sql
 SELECT pg_catalog.pg_get_userbyid(c.relowner), pg_catalog.pg_has_role(c.relowner, 'USAGE') FROM pg_catalog.pg_class c JOIN pg_catalog.pg_namespace n ON n.oid = c.relnamespace WHERE n.nspname = %s AND c.relname = %s
 ```
 
-`permission_problems` line 1197
+`permission_problems` line 1215
 
 ```sql
 SELECT pg_catalog.pg_get_userbyid(t.typowner), pg_catalog.pg_has_role(t.typowner, 'USAGE') FROM pg_catalog.pg_type t JOIN pg_catalog.pg_namespace n ON n.oid = t.typnamespace WHERE n.nspname = %s AND t.typname = %s
 ```
 
-`permission_problems` line 1202
+`permission_problems` line 1220
 
 ```sql
 SELECT pg_catalog.pg_get_userbyid(p.proowner), pg_catalog.pg_has_role(p.proowner, 'USAGE') FROM pg_catalog.pg_proc p JOIN pg_catalog.pg_namespace n ON n.oid = p.pronamespace WHERE n.nspname = %s AND p.proname || '(' || pg_catalog.pg_get_function_identity_arguments(p.oid) || ')' = %s
 ```
 
-`permission_problems` line 1209
+`permission_problems` line 1227
 
 ```sql
 SELECT pg_catalog.pg_get_userbyid(c.relowner), pg_catalog.pg_has_role(c.relowner, 'USAGE') FROM pg_catalog.pg_class c JOIN pg_catalog.pg_namespace n ON n.oid = c.relnamespace WHERE n.nspname = %s AND c.relname = %s
 ```
 
-`permission_problems` line 1214
+`permission_problems` line 1232
 
 ```sql
 SELECT pg_catalog.pg_get_userbyid(nspowner), pg_catalog.pg_has_role(nspowner, 'USAGE') FROM pg_catalog.pg_namespace WHERE nspname = %s
 ```
 
-`permission_problems` line 1221
+`permission_problems` line 1239
 
 ```sql
 SELECT pg_catalog.has_schema_privilege(n.oid, 'CREATE') FROM pg_catalog.pg_namespace n WHERE n.nspname = %s
 ```
 
-`permission_problems` line 1237
+`permission_problems` line 1255
 
 ```sql
 SELECT pg_catalog.pg_has_role(r.oid, %s) FROM pg_catalog.pg_roles r WHERE r.rolname = %s
 ```
 
-`permission_problems` line 1246
+`permission_problems` line 1264
 
 ```sql
 SELECT rolcreaterole OR rolsuper FROM pg_catalog.pg_roles WHERE rolname = current_user
 ```
 
-`execute` line 1291
+`execute` line 1309
 
 ```sql
 ROLLBACK TO SAVEPOINT dbap_cmp_dry
@@ -1945,97 +1945,97 @@ SET default_tablespace = '';
 
 ## preimage.py
 
-`_dump_relations` line 143
+`_dump_relations` line 157
 
 ```sql
 SELECT pg_catalog.set_config('search_path'
 ```
 
-`_dump_relations` line 147
+`_dump_relations` line 161
 
 ```sql
 SET default_tablespace = '';
 ```
 
-`_acl_lines` line 195
+`_acl_lines` line 209
 
 ```sql
 REVOKE {a.privilege} ON {kw} {ref} FROM {_grantee(a.grantee)};
 ```
 
-`_acl_lines` line 196
+`_acl_lines` line 210
 
 ```sql
 GRANT {a.privilege} ON {kw} {ref} TO {_grantee(a.grantee)}{' WITH GRANT OPTION' if a.grantable else ''};
 ```
 
-`_acl_lines` line 199
+`_acl_lines` line 213
 
 ```sql
 GRANT {a.privilege} ({_ident(col)}) ON {kw} {ref} TO {_grantee(a.grantee)}{' WITH GRANT OPTION' if a.grantable else ''};
 ```
 
-`_server_version_num` line 217
+`_server_version_num` line 231
 
 ```sql
 SHOW server_version_num
 ```
 
-`_seq_params` line 226
+`_seq_params` line 240
 
 ```sql
 SELECT format_type(seqtypid, NULL), seqstart, seqmin, seqmax, seqincrement, seqcycle, seqcache FROM pg_sequence WHERE seqrelid = %s
 ```
 
-`_seq_params` line 231
+`_seq_params` line 245
 
 ```sql
 SELECT 'bigint', start_value, min_value, max_value, increment_by, is_cycled, cache_value FROM {ref}
 ```
 
-`_setval` line 241
+`_setval` line 255
 
 ```sql
 SELECT has_sequence_privilege(%s, 'SELECT')
 ```
 
-`_setval` line 244
+`_setval` line 258
 
 ```sql
 SELECT last_value, is_called FROM {ref}
 ```
 
-`_setval` line 246
+`_setval` line 260
 
 ```sql
 SELECT setval('{ref}'::regclass, {last}, {'true' if called else 'false'});
 ```
 
-`_sequence_lines` line 253
+`_sequence_lines` line 267
 
 ```sql
 SELECT c.oid, pg_get_userbyid(c.relowner), c.relpersistence, obj_description(c.oid, 'pg_class') FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace WHERE n.nspname = %s AND c.relname = %s AND c.relkind = 'S'
 ```
 
-`_sequence_lines` line 266
+`_sequence_lines` line 280
 
 ```sql
 CREATE {'UNLOGGED ' if persistence == 'u' else ''}SEQUENCE {ref}{astype} START WITH {start} INCREMENT BY {inc} MINVALUE {mn} MAXVALUE {mx} CACHE {cache}{' CYCLE' if cyc else ''};
 ```
 
-`_sequence_lines` line 269
+`_sequence_lines` line 283
 
 ```sql
 ALTER SEQUENCE {ref} OWNER TO {_ident(owner)};
 ```
 
-`_sequence_lines` line 271
+`_sequence_lines` line 285
 
 ```sql
 COMMENT ON SEQUENCE {ref} IS {_lit(comment)};
 ```
 
-`_catalog_relation_defs` line 336
+`_catalog_relation_defs` line 350
 
 ```sql
 SELECT c.oid, c.relkind, pg_get_userbyid(c.relowner),
@@ -2045,7 +2045,7 @@ SELECT c.oid, c.relkind, pg_get_userbyid(c.relowner),
  WHERE n.nspname = %s AND c.relname = %s
 ```
 
-`_catalog_relation_defs` line 382
+`_catalog_relation_defs` line 396
 
 ```sql
 SELECT a.attname, pg_get_expr(d.adbin, d.adrelid), a.attnotnull, a.attstorage, {compression_col}
@@ -2053,13 +2053,13 @@ SELECT a.attname, pg_get_expr(d.adbin, d.adrelid), a.attnotnull, a.attstorage, {
  WHERE a.attrelid = %s AND a.attnum > 0 AND NOT a.attisdropped
 ```
 
-`_catalog_relation_defs` line 394
+`_catalog_relation_defs` line 408
 
 ```sql
 SELECT obj_description(%s, 'pg_class')
 ```
 
-`_catalog_relation_defs` line 397
+`_catalog_relation_defs` line 411
 
 ```sql
 SELECT a.attnum, a.attname, format_type(a.atttypid, a.atttypmod), a.attnotnull,
@@ -2075,85 +2075,85 @@ SELECT a.attnum, a.attname, format_type(a.atttypid, a.atttypmod), a.attnotnull,
  ORDER BY a.attnum
 ```
 
-`_catalog_relation_defs` line 442
+`_catalog_relation_defs` line 456
 
 ```sql
 ALTER {word} {cref} {f'SET DEFAULT {default};' if default else 'DROP DEFAULT;'}
 ```
 
-`_catalog_relation_defs` line 444
+`_catalog_relation_defs` line 458
 
 ```sql
 ALTER {word} {cref} SET NOT NULL;
 ```
 
-`_catalog_relation_defs` line 450
+`_catalog_relation_defs` line 464
 
 ```sql
 ALTER TABLE {cref} SET STORAGE {_STORAGE.get(storage, 'EXTENDED')};
 ```
 
-`_catalog_relation_defs` line 453
+`_catalog_relation_defs` line 467
 
 ```sql
 ALTER TABLE {cref} SET COMPRESSION {_COMPRESSION[compression]};
 ```
 
-`_catalog_relation_defs` line 455
+`_catalog_relation_defs` line 469
 
 ```sql
 ALTER {word} {cref} SET STATISTICS {stattarget};
 ```
 
-`_catalog_relation_defs` line 457
+`_catalog_relation_defs` line 471
 
 ```sql
 ALTER {word} {cref} SET ({', '.join(attoptions)});
 ```
 
-`_catalog_relation_defs` line 459
+`_catalog_relation_defs` line 473
 
 ```sql
 ALTER FOREIGN TABLE {cref} OPTIONS ({_fdw_options(fdwoptions)});
 ```
 
-`_catalog_relation_defs` line 461
+`_catalog_relation_defs` line 475
 
 ```sql
 COMMENT ON COLUMN {ref}.{_ident(cn)} IS {_lit(ccomment)};
 ```
 
-**head** - `_catalog_relation_defs` line 462
+**head** - `_catalog_relation_defs` line 476
 
 ```sql
 CREATE {'UNLOGGED ' if persistence == 'u' else ''}{'FOREIGN TABLE' if kind == 'f' else 'TABLE'} {ref}
 ```
 
-`_catalog_relation_defs` line 467
+`_catalog_relation_defs` line 481
 
 ```sql
 WITH ({', '.join(reloptions)})
 ```
 
-`_catalog_relation_defs` line 470
+`_catalog_relation_defs` line 484
 
 ```sql
 SELECT s.srvname, f.ftoptions FROM pg_foreign_table f JOIN pg_foreign_server s ON s.oid = f.ftserver WHERE f.ftrelid = %s
 ```
 
-`_catalog_relation_defs` line 483
+`_catalog_relation_defs` line 497
 
 ```sql
 SELECT conname, pg_get_constraintdef(oid, true), conislocal FROM pg_constraint WHERE conrelid = %s AND contype IN ('p','u','c','f','x') {own}ORDER BY contype DESC, conname
 ```
 
-**line** - `_catalog_relation_defs` line 488
+**line** - `_catalog_relation_defs` line 502
 
 ```sql
 ALTER {word} {ref} ADD CONSTRAINT {_ident(conname)} {condef};
 ```
 
-`_catalog_relation_defs` line 492
+`_catalog_relation_defs` line 506
 
 ```sql
 SELECT pg_get_indexdef(i.indexrelid), obj_description(i.indexrelid, 'pg_class')
@@ -2164,13 +2164,13 @@ SELECT pg_get_indexdef(i.indexrelid), obj_description(i.indexrelid, 'pg_class')
  ORDER BY 1
 ```
 
-`_catalog_relation_defs` line 504
+`_catalog_relation_defs` line 518
 
 ```sql
 COMMENT ON INDEX {_ident(schema)}.{iname} IS {_lit(icomment)};
 ```
 
-`_catalog_relation_defs` line 509
+`_catalog_relation_defs` line 523
 
 ```sql
 SELECT t.tgname, pg_get_triggerdef(t.oid, true), t.tgenabled, {tgparent_col},
@@ -2179,31 +2179,31 @@ SELECT t.tgname, pg_get_triggerdef(t.oid, true), t.tgenabled, {tgparent_col},
  ORDER BY t.tgname
 ```
 
-`_catalog_relation_defs` line 518
+`_catalog_relation_defs` line 532
 
 ```sql
 ALTER {word} {ref} {_TRIGGER_STATE.get(enabled, 'ENABLE TRIGGER')} {_ident(tgname)};
 ```
 
-`_catalog_relation_defs` line 522
+`_catalog_relation_defs` line 536
 
 ```sql
 SELECT relrowsecurity, relforcerowsecurity FROM pg_class WHERE oid = %s
 ```
 
-`_catalog_relation_defs` line 525
+`_catalog_relation_defs` line 539
 
 ```sql
 ALTER TABLE {ref} ENABLE ROW LEVEL SECURITY;
 ```
 
-`_catalog_relation_defs` line 527
+`_catalog_relation_defs` line 541
 
 ```sql
 ALTER TABLE {ref} FORCE ROW LEVEL SECURITY;
 ```
 
-`_catalog_relation_defs` line 531
+`_catalog_relation_defs` line 545
 
 ```sql
 SELECT polname, {permissive_col}, polcmd,
@@ -2212,61 +2212,61 @@ SELECT polname, {permissive_col}, polcmd,
   FROM pg_policy WHERE polrelid = %s ORDER BY polname
 ```
 
-**st** - `_catalog_relation_defs` line 539
+**st** - `_catalog_relation_defs` line 553
 
 ```sql
 CREATE POLICY {_ident(pname)} ON {ref}{'' if permissive else ' AS RESTRICTIVE'} FOR {cmd.get(pcmd, 'ALL')}
 ```
 
-`_catalog_relation_defs` line 545
+`_catalog_relation_defs` line 559
 
 ```sql
 WITH CHECK ({check})
 ```
 
-`_catalog_relation_defs` line 549
+`_catalog_relation_defs` line 563
 
 ```sql
 SELECT pg_get_ruledef(oid, true) FROM pg_rewrite WHERE ev_class = %s AND rulename <> '_RETURN' ORDER BY rulename
 ```
 
-`_catalog_relation_defs` line 558
+`_catalog_relation_defs` line 572
 
 ```sql
 ALTER {word} {ref} REPLICA IDENTITY FULL;
 ```
 
-`_catalog_relation_defs` line 560
+`_catalog_relation_defs` line 574
 
 ```sql
 ALTER {word} {ref} REPLICA IDENTITY NOTHING;
 ```
 
-`_catalog_relation_defs` line 562
+`_catalog_relation_defs` line 576
 
 ```sql
 SELECT ic.relname FROM pg_index i JOIN pg_class ic ON ic.oid = i.indexrelid WHERE i.indrelid = %s AND i.indisreplident
 ```
 
-`_catalog_relation_defs` line 566
+`_catalog_relation_defs` line 580
 
 ```sql
 ALTER TABLE {ref} REPLICA IDENTITY USING INDEX {_ident(ri[0])};
 ```
 
-`_catalog_relation_defs` line 570
+`_catalog_relation_defs` line 584
 
 ```sql
 SELECT t.spcname FROM pg_class c JOIN pg_tablespace t ON t.oid = c.reltablespace WHERE c.oid = %s
 ```
 
-`_catalog_relation_defs` line 573
+`_catalog_relation_defs` line 587
 
 ```sql
 ALTER TABLE {ref} SET TABLESPACE {_ident(spc[0])};
 ```
 
-`_catalog_relation_defs` line 574
+`_catalog_relation_defs` line 588
 
 ```sql
 SELECT ic.relname, t.spcname FROM pg_index i JOIN pg_class ic ON ic.oid = i.indexrelid
@@ -2274,74 +2274,74 @@ SELECT ic.relname, t.spcname FROM pg_index i JOIN pg_class ic ON ic.oid = i.inde
  WHERE i.indrelid = %s ORDER BY ic.relname
 ```
 
-`_catalog_relation_defs` line 579
+`_catalog_relation_defs` line 593
 
 ```sql
 ALTER INDEX {_ident(schema)}.{_ident(iname)} SET TABLESPACE {_ident(ispc)};
 ```
 
-`_catalog_relation_defs` line 580
+`_catalog_relation_defs` line 594
 
 ```sql
 ALTER {word} {ref} OWNER TO {_ident(owner)};
 ```
 
-`_catalog_relation_defs` line 582
+`_catalog_relation_defs` line 596
 
 ```sql
 COMMENT ON {word} {ref} IS {_lit(comment)};
 ```
 
-`_catalog_relation_defs` line 593
+`_catalog_relation_defs` line 607
 
 ```sql
 ALTER SEQUENCE {_ident(sschema)}.{_ident(sname)} OWNED BY {ref}.{_ident(col)};
 ```
 
-`_catalog_relation_defs` line 599
+`_catalog_relation_defs` line 613
 
 ```sql
 COMMENT ON SEQUENCE {sref} IS {_lit(scomment)};
 ```
 
-`_catalog_relation_defs` line 603
+`_catalog_relation_defs` line 617
 
 ```sql
 SELECT pg_get_viewdef(%s, true)
 ```
 
-`_catalog_relation_defs` line 606
+`_catalog_relation_defs` line 620
 
 ```sql
 WITH ({', '.join(reloptions)})
 ```
 
-`_catalog_relation_defs` line 607
+`_catalog_relation_defs` line 621
 
 ```sql
 SELECT t.spcname FROM pg_class c JOIN pg_tablespace t ON t.oid = c.reltablespace WHERE c.oid = %s
 ```
 
-`_catalog_relation_defs` line 609
+`_catalog_relation_defs` line 623
 
 ```sql
 CREATE {word} {ref}{vopts}{f' TABLESPACE {_ident(vspc[0])}' if vspc else ''} AS
 {body}{' WITH NO DATA' if kind == 'm' else ''};
 ```
 
-`_catalog_relation_defs` line 612
+`_catalog_relation_defs` line 626
 
 ```sql
 SELECT pg_get_indexdef(indexrelid) FROM pg_index WHERE indrelid = %s ORDER BY 1
 ```
 
-`_catalog_relation_defs` line 617
+`_catalog_relation_defs` line 631
 
 ```sql
 SELECT pg_get_ruledef(oid, true) FROM pg_rewrite WHERE ev_class = %s AND rulename <> '_RETURN' ORDER BY rulename
 ```
 
-`_catalog_relation_defs` line 625
+`_catalog_relation_defs` line 639
 
 ```sql
 SELECT a.attname, pg_get_expr(d.adbin, d.adrelid), col_description(a.attrelid, a.attnum)
@@ -2350,37 +2350,37 @@ SELECT a.attname, pg_get_expr(d.adbin, d.adrelid), col_description(a.attrelid, a
                             ORDER BY a.attnum
 ```
 
-`_catalog_relation_defs` line 632
+`_catalog_relation_defs` line 646
 
 ```sql
 ALTER VIEW {ref} ALTER COLUMN {_ident(cn)} SET DEFAULT {vdefault};
 ```
 
-`_catalog_relation_defs` line 634
+`_catalog_relation_defs` line 648
 
 ```sql
 COMMENT ON COLUMN {ref}.{_ident(cn)} IS {_lit(ccomment)};
 ```
 
-`_catalog_relation_defs` line 635
+`_catalog_relation_defs` line 649
 
 ```sql
 SELECT pg_get_triggerdef(oid, true) FROM pg_trigger WHERE tgrelid = %s AND NOT tgisinternal ORDER BY tgname
 ```
 
-`_catalog_relation_defs` line 639
+`_catalog_relation_defs` line 653
 
 ```sql
 ALTER {word} {ref} OWNER TO {_ident(owner)};
 ```
 
-`_catalog_relation_defs` line 641
+`_catalog_relation_defs` line 655
 
 ```sql
 COMMENT ON {word} {ref} IS {_lit(comment)};
 ```
 
-`_index_defs` line 677
+`_index_defs` line 691
 
 ```sql
 SELECT i.indexrelid, pg_get_indexdef(i.indexrelid), obj_description(i.indexrelid, 'pg_class'),
@@ -2392,19 +2392,19 @@ SELECT i.indexrelid, pg_get_indexdef(i.indexrelid), obj_description(i.indexrelid
  WHERE n.nspname = %s AND c.relname = %s
 ```
 
-`_index_defs` line 692
+`_index_defs` line 706
 
 ```sql
 ALTER TABLE {_ident(tschema)}.{_ident(tname)} ADD CONSTRAINT {_ident(conname)} {condef};
 ```
 
-`_index_defs` line 696
+`_index_defs` line 710
 
 ```sql
 COMMENT ON INDEX {_ident(schema)}.{_ident(name)} IS {_lit(comment)};
 ```
 
-`_type_defs` line 708
+`_type_defs` line 722
 
 ```sql
 SELECT t.oid, t.typtype, pg_get_userbyid(t.typowner), obj_description(t.oid, 'pg_type'),
@@ -2414,31 +2414,31 @@ SELECT t.oid, t.typtype, pg_get_userbyid(t.typowner), obj_description(t.oid, 'pg
  WHERE n.nspname = %s AND t.typname = %s
 ```
 
-`_type_defs` line 722
+`_type_defs` line 736
 
 ```sql
 SELECT enumlabel FROM pg_enum WHERE enumtypid = %s ORDER BY enumsortorder
 ```
 
-`_type_defs` line 724
+`_type_defs` line 738
 
 ```sql
 CREATE TYPE {ref} AS ENUM ({labels});
 ```
 
-**line** - `_type_defs` line 727
+**line** - `_type_defs` line 741
 
 ```sql
 CREATE DOMAIN {ref} AS {basetype}
 ```
 
-`_type_defs` line 736
+`_type_defs` line 750
 
 ```sql
 SELECT conname, pg_get_constraintdef(oid, true) FROM pg_constraint WHERE contypid = %s AND contype <> 'n' ORDER BY conname
 ```
 
-`_type_defs` line 742
+`_type_defs` line 756
 
 ```sql
 SELECT a.attname, format_type(a.atttypid, a.atttypmod),
@@ -2448,7 +2448,7 @@ SELECT a.attname, format_type(a.atttypid, a.atttypmod),
  WHERE a.attrelid = %s AND a.attnum > 0 AND NOT a.attisdropped ORDER BY a.attnum
 ```
 
-`_type_defs` line 750
+`_type_defs` line 764
 
 ```sql
 CREATE TYPE {ref} AS (
@@ -2456,7 +2456,7 @@ CREATE TYPE {ref} AS (
 );
 ```
 
-`_type_defs` line 759
+`_type_defs` line 773
 
 ```sql
 SELECT format_type(r.rngsubtype, NULL),
@@ -2469,25 +2469,25 @@ SELECT format_type(r.rngsubtype, NULL),
   FROM pg_range r WHERE r.rngtypid = %s
 ```
 
-`_type_defs` line 781
+`_type_defs` line 795
 
 ```sql
 CREATE TYPE {ref} AS RANGE ({', '.join(parts)});
 ```
 
-`_type_defs` line 785
+`_type_defs` line 799
 
 ```sql
 ALTER {word} {ref} OWNER TO {_ident(owner)};
 ```
 
-`_type_defs` line 789
+`_type_defs` line 803
 
 ```sql
 COMMENT ON {word} {ref} IS {_lit(comment)};
 ```
 
-`_multirange_owners` line 803
+`_multirange_owners` line 817
 
 ```sql
 SELECT quote_ident(n.nspname) || '.' || quote_ident(t.typname), pg_get_userbyid(t.typowner)
@@ -2495,19 +2495,19 @@ SELECT quote_ident(n.nspname) || '.' || quote_ident(t.typname), pg_get_userbyid(
  WHERE r.rngtypid = ANY(%s::oid[]) ORDER BY t.oid
 ```
 
-`_multirange_owners` line 807
+`_multirange_owners` line 821
 
 ```sql
 ALTER TYPE {mref} OWNER TO {_ident(owner)};
 ```
 
-`_schema_contents` line 816
+`_schema_contents` line 830
 
 ```sql
 SELECT oid, pg_get_userbyid(nspowner), obj_description(oid, 'pg_namespace') FROM pg_namespace WHERE nspname = %s
 ```
 
-`_schema_contents` line 837
+`_schema_contents` line 851
 
 ```sql
 SELECT DISTINCT d.objid FROM pg_depend d JOIN pg_type t ON t.oid = d.refobjid
@@ -2517,19 +2517,19 @@ SELECT DISTINCT d.objid FROM pg_depend d JOIN pg_type t ON t.oid = d.refobjid
    AND c.relkind <> 'c' AND c.relnamespace = %s
 ```
 
-`_schema_contents` line 853
+`_schema_contents` line 867
 
 ```sql
 CREATE SCHEMA {_ident(schema)} AUTHORIZATION {_ident(owner)};
 ```
 
-`_schema_contents` line 855
+`_schema_contents` line 869
 
 ```sql
 COMMENT ON SCHEMA {_ident(schema)} IS {_lit(comment)};
 ```
 
-`_collation_defs` line 873
+`_collation_defs` line 887
 
 ```sql
 SELECT c.collname, pg_get_userbyid(c.collowner), obj_description(c.oid, 'pg_collation'),
@@ -2538,31 +2538,31 @@ SELECT c.collname, pg_get_userbyid(c.collowner), obj_description(c.oid, 'pg_coll
  WHERE n.nspname = %s ORDER BY c.oid
 ```
 
-`_collation_defs` line 894
+`_collation_defs` line 908
 
 ```sql
 CREATE COLLATION {ref} ({', '.join(opts)});
 ```
 
-`_collation_defs` line 895
+`_collation_defs` line 909
 
 ```sql
 ALTER COLLATION {ref} OWNER TO {_ident(owner)};
 ```
 
-`_collation_defs` line 897
+`_collation_defs` line 911
 
 ```sql
 COMMENT ON COLLATION {ref} IS {_lit(comment)};
 ```
 
-**head** - `_default_acl_lines` line 911
+**head** - `_default_acl_lines` line 925
 
 ```sql
 ALTER DEFAULT PRIVILEGES FOR ROLE {_ident(d['role'])} IN SCHEMA {_ident(schema)}
 ```
 
-`_aggregate_def` line 928
+`_aggregate_def` line 942
 
 ```sql
 SELECT pg_get_function_arguments(a.aggfnoid), p.pronargs, a.aggkind,
@@ -2579,7 +2579,7 @@ SELECT pg_get_function_arguments(a.aggfnoid), p.pronargs, a.aggkind,
   FROM pg_aggregate a JOIN pg_proc p ON p.oid = a.aggfnoid WHERE a.aggfnoid = %s
 ```
 
-`_aggregate_def` line 983
+`_aggregate_def` line 997
 
 ```sql
 CREATE AGGREGATE {ref}({'*' if nargs == 0 else args}) (
@@ -2587,7 +2587,7 @@ CREATE AGGREGATE {ref}({'*' if nargs == 0 else args}) (
 );
 ```
 
-`_routine_defs` line 998
+`_routine_defs` line 1012
 
 ```sql
 SELECT p.oid, {kind_col}, pg_get_userbyid(p.proowner), obj_description(p.oid, 'pg_proc'),
@@ -2598,37 +2598,37 @@ SELECT p.oid, {kind_col}, pg_get_userbyid(p.proowner), obj_description(p.oid, 'p
  ORDER BY p.oid
 ```
 
-`_routine_defs` line 1022
+`_routine_defs` line 1036
 
 ```sql
 SELECT pg_get_functiondef(%s)
 ```
 
-`_routine_defs` line 1027
+`_routine_defs` line 1041
 
 ```sql
 ALTER {word} {rref} OWNER TO {_ident(owner)};
 ```
 
-`_routine_defs` line 1029
+`_routine_defs` line 1043
 
 ```sql
 COMMENT ON {word} {rref} IS {_lit(comment)};
 ```
 
-`_schema_defs` line 1040
+`_schema_defs` line 1054
 
 ```sql
 SELECT pg_get_userbyid(nspowner), nspacl::text FROM pg_namespace WHERE nspname = %s
 ```
 
-`_schema_defs` line 1045
+`_schema_defs` line 1059
 
 ```sql
 ALTER SCHEMA {_ident(name)} OWNER TO {_ident(row[0])};
 ```
 
-`_owner_defs` line 1062
+`_owner_defs` line 1076
 
 ```sql
 SELECT pg_get_userbyid(x.{ocol}) FROM {cat} x
@@ -2636,7 +2636,7 @@ SELECT pg_get_userbyid(x.{ocol}) FROM {cat} x
  WHERE n.nspname = %s AND x.{ncol} = %s
 ```
 
-`_inbound_fks` line 1084
+`_inbound_fks` line 1098
 
 ```sql
 SELECT DISTINCT tn.nspname, t.relname, k.conname, pg_get_constraintdef(k.oid, true)
@@ -2647,13 +2647,13 @@ SELECT DISTINCT tn.nspname, t.relname, k.conname, pg_get_constraintdef(k.oid, tr
  ORDER BY 1, 2, 3
 ```
 
-`_inbound_fks` line 1097
+`_inbound_fks` line 1111
 
 ```sql
 ALTER TABLE {_ident(tschema)}.{_ident(tname)} ADD CONSTRAINT {_ident(conname)} {condef};
 ```
 
-`_rel_oids` line 1106
+`_rel_oids` line 1120
 
 ```sql
 SELECT n.nspname, c.relname, c.oid, c.relkind::text
@@ -2662,98 +2662,98 @@ SELECT n.nspname, c.relname, c.oid, c.relkind::text
                      JOIN pg_class c ON c.relnamespace = n.oid AND c.relname = u.r
 ```
 
-`_written_after_all` line 1205
+`_written_after_all` line 1219
 
 ```sql
 SELECT refclassid::regclass::text, refobjid FROM pg_depend WHERE classid = %s::regclass AND objid = %s AND deptype = 'i'
 ```
 
-`_written_after_all` line 1211
+`_written_after_all` line 1225
 
 ```sql
 SELECT n.nspname FROM pg_default_acl d JOIN pg_namespace n ON n.oid = d.defaclnamespace WHERE d.oid = %s
 ```
 
-`_written_after_all` line 1214
+`_written_after_all` line 1228
 
 ```sql
 SELECT schema FROM pg_identify_object(%s::regclass, %s, %s)
 ```
 
-`server_identity` line 1240
+`server_identity` line 1254
 
 ```sql
 SELECT current_database()
 ```
 
-`server_identity` line 1244
+`server_identity` line 1258
 
 ```sql
 SHOW server_version_num
 ```
 
-`server_identity` line 1247
+`server_identity` line 1261
 
 ```sql
 SELECT system_identifier::text FROM pg_control_system()
 ```
 
-`capture` line 1392
+`capture` line 1412
 
 ```sql
 SHOW search_path
 ```
 
-`capture` line 1396
+`capture` line 1416
 
 ```sql
 SELECT pg_catalog.set_config('search_path', 'pg_catalog', false)
 ```
 
-`capture` line 1402
+`capture` line 1422
 
 ```sql
 SELECT to_regclass(%s)::oid
 ```
 
-`capture` line 1458
+`capture` line 1478
 
 ```sql
 SELECT r.rngtypid FROM pg_range r JOIN pg_type t ON t.oid = r.rngtypid JOIN pg_namespace n ON n.oid = t.typnamespace WHERE n.nspname = ANY(%s)
 ```
 
-`capture` line 1474
+`capture` line 1494
 
 ```sql
 SELECT s.oid FROM pg_statistic_ext s JOIN pg_namespace n ON n.oid = s.stxnamespace WHERE s.oid = ANY(%s) AND n.nspname = ANY(%s)
 ```
 
-`capture` line 1501
+`capture` line 1521
 
 ```sql
 SET check_function_bodies = false;
 {_routine_defs(cur, cascaded_routines)}
 ```
 
-`capture` line 1514
+`capture` line 1534
 
 ```sql
 SELECT relkind FROM pg_class WHERE oid = to_regclass(%s)
 ```
 
-`capture` line 1519
+`capture` line 1539
 
 ```sql
 REFRESH MATERIALIZED VIEW {_ident(schema)}.{_ident(name)};
 ```
 
-`capture` line 1539
+`capture` line 1559
 
 ```sql
 SELECT pg_catalog.set_config('search_path', %s, false)
 ```
 
-`capture` line 1557
+`capture` line 1577
 
 ```sql
 SET check_function_bodies = false;
@@ -2761,13 +2761,13 @@ SET check_function_bodies = false;
 
 ## preimage_cascade.py
 
-`roots` line 85
+`roots` line 115
 
 ```sql
 SELECT 'pg_namespace', oid FROM pg_namespace WHERE nspname = %s
 ```
 
-`roots` line 90
+`roots` line 120
 
 ```sql
 SELECT 'pg_proc', p.oid FROM pg_proc p JOIN pg_namespace n ON n.oid = p.pronamespace
@@ -2777,229 +2777,278 @@ SELECT 'pg_proc', p.oid FROM pg_proc p JOIN pg_namespace n ON n.oid = p.pronames
  ORDER BY p.oid LIMIT 1
 ```
 
-`roots` line 97
+`roots` line 127
 
 ```sql
 SELECT 'pg_type', to_regtype(%s)::oid
 ```
 
-`roots` line 99
+`roots` line 131
+
+```sql
+SELECT %s, oid FROM pg_catalog.{cat} WHERE {rel} = to_regclass(%s) AND {col} = %s
+```
+
+`roots` line 136
+
+```sql
+SELECT %s, x.oid FROM pg_catalog.{cat} x JOIN pg_namespace n ON n.oid = x.{nsp} WHERE n.nspname = %s AND x.{col} = %s
+```
+
+`roots` line 139
+
+```sql
+SELECT %s, oid FROM pg_catalog.{cat} WHERE {col} = %s
+```
+
+`roots` line 141
 
 ```sql
 SELECT 'pg_class', to_regclass(%s)::oid
 ```
 
-`_still_there` line 108
+`_gone` line 171
 
 ```sql
-SELECT EXISTS (SELECT 1 FROM pg_attribute WHERE attrelid = %s AND attnum = %s AND NOT attisdropped)
+SELECT %s::text, u.o, 0 FROM unnest(%s::oid[]) AS u(o) WHERE NOT EXISTS (SELECT 1 FROM pg_catalog.{cat} x WHERE x.oid = u.o)
 ```
 
-`_still_there` line 111
+`_gone` line 175
 
 ```sql
-SELECT EXISTS (SELECT 1 FROM pg_catalog.{cat} WHERE oid = %s)
+SELECT 'pg_class', u.r, u.a FROM unnest(%s::oid[], %s::int[]) AS u(r, a) WHERE NOT EXISTS (SELECT 1 FROM pg_catalog.pg_attribute x WHERE x.attrelid = u.r AND x.attnum = u.a AND NOT x.attisdropped)
 ```
 
-`closure` line 145
+`closure` line 215
 
 ```sql
 SELECT count(*) FROM pg_event_trigger WHERE evtenabled <> 'D' AND evtevent IN ('ddl_command_start', 'ddl_command_end', 'sql_drop')
 ```
 
-`closure` line 152
+`closure` line 222
 
 ```sql
 SET LOCAL lock_timeout = '3s'
 ```
 
-`classify` line 198
+`closure` line 226
 
 ```sql
-SELECT n.nspname, c.relname, c.relkind FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace WHERE c.oid = %s
+SET LOCAL statement_timeout = '10s'
 ```
 
-`classify` line 210
+`closure` line 228
 
 ```sql
-SELECT c.relkind, i.indrelid, c.relnamespace = 'pg_toast'::regnamespace FROM pg_class c LEFT JOIN pg_index i ON i.indexrelid = c.oid WHERE c.oid = %s
+SET LOCAL idle_in_transaction_session_timeout = '5s'
 ```
 
-`classify` line 214
+**_WHOLE_SQL** - `(module)` line 252
 
 ```sql
-SELECT 1 FROM pg_constraint WHERE conindid = %s AND contype IN ('p', 'u', 'x')
+WITH s(c, o, sub) AS (SELECT * FROM unnest(%s::regclass[], %s::oid[], %s::int[]))
+SELECT s.c::text, s.o, s.sub FROM s
+ WHERE NOT (s.sub = 0 AND EXISTS (
+         SELECT 1 FROM pg_depend d JOIN s p ON p.c = d.refclassid AND p.o = d.refobjid AND p.sub = 0
+          WHERE d.classid = s.c AND d.objid = s.o AND d.objsubid = 0
+            AND d.deptype IN ('a', 'i', 'P', 'S', 'e', 'x')
+            AND NOT (d.refclassid = d.classid AND d.refobjid = d.objid)))
+   AND NOT (s.sub <> 0 AND EXISTS (SELECT 1 FROM s p WHERE p.c = s.c AND p.o = s.o AND p.sub = 0))
 ```
 
-`classify` line 225
+**_RELS_SQL** - `(module)` line 269
 
 ```sql
-SELECT nspname FROM pg_namespace WHERE oid = %s
+SELECT c.oid, n.nspname, c.relname, c.relkind::text, greatest(c.reltuples, 0)::float8,
+       (c.relpages::bigint + coalesce(t.relpages, 0)) * current_setting('block_size')::bigint,
+       c.relkind = 'r' AND (c.reltuples < 0 OR (c.relpages = 0 AND (coalesce(st.live, 0) > 0
+                                                                 OR (%s AND st.last IS NULL))))
+  FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace
+  LEFT JOIN pg_class t ON t.oid = c.reltoastrelid
+  LEFT JOIN LATERAL (SELECT greatest(last_vacuum, last_autovacuum, last_analyze, last_autoanalyze) AS last,
+                            n_live_tup AS live
+                       FROM pg_stat_all_tables WHERE relid = c.oid) st ON true
+ WHERE c.oid = ANY(%s) AND c.relkind IN ('r', 'p', 'v', 'm', 'f', 'S')
 ```
 
-`classify` line 234
+`classify` line 358
 
 ```sql
-SELECT 1 FROM pg_depend WHERE classid = 'pg_proc'::regclass AND objid = %s AND deptype = 'i'
+SELECT c.oid, n.nspname, c.relname, c.relkind::text, i.indrelid, n.nspname = 'pg_toast',
+       EXISTS (SELECT 1 FROM pg_constraint k WHERE k.conindid = c.oid AND k.contype IN ('p', 'u', 'x'))
+  FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace
+  LEFT JOIN pg_index i ON i.indexrelid = c.oid
+ WHERE c.oid = ANY(%s)
 ```
 
-`classify` line 238
+`classify` line 388
 
 ```sql
-SELECT n.nspname, p.proname, pg_get_function_identity_arguments(p.oid) FROM pg_proc p JOIN pg_namespace n ON n.oid = p.pronamespace WHERE p.oid = %s
+SELECT oid, nspname FROM pg_namespace WHERE oid = ANY(%s)
 ```
 
-`classify` line 246
+`classify` line 397
 
 ```sql
-SELECT n.nspname, t.typname, t.typtype, t.typelem, t.typrelid, (SELECT relkind FROM pg_class WHERE oid = t.typrelid) FROM pg_type t JOIN pg_namespace n ON n.oid = t.typnamespace WHERE t.oid = %s
+SELECT p.oid, n.nspname, p.proname, pg_get_function_identity_arguments(p.oid),
+       EXISTS (SELECT 1 FROM pg_depend d WHERE d.classid = 'pg_proc'::regclass AND d.objid = p.oid
+                  AND d.deptype = 'i')
+  FROM pg_proc p JOIN pg_namespace n ON n.oid = p.pronamespace WHERE p.oid = ANY(%s)
 ```
 
-`classify` line 263
+`classify` line 409
+
+```sql
+SELECT t.oid, n.nspname, t.typname, t.typtype::text, t.typelem, t.typrelid,
+       (SELECT relkind::text FROM pg_class WHERE oid = t.typrelid)
+  FROM pg_type t JOIN pg_namespace n ON n.oid = t.typnamespace WHERE t.oid = ANY(%s)
+```
+
+`classify` line 429
 
 ```sql
 SELECT oid, conrelid, contypid, contype, conname, conislocal, coninhcount FROM pg_constraint WHERE oid = ANY(%s)
 ```
 
-`classify` line 289
+`classify` line 454
 
 ```sql
-SELECT tgrelid, tgisinternal, tgname, tgenabled FROM pg_trigger WHERE oid = %s
+SELECT oid, tgrelid, tgisinternal, tgname, tgenabled::text FROM pg_trigger WHERE oid = ANY(%s)
 ```
 
-`classify` line 297
+`classify` line 457
 
 ```sql
-SELECT tgenabled FROM pg_trigger WHERE oid = %s
+SELECT oid, tgenabled::text FROM pg_trigger WHERE oid = ANY(%s)
 ```
 
-`classify` line 306
+`classify` line 474
 
 ```sql
-SELECT adrelid, adnum FROM pg_attrdef WHERE oid = %s
+SELECT oid, adrelid, adnum FROM pg_attrdef WHERE oid = ANY(%s)
 ```
 
-`classify` line 312
+`classify` line 480
 
 ```sql
-SELECT polrelid FROM pg_policy WHERE oid = %s
+SELECT oid, polrelid FROM pg_policy WHERE oid = ANY(%s)
 ```
 
-`classify` line 318
+`classify` line 486
 
 ```sql
-SELECT ev_class, rulename FROM pg_rewrite WHERE oid = %s
+SELECT oid, ev_class, rulename FROM pg_rewrite WHERE oid = ANY(%s)
 ```
 
-`piece_defs.rel_ref` line 342
+`piece_defs.rel_ref` line 511
 
 ```sql
 SELECT quote_ident(n.nspname) || '.' || quote_ident(c.relname) FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace WHERE c.oid = %s
 ```
 
-`piece_defs` line 349
+`piece_defs` line 518
 
 ```sql
 SELECT attname, format_type(atttypid, atttypmod), attnotnull FROM pg_attribute WHERE attrelid = %s AND attnum = %s
 ```
 
-`piece_defs` line 352
+`piece_defs` line 521
 
 ```sql
 ALTER TABLE {rel_ref(relid)} ADD COLUMN {_ident(name)} {typ};
 ```
 
-`piece_defs` line 358
+`piece_defs` line 527
 
 ```sql
 SELECT adrelid, (SELECT attname FROM pg_attribute WHERE attrelid = adrelid AND attnum = adnum), pg_get_expr(adbin, adrelid) FROM pg_attrdef WHERE oid = %s
 ```
 
-`piece_defs` line 361
+`piece_defs` line 530
 
 ```sql
 ALTER TABLE {rel_ref(relid)} ALTER COLUMN {_ident(col)} SET DEFAULT {expr};
 ```
 
-`piece_defs` line 366
+`piece_defs` line 535
 
 ```sql
 SELECT conname, conrelid, contypid, pg_get_constraintdef(oid, true), contype FROM pg_constraint WHERE oid = %s
 ```
 
-`piece_defs` line 373
+`piece_defs` line 542
 
 ```sql
 SELECT array_agg(quote_ident(a.attname)) FROM pg_constraint k JOIN pg_attribute a ON a.attrelid = k.conrelid AND a.attnum = ANY(k.conkey) WHERE k.oid = %s
 ```
 
-`piece_defs` line 378
+`piece_defs` line 547
 
 ```sql
 SELECT EXISTS (SELECT 1 FROM {rel_ref(relid)} WHERE {cond})
 ```
 
-`piece_defs` line 386
+`piece_defs` line 555
 
 ```sql
 ALTER TABLE {ref} ADD CONSTRAINT {_ident(name)} {defn} NOT VALID;
 ```
 
-`piece_defs` line 387
+`piece_defs` line 556
 
 ```sql
 ALTER TABLE {ref} VALIDATE CONSTRAINT {_ident(name)};
 ```
 
-`piece_defs` line 389
+`piece_defs` line 558
 
 ```sql
 ALTER TABLE {rel_ref(relid)} ADD CONSTRAINT {_ident(name)} {defn};
 ```
 
-`piece_defs` line 391
+`piece_defs` line 560
 
 ```sql
 SELECT %s::regtype::text
 ```
 
-`piece_defs` line 392
+`piece_defs` line 561
 
 ```sql
 ALTER DOMAIN {cur.fetchone()[0]} ADD CONSTRAINT {_ident(name)} {defn};
 ```
 
-`piece_defs` line 396
+`piece_defs` line 565
 
 ```sql
 SELECT pg_get_indexdef(%s), (SELECT spcname FROM pg_tablespace WHERE oid = (SELECT reltablespace FROM pg_class WHERE oid = %s))
 ```
 
-`piece_defs` line 410
+`piece_defs` line 579
 
 ```sql
 ALTER INDEX {rel_ref(p)} ATTACH PARTITION {rel_ref(c)};
 ```
 
-`piece_defs` line 415
+`piece_defs` line 584
 
 ```sql
 SELECT pg_get_triggerdef(%s, true), tgrelid, tgname, tgenabled FROM pg_trigger WHERE oid = %s
 ```
 
-`piece_defs` line 420
+`piece_defs` line 589
 
 ```sql
 ALTER TABLE {rel_ref(relid)} {_TRIGGER_STATE.get(enabled, 'ENABLE TRIGGER')} {_ident(name)};
 ```
 
-`piece_defs` line 425
+`piece_defs` line 594
 
 ```sql
 ALTER TABLE {rel_ref(relid)} {_TRIGGER_STATE.get(enabled, 'ENABLE TRIGGER')} {_ident(name)};
 ```
 
-`piece_defs` line 430
+`piece_defs` line 599
 
 ```sql
 SELECT polname, polrelid, polpermissive, polcmd,
@@ -3008,158 +3057,158 @@ SELECT polname, polrelid, polpermissive, polcmd,
   FROM pg_policy WHERE oid = %s
 ```
 
-**st** - `piece_defs` line 436
+**st** - `piece_defs` line 605
 
 ```sql
 CREATE POLICY {_ident(pname)} ON {rel_ref(relid)}{'' if permissive else ' AS RESTRICTIVE'} FOR {cmd.get(pcmd, 'ALL')}
 ```
 
-`piece_defs` line 443
+`piece_defs` line 612
 
 ```sql
 WITH CHECK ({check})
 ```
 
-`piece_defs` line 448
+`piece_defs` line 617
 
 ```sql
 SELECT pg_get_ruledef(%s, true)
 ```
 
-`piece_defs` line 454
+`piece_defs` line 623
 
 ```sql
 SELECT pg_get_statisticsobjdef(s.oid), quote_ident(n.nspname) || '.' || quote_ident(s.stxname), quote_ident(pg_get_userbyid(s.stxowner)) FROM pg_statistic_ext s JOIN pg_namespace n ON n.oid = s.stxnamespace WHERE s.oid = %s
 ```
 
-`piece_defs` line 460
+`piece_defs` line 629
 
 ```sql
 ALTER STATISTICS {sname} OWNER TO {sowner};
 ```
 
-`piece_defs` line 468
+`piece_defs` line 637
 
 ```sql
 SELECT p.pubname, pr.prrelid FROM pg_publication_rel pr JOIN pg_publication p ON p.oid = pr.prpubid WHERE pr.oid = %s
 ```
 
-`piece_defs` line 471
+`piece_defs` line 640
 
 ```sql
 ALTER PUBLICATION {_ident(pub)} ADD TABLE {rel_ref(relid)};
 ```
 
-`rows_size` line 488
+`rows_size` line 657
 
 ```sql
 SELECT pg_table_size(to_regclass(%s))
 ```
 
-`save_rows` line 509
+`_save_rows` line 697
 
 ```sql
-SELECT attname FROM pg_attribute WHERE attrelid = to_regclass(%s) AND attnum > 0 AND NOT attisdropped {gen} ORDER BY attnum
+SELECT n.nspname, c.relname, array_agg(a.attname::text ORDER BY a.attnum) FROM unnest(%s::text[], %s::text[]) AS u(s, r) JOIN pg_namespace n ON n.nspname = u.s JOIN pg_class c ON c.relnamespace = n.oid AND c.relname = u.r JOIN pg_attribute a ON a.attrelid = c.oid AND a.attnum > 0 AND NOT a.attisdropped {gen} GROUP BY n.nspname, c.relname
 ```
 
-`save_rows` line 517
+`_save_rows` line 717
 
 ```sql
 COPY {ref} ({collist}) TO STDOUT
 ```
 
-`save_rows` line 518
+`_save_rows` line 722
 
 ```sql
 SELECT count(*) FROM {ref}
 ```
 
-`save_rows` line 523
+`_save_rows` line 729
 
 ```sql
 SELECT n.nspname, c.relname, a.attname FROM pg_attribute a JOIN pg_class c ON c.oid = a.attrelid JOIN pg_namespace n ON n.oid = c.relnamespace WHERE a.attrelid = %s AND a.attnum = %s
 ```
 
-`save_rows` line 526
+`_save_rows` line 732
 
 ```sql
 SELECT a.attname FROM pg_index i JOIN pg_attribute a ON a.attrelid = i.indrelid
                         AND a.attnum = ANY(i.indkey) WHERE i.indrelid = %s AND i.indisprimary ORDER BY a.attnum
 ```
 
-`save_rows` line 539
+`_save_rows` line 746
 
 ```sql
 COPY (SELECT {sel} FROM {ref}) TO STDOUT
 ```
 
-`_pgver` line 550
+`_pgver` line 760
 
 ```sql
 SHOW server_version_num
 ```
 
-`restore_rows` line 580
+`restore_rows` line 790
 
 ```sql
 SELECT to_regclass(%s)::oid
 ```
 
-`restore_rows` line 586
+`restore_rows` line 796
 
 ```sql
 SELECT EXISTS (SELECT 1 FROM {ref})
 ```
 
-`restore_rows` line 590
+`restore_rows` line 800
 
 ```sql
 SELECT 1 FROM pg_attribute WHERE attrelid = to_regclass(%s) AND attname = %s AND NOT attisdropped
 ```
 
-`restore_rows` line 600
+`restore_rows` line 810
 
 ```sql
 SELECT conrelid, confrelid FROM pg_constraint WHERE contype = 'f' AND conrelid = ANY(%s) AND confrelid = ANY(%s) AND conrelid <> confrelid
 ```
 
-`restore_rows` line 621
+`restore_rows` line 831
 
 ```sql
 COPY {ref} ({collist}) FROM STDIN
 ```
 
-`restore_rows` line 625
+`restore_rows` line 835
 
 ```sql
 SELECT format_type(atttypid, atttypmod) FROM pg_attribute WHERE attrelid = to_regclass(%s) AND attname = %s
 ```
 
-`restore_rows` line 629
+`restore_rows` line 839
 
 ```sql
 CREATE TEMP TABLE _dbap_colvals ON COMMIT DROP AS SELECT {keys} FROM {ref} WITH NO DATA
 ```
 
-`restore_rows` line 630
+`restore_rows` line 840
 
 ```sql
 ALTER TABLE _dbap_colvals ADD COLUMN _v text
 ```
 
-`restore_rows` line 632
+`restore_rows` line 842
 
 ```sql
 COPY _dbap_colvals ({keys}, _v) FROM STDIN
 ```
 
-`restore_rows` line 634
+`restore_rows` line 844
 
 ```sql
 UPDATE {ref} t SET {_ident(c['column'])} = v._v::{typ} FROM _dbap_colvals v WHERE {match}
 ```
 
-`restore_rows` line 636
+`restore_rows` line 846
 
 ```sql
 DROP TABLE _dbap_colvals
@@ -3743,7 +3792,13 @@ SELECT t.tgfoid, tn.nspname, tc.relname, t.tgname
 SELECT schemaname, tablename, policyname, qual, with_check FROM pg_policies
 ```
 
-`_clone_plan` line 731
+`_firing_sql` line 708
+
+```sql
+ALTER TABLE {table_ref} {word} {kind} {_qi(name)};
+```
+
+`_clone_plan` line 749
 
 ```sql
 SELECT c.oid, c.relkind FROM pg_class c
@@ -3751,25 +3806,25 @@ JOIN pg_namespace n ON n.oid = c.relnamespace
 WHERE n.nspname = %s AND c.relname = %s
 ```
 
-`_clone_plan` line 744
+`_clone_plan` line 762
 
 ```sql
 SELECT 1 FROM pg_namespace WHERE nspname = %s
 ```
 
-`_clone_plan` line 749
+`_clone_plan` line 767
 
 ```sql
 SELECT 1 FROM pg_roles WHERE rolname = %s
 ```
 
-`_clone_plan` line 754
+`_clone_plan` line 772
 
 ```sql
 SELECT 1 FROM pg_tablespace WHERE spcname = %s
 ```
 
-`_clone_plan` line 764
+`_clone_plan` line 782
 
 ```sql
 SELECT DISTINCT k.confrelid
@@ -3778,13 +3833,13 @@ WHERE k.conrelid = %s AND k.contype = 'f'
   AND k.confrelid <> k.conrelid AND rc.relkind IN ('r','p')
 ```
 
-`_clone_plan` line 787
+`_clone_plan` line 805
 
 ```sql
 SELECT c.relkind FROM pg_class c WHERE c.oid = %s
 ```
 
-`_clone_plan` line 792
+`_clone_plan` line 810
 
 ```sql
 SELECT i.inhrelid, pg_get_expr(c.relpartbound, c.oid)
@@ -3794,7 +3849,7 @@ SELECT i.inhrelid, pg_get_expr(c.relpartbound, c.oid)
  ORDER BY c.relname
 ```
 
-`_clone_plan` line 815
+`_clone_plan` line 833
 
 ```sql
 SELECT n.nspname, c.relname, {_rls_col}, c.relacl, c.relkind
@@ -3802,42 +3857,60 @@ FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace
 WHERE c.oid = %s
 ```
 
-`_clone_plan` line 840
+`_clone_plan` line 858
 
 ```sql
 SELECT 1 FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace
 WHERE n.nspname = %s AND c.relname = %s
 ```
 
-`_clone_plan` line 871
+`_clone_plan` line 891
 
 ```sql
 CREATE TABLE {_qq(ts, tn)} PARTITION OF {_qq(parent_ts, parent_tn)} {bound or 'DEFAULT'}{ts_clause};
 ```
 
-`_clone_plan` line 876
+`_clone_plan` line 901
 
 ```sql
-CREATE TABLE {_qq(ts, tn)} (LIKE {_qq(si['schema'], si['name'])} {incl}){ts_clause};
+SELECT pg_catalog.pg_get_partkeydef(%s)
 ```
 
-`_clone_plan` line 886
+`_clone_plan` line 904
 
 ```sql
-SELECT count(*) FROM pg_attribute WHERE attrelid = %s AND attidentity = 'a'
+CREATE TABLE {_qq(ts, tn)} (LIKE {_qq(si['schema'], si['name'])} {incl}){partby}{ts_clause};
 ```
 
-`_clone_plan` line 890
+`_clone_plan` line 946
 
 ```sql
-INSERT INTO {_qq(ts, tn)}{ovr} SELECT * FROM {_qq(si['schema'], si['name'])};
+SELECT attname, {_ident} FROM pg_attribute WHERE attrelid = %s AND attnum > 0 AND NOT attisdropped {_gen} ORDER BY attnum
 ```
 
-`_clone_plan` line 897
+**st** - `_clone_plan` line 955
+
+```sql
+INSERT INTO {_qq(ts, tn)} ({collist}){ovr} SELECT {collist} FROM {_qq(si['schema'], si['name'])};
+```
+
+`_clone_plan` line 966
+
+```sql
+SET LOCAL row_security = off;
+```
+
+`_clone_plan` line 969
+
+```sql
+RESET row_security;
+```
+
+`_clone_plan` line 981
 
 ```sql
 SELECT k.conname, k.confrelid, k.confupdtype, k.confdeltype, k.confmatchtype,
-       k.condeferrable, k.condeferred,
+       k.condeferrable, k.condeferred, k.convalidated, {_enf} AS enforced,
        (SELECT array_agg(a.attname ORDER BY u.ord)
           FROM unnest(k.conkey) WITH ORDINALITY u(attnum, ord)
           JOIN pg_attribute a ON a.attrelid = k.conrelid AND a.attnum = u.attnum) AS cols,
@@ -3848,33 +3921,33 @@ FROM pg_constraint k
 WHERE k.conrelid = %s AND k.contype = 'f'
 ```
 
-`_clone_plan` line 913
+`_clone_plan` line 998
 
 ```sql
 SELECT n.nspname, c.relname FROM pg_class c
                                JOIN pg_namespace n ON n.oid = c.relnamespace WHERE c.oid = %s
 ```
 
-`_clone_plan` line 927
+`_clone_plan` line 1019
 
 ```sql
 ALTER TABLE {_qq(ts, tn)} ADD CONSTRAINT {_qi(cn)} {' '.join(parts)};
 ```
 
-`_clone_plan` line 935
+`_clone_plan` line 1027
 
 ```sql
-SELECT pg_get_triggerdef(t.oid), %s::regclass::text
+SELECT pg_get_triggerdef(t.oid), %s::regclass::text, t.tgname, t.tgenabled::text
 FROM pg_trigger t WHERE t.tgrelid = %s AND NOT t.tgisinternal
 ```
 
-`_clone_plan` line 950
+`_clone_plan` line 1045
 
 ```sql
 ALTER TABLE {_qq(ts, tn)} ENABLE ROW LEVEL SECURITY;
 ```
 
-`_clone_plan` line 951
+`_clone_plan` line 1046
 
 ```sql
 SELECT pol.polname, pol.polcmd, pol.polpermissive,
@@ -3886,19 +3959,19 @@ SELECT pol.polname, pol.polcmd, pol.polpermissive,
 FROM pg_policy pol WHERE pol.polrelid = %s
 ```
 
-`_clone_plan` line 962
+`_clone_plan` line 1057
 
 ```sql
 CREATE POLICY {_qi(pn)} ON {_qq(ts, tn)}
 ```
 
-`_clone_plan` line 967
+`_clone_plan` line 1062
 
 ```sql
 WITH CHECK ({wcheck})
 ```
 
-`_clone_plan` line 977
+`_clone_plan` line 1072
 
 ```sql
 SELECT COALESCE(grantee.rolname, 'PUBLIC') AS grantee,
@@ -3907,19 +3980,19 @@ FROM aclexplode(%s::aclitem[]) acl
 LEFT JOIN pg_roles grantee ON grantee.oid = acl.grantee
 ```
 
-`_clone_plan` line 985
+`_clone_plan` line 1080
 
 ```sql
 GRANT {priv} ON {_qq(ts, tn)} TO {who}{' WITH GRANT OPTION' if grantable else ''};
 ```
 
-`_clone_plan` line 997
+`_clone_plan` line 1092
 
 ```sql
 ALTER TABLE {_qq(ts, tn)} OWNER TO {_qi(new_owner)};
 ```
 
-`_clone_plan` line 1007
+`_clone_plan` line 1102
 
 ```sql
 SELECT a.attname, pg_get_serial_sequence(%s, a.attname) AS seq
@@ -3927,43 +4000,154 @@ SELECT a.attname, pg_get_serial_sequence(%s, a.attname) AS seq
  WHERE a.attrelid = %s AND a.attnum > 0 AND NOT a.attisdropped
 ```
 
-`_clone_plan` line 1032
+`_clone_plan` line 1127
 
 ```sql
 SELECT setval(pg_get_serial_sequence({_fqn_lit}, {_col_lit}), (SELECT COALESCE(max({_qi(col)}), 0) + 1 FROM {_qq(ts, tn)}), false);
 ```
 
-`_clone_plan` line 1043
+`_clone_plan` line 1138
 
 ```sql
 ANALYZE {_qq(ts, tn)};
 ```
 
-`_clone_plan` line 1060
+`_clone_plan` line 1155
 
 ```sql
 ANALYZE statement(s) appended
 ```
 
-`_forced_qualification` line 1262
+`_clone_rows_blocked` line 1189
+
+```sql
+SELECT c.relname AS name, %s AS rls, %s AS forced,
+       pg_catalog.pg_has_role(current_user, c.relowner, 'USAGE') AS owner,
+       (SELECT %s FROM pg_catalog.pg_roles r WHERE r.rolname = current_user) AS bypass,
+       current_user AS me,
+       ARRAY(SELECT a.attname::text FROM pg_catalog.pg_attribute a
+              WHERE a.attrelid = c.oid AND a.attnum > 0 AND NOT a.attisdropped %s
+                AND NOT pg_catalog.has_column_privilege(c.oid, a.attnum, 'SELECT')
+              ORDER BY a.attnum) AS denied
+  FROM pg_catalog.pg_class c
+  JOIN pg_catalog.pg_namespace n ON n.oid = c.relnamespace
+ WHERE n.nspname = %%s AND c.relname = ANY(%%s)
+ ORDER BY c.relname
+```
+
+`_failing_source_rows` line 1307
+
+```sql
+SET LOCAL statement_timeout = 15000
+```
+
+`_failing_source_rows` line 1317
+
+```sql
+SELECT pg_catalog.pg_get_constraintdef(oid) FROM pg_catalog.pg_constraint WHERE conrelid = %s::regclass AND conname = %s AND contype = 'c'
+```
+
+`_failing_source_rows` line 1330
+
+```sql
+SELECT c.relkind::text FROM pg_catalog.pg_class c WHERE c.oid = %s::regclass
+```
+
+`_failing_source_rows` line 1334
+
+```sql
+SELECT a.attnum, a.attname, i.indkey::int2[] FROM pg_catalog.pg_index i
+  JOIN pg_catalog.pg_attribute a ON a.attrelid = i.indrelid
+                                AND a.attnum = ANY(i.indkey)
+ WHERE i.indrelid = %s::regclass AND i.indisprimary
+```
+
+`_failing_source_rows` line 1343
+
+```sql
+SELECT %s FROM %s%s WHERE %s LIMIT %d
+```
+
+`_like_fixups` line 1388
+
+```sql
+SELECT conname, pg_catalog.pg_get_constraintdef(oid) FROM pg_catalog.pg_constraint WHERE conrelid = %s AND contype = 'c' AND NOT convalidated {enforced} ORDER BY conname
+```
+
+`_like_fixups` line 1392
+
+```sql
+ALTER TABLE %s DROP CONSTRAINT %s;
+```
+
+`_like_fixups` line 1393
+
+```sql
+ALTER TABLE %s ADD CONSTRAINT %s %s;
+```
+
+`_like_fixups` line 1396
+
+```sql
+SELECT co.conname, a.attname FROM pg_catalog.pg_constraint co
+  JOIN pg_catalog.pg_attribute a ON a.attrelid = co.conrelid AND a.attnum = co.conkey[1]
+ WHERE co.conrelid = %s AND co.contype = 'n' AND NOT co.convalidated
+ ORDER BY co.conname
+```
+
+`_like_fixups` line 1402
+
+```sql
+ALTER TABLE %s ALTER COLUMN %s DROP NOT NULL;
+```
+
+`_like_fixups` line 1404
+
+```sql
+ALTER TABLE %s ADD CONSTRAINT %s NOT NULL %s NOT VALID;
+```
+
+`_like_fixups` line 1410
+
+```sql
+SELECT i.relname, x.indisunique,
+       regexp_replace(pg_catalog.pg_get_indexdef(x.indexrelid), '^.*? USING ', '')
+  FROM pg_catalog.pg_index x JOIN pg_catalog.pg_class i ON i.oid = x.indexrelid
+ WHERE x.indrelid = %s AND NOT x.indisvalid
+ ORDER BY i.relname
+```
+
+`_like_fixups` line 1418
+
+```sql
+DO $$DECLARE ix regclass; BEGIN
+  SELECT x.indexrelid::regclass INTO ix FROM pg_catalog.pg_index x
+   WHERE x.indrelid = {_literal_str(new_q)}::regclass AND x.indisunique = {'true' if uniq else 'false'}
+     AND regexp_replace(pg_catalog.pg_get_indexdef(x.indexrelid), '^.*? USING ', '') = {_literal_str(tail)}
+   LIMIT 1;
+  IF ix IS NOT NULL THEN EXECUTE 'DROP INDEX ' || ix; END IF;
+END $$;
+```
+
+`_forced_qualification` line 1630
 
 ```sql
 SELECT pg_catalog.current_setting('search_path') AS sp
 ```
 
-`_forced_qualification` line 1271
+`_forced_qualification` line 1639
 
 ```sql
 SELECT pg_catalog.set_config('search_path', '', false)
 ```
 
-`_restore_qualification` line 1282
+`_restore_qualification` line 1650
 
 ```sql
 SELECT pg_catalog.set_config('search_path', %s, false)
 ```
 
-`_aggregate_def` line 1301
+`_aggregate_def` line 1669
 
 ```sql
 SELECT a.aggtransfn::regprocedure::text   AS sfunc,
@@ -3990,7 +4174,7 @@ SELECT a.aggtransfn::regprocedure::text   AS sfunc,
  WHERE a.aggfnoid = %s
 ```
 
-`_extension_owned_names` line 1377
+`_extension_owned_names` line 1745
 
 ```sql
 SELECT lower(p.proname) AS n FROM pg_proc p
@@ -4024,7 +4208,7 @@ SELECT lower(op.oprname) FROM pg_operator op
  WHERE ns.nspname = %(s)s
 ```
 
-`_schema_object_defs_collect` line 1517
+`_schema_object_defs_collect` line 1885
 
 ```sql
 SELECT t.oid, t.typname AS name, t.typtype::text AS typtype,
@@ -4047,19 +4231,19 @@ SELECT t.oid, t.typname AS name, t.typtype::text AS typtype,
  ORDER BY t.typname
 ```
 
-`_schema_object_defs_collect` line 1541
+`_schema_object_defs_collect` line 1909
 
 ```sql
 SELECT enumlabel FROM pg_enum WHERE enumtypid = %s ORDER BY enumsortorder
 ```
 
-`_schema_object_defs_collect` line 1546
+`_schema_object_defs_collect` line 1921
 
 ```sql
-SELECT conname, pg_get_constraintdef(oid) AS d FROM pg_constraint WHERE contypid = %s ORDER BY conname
+SELECT conname, pg_get_constraintdef(oid) AS d, convalidated FROM pg_constraint WHERE contypid = %s AND contype <> 'n' ORDER BY conname
 ```
 
-`_schema_object_defs_collect` line 1563
+`_schema_object_defs_collect` line 1946
 
 ```sql
 SELECT pg_catalog.format_type(rng.rngsubtype, NULL) AS subtype,
@@ -4071,7 +4255,7 @@ SELECT pg_catalog.format_type(rng.rngsubtype, NULL) AS subtype,
   FROM pg_range rng WHERE rng.rngtypid = %s
 ```
 
-`_schema_object_defs_collect` line 1588
+`_schema_object_defs_collect` line 1971
 
 ```sql
 SELECT a.attname,
@@ -4081,7 +4265,7 @@ SELECT a.attname,
  ORDER BY a.attnum
 ```
 
-`_schema_object_defs_collect` line 1630
+`_schema_object_defs_collect` line 2013
 
 ```sql
 SELECT seqrelid AS oid, seqstart AS start, seqincrement AS inc,
@@ -4089,7 +4273,7 @@ SELECT seqrelid AS oid, seqstart AS start, seqincrement AS inc,
                                  FROM pg_catalog.pg_sequence WHERE seqrelid = ANY(%s)
 ```
 
-`_schema_object_defs_collect` line 1645
+`_schema_object_defs_collect` line 2028
 
 ```sql
 SELECT c.relname AS name, c.oid AS oid, c.relkind::text AS relkind,
@@ -4121,7 +4305,7 @@ WHERE n.nspname = %s AND c.relkind IN ('r','p')
 ORDER BY c.relname
 ```
 
-`_schema_object_defs_collect` line 1701
+`_schema_object_defs_collect` line 2084
 
 ```sql
 SELECT a.attname, pg_catalog.format_type(a.atttypid, a.atttypmod) AS typ,
@@ -4146,17 +4330,42 @@ WHERE a.attrelid = %%s AND a.attnum > 0 AND NOT a.attisdropped
 ORDER BY a.attnum
 ```
 
-`_schema_object_defs_collect` line 1778
+`_schema_object_defs_collect` line 2161
 
 ```sql
-SELECT conname, pg_get_constraintdef(oid) AS d FROM pg_constraint WHERE conrelid = %s {_parent_filter} AND contype <> 'n' AND (contype <> 'c' OR conislocal) ORDER BY conname
+SELECT conname, pg_get_constraintdef(oid) AS d, convalidated FROM pg_constraint WHERE conrelid = %s {_parent_filter} AND contype <> 'n' AND (contype <> 'c' OR conislocal) ORDER BY conname
 ```
 
-`_schema_object_defs_collect` line 1797
+`_schema_object_defs_collect` line 2183
+
+```sql
+SELECT co.conname, a.attname
+  FROM pg_constraint co
+  JOIN pg_attribute a ON a.attrelid = co.conrelid
+                     AND a.attnum = co.conkey[1]
+ WHERE co.conrelid = %s AND co.contype = 'n'
+   AND NOT co.convalidated AND co.conislocal
+```
+
+`_schema_object_defs_collect` line 2204
+
+```sql
+SELECT a.attname, %s AS conname
+  FROM pg_attribute a
+ WHERE a.attrelid = %%s AND a.attnum > 0 AND NOT a.attisdropped
+   AND a.attnotnull
+   AND NOT EXISTS (SELECT 1 FROM pg_inherits i
+                     JOIN pg_attribute pa ON pa.attrelid = i.inhparent
+                                         AND pa.attname = a.attname
+                    WHERE i.inhrelid = a.attrelid AND pa.attnotnull)
+```
+
+`_schema_object_defs_collect` line 2234
 
 ```sql
 SELECT i.relname AS indexname,
-       pg_catalog.pg_get_indexdef(i.oid) AS indexdef
+       pg_catalog.pg_get_indexdef(i.oid) AS indexdef,
+       x.indisvalid AS valid
   FROM pg_index x
   JOIN pg_class i ON i.oid = x.indexrelid
  WHERE x.indrelid = %s
@@ -4165,7 +4374,7 @@ SELECT i.relname AS indexname,
  ORDER BY i.relname
 ```
 
-`_schema_object_defs_collect` line 1832
+`_schema_object_defs_collect` line 2277
 
 ```sql
 SELECT pol.polname AS name, pol.polcmd::text AS cmd,
@@ -4179,13 +4388,13 @@ SELECT pol.polname AS name, pol.polcmd::text AS cmd,
  ORDER BY pol.polname
 ```
 
-`_schema_object_defs_collect._view_colnames` line 2007
+`_schema_object_defs_collect._view_colnames` line 2465
 
 ```sql
 SELECT attname FROM pg_catalog.pg_attribute WHERE attrelid = %s AND attnum > 0 AND NOT attisdropped ORDER BY attnum
 ```
 
-`_schema_object_defs_collect._view_deps` line 2021
+`_schema_object_defs_collect._view_deps` line 2479
 
 ```sql
 SELECT DISTINCT dep.relname AS name, dep.relkind AS kind
@@ -4200,7 +4409,7 @@ SELECT DISTINCT dep.relname AS name, dep.relkind AS kind
    AND dep.relkind IN ('r','p','v','m','f')
 ```
 
-`_schema_object_defs_collect` line 2041
+`_schema_object_defs_collect` line 2499
 
 ```sql
 SELECT c.relname AS name, c.relkind AS kind, c.oid AS oid
@@ -4212,13 +4421,13 @@ WHERE n.nspname = %s AND c.relkind = 'v'
 ORDER BY c.relname
 ```
 
-`_schema_object_defs_collect` line 2052
+`_schema_object_defs_collect` line 2510
 
 ```sql
 SELECT pg_get_viewdef(%s, true) AS d
 ```
 
-`_schema_object_defs_collect` line 2068
+`_schema_object_defs_collect` line 2526
 
 ```sql
 SELECT c.relname AS name, c.oid AS oid,
@@ -4231,13 +4440,13 @@ WHERE n.nspname = %s AND c.relkind = 'm'
 ORDER BY c.relname
 ```
 
-`_schema_object_defs_collect` line 2080
+`_schema_object_defs_collect` line 2538
 
 ```sql
 SELECT pg_get_viewdef(%s, true) AS d
 ```
 
-`_schema_object_defs_collect` line 2122
+`_schema_object_defs_collect` line 2580
 
 ```sql
 SELECT s.sequencename AS name, s.data_type, s.start_value,
@@ -4251,7 +4460,7 @@ SELECT s.sequencename AS name, s.data_type, s.start_value,
  ORDER BY s.sequencename
 ```
 
-`_schema_object_defs_collect` line 2135
+`_schema_object_defs_collect` line 2593
 
 ```sql
 SELECT c.relname AS name, c.relpersistence::text AS persistence
@@ -4261,13 +4470,13 @@ SELECT c.relname AS name, c.relpersistence::text AS persistence
  ORDER BY c.relname
 ```
 
-`_schema_object_defs_collect` line 2145
+`_schema_object_defs_collect` line 2603
 
 ```sql
 SELECT start_value, increment_by, min_value, max_value, is_cycled AS cycle, cache_value AS cache_size FROM {fq}
 ```
 
-`_schema_object_defs_collect` line 2215
+`_schema_object_defs_collect` line 2673
 
 ```sql
 SELECT p.oid AS oid, p.proname AS name, %s AS prokind,
@@ -4289,13 +4498,13 @@ WHERE n.nspname = %%s
 ORDER BY p.proname, args
 ```
 
-`_schema_object_defs_collect` line 2263
+`_schema_object_defs_collect` line 2721
 
 ```sql
 SELECT pg_get_functiondef(%s) AS d
 ```
 
-`_schema_object_defs_collect` line 2291
+`_schema_object_defs_collect` line 2749
 
 ```sql
 SELECT c.relname AS name, c.oid AS oid, s.srvname AS server,
@@ -4313,7 +4522,7 @@ SELECT c.relname AS name, c.oid AS oid, s.srvname AS server,
  ORDER BY c.relname
 ```
 
-`_schema_object_defs_collect` line 2308
+`_schema_object_defs_collect` line 2766
 
 ```sql
 SELECT a.attname,
@@ -4325,11 +4534,12 @@ SELECT a.attname,
  ORDER BY a.attnum
 ```
 
-`_schema_object_defs_collect` line 2338
+`_schema_object_defs_collect` line 2796
 
 ```sql
 SELECT c.relname || '.' || r.rulename AS name,
-       pg_catalog.pg_get_ruledef(r.oid, true) AS def
+       pg_catalog.pg_get_ruledef(r.oid, true) AS def,
+       r.ev_enabled::text AS en, c.relkind::text AS relkind
   FROM pg_rewrite r
   JOIN pg_class c ON c.oid = r.ev_class
   JOIN pg_namespace n ON n.oid = c.relnamespace
@@ -4339,7 +4549,7 @@ SELECT c.relname || '.' || r.rulename AS name,
  ORDER BY 1
 ```
 
-`_schema_object_defs_collect` line 2362
+`_schema_object_defs_collect` line 2824
 
 ```sql
 SELECT st.stxname AS name,
@@ -4352,7 +4562,7 @@ SELECT st.stxname AS name,
  ORDER BY st.stxname
 ```
 
-`_schema_object_defs_collect` line 2386
+`_schema_object_defs_collect` line 2848
 
 ```sql
 SELECT c.collname AS name, c.collprovider::text AS provider,
@@ -4366,7 +4576,7 @@ SELECT c.collname AS name, c.collprovider::text AS provider,
  ORDER BY c.collname
 ```
 
-`_schema_object_defs_collect` line 2415
+`_schema_object_defs_collect` line 2877
 
 ```sql
 SELECT c.cfgname AS name,
@@ -4380,7 +4590,7 @@ SELECT c.cfgname AS name,
                     AND dx.objid = c.oid AND dx.deptype = 'e') ORDER BY c.cfgname
 ```
 
-`_schema_object_defs_collect` line 2425
+`_schema_object_defs_collect` line 2887
 
 ```sql
 SELECT d.dictname AS name,
@@ -4395,7 +4605,7 @@ SELECT d.dictname AS name,
                     AND dx.objid = d.oid AND dx.deptype = 'e') ORDER BY d.dictname
 ```
 
-`_schema_object_defs_collect` line 2436
+`_schema_object_defs_collect` line 2898
 
 ```sql
 SELECT p.prsname AS name,
@@ -4408,7 +4618,7 @@ SELECT p.prsname AS name,
                     AND dx.objid = p.oid AND dx.deptype = 'e') ORDER BY p.prsname
 ```
 
-`_schema_object_defs_collect` line 2445
+`_schema_object_defs_collect` line 2907
 
 ```sql
 SELECT t.tmplname AS name,
@@ -4421,7 +4631,7 @@ SELECT t.tmplname AS name,
                     AND dx.objid = t.oid AND dx.deptype = 'e') ORDER BY t.tmplname
 ```
 
-`_schema_object_defs_collect` line 2471
+`_schema_object_defs_collect` line 2933
 
 ```sql
 SELECT o.oprname || ' ('
@@ -4436,7 +4646,7 @@ SELECT o.oprname || ' ('
                       AND dx.objid = o.oid AND dx.deptype = 'e') ORDER BY 1
 ```
 
-`_schema_object_defs_collect` line 2482
+`_schema_object_defs_collect` line 2944
 
 ```sql
 SELECT c.opcname || ' (' || am.amname || ')' AS name,
@@ -4453,7 +4663,7 @@ SELECT c.opcname || ' (' || am.amname || ')' AS name,
                       AND dx.objid = c.oid AND dx.deptype = 'e') ORDER BY 1
 ```
 
-`_schema_object_defs_collect` line 2495
+`_schema_object_defs_collect` line 2957
 
 ```sql
 SELECT f.opfname || ' (' || am.amname || ')' AS name, '' AS detail,
@@ -4468,7 +4678,7 @@ SELECT f.opfname || ' (' || am.amname || ')' AS name, '' AS detail,
                       AND dx.objid = f.oid AND dx.deptype = 'e') ORDER BY 1
 ```
 
-`_schema_object_defs_collect` line 2526
+`_schema_object_defs_collect` line 2988
 
 ```sql
 SELECT c.conname AS name,
@@ -4484,11 +4694,11 @@ SELECT c.conname AS name,
                       AND dx.objid = c.oid AND dx.deptype = 'e') ORDER BY c.conname
 ```
 
-`_schema_object_defs_collect` line 2563
+`_schema_object_defs_collect` line 3025
 
 ```sql
 SELECT c.relname AS tab, t.tgname AS name,
-       pg_catalog.pg_get_triggerdef(t.oid, true) AS d
+       pg_catalog.pg_get_triggerdef(t.oid, true) AS d, t.tgenabled::text AS en
   FROM pg_trigger t
   JOIN pg_class c ON c.oid = t.tgrelid
   JOIN pg_namespace n ON n.oid = c.relnamespace
@@ -4496,7 +4706,7 @@ SELECT c.relname AS tab, t.tgname AS name,
  ORDER BY c.relname, t.tgname
 ```
 
-`_schema_object_defs_collect` line 2588
+`_schema_object_defs_collect` line 3052
 
 ```sql
 SELECT c.relname AS name, c.relkind::text AS relkind,
@@ -4511,7 +4721,7 @@ SELECT c.relname AS name, c.relkind::text AS relkind,
  WHERE n.nspname = %s AND c.relkind IN ('r','p','v','m','S')
 ```
 
-`_schema_object_defs_collect` line 2611
+`_schema_object_defs_collect` line 3075
 
 ```sql
 SELECT p.proname AS name,
@@ -4522,7 +4732,7 @@ SELECT p.proname AS name,
    AND pg_catalog.obj_description(p.oid, 'pg_proc') IS NOT NULL
 ```
 
-`_schema_object_defs_collect` line 2623
+`_schema_object_defs_collect` line 3087
 
 ```sql
 SELECT t.typname AS name,
@@ -4532,7 +4742,7 @@ SELECT t.typname AS name,
    AND pg_catalog.obj_description(t.oid, 'pg_type') IS NOT NULL
 ```
 
-`_schema_object_defs_collect` line 2663
+`_schema_object_defs_collect` line 3127
 
 ```sql
 SELECT c.relname AS tab, t.tgname AS name,
@@ -4544,7 +4754,7 @@ SELECT c.relname AS tab, t.tgname AS name,
    AND pg_catalog.obj_description(t.oid, 'pg_trigger') IS NOT NULL
 ```
 
-`_schema_object_defs_collect` line 2677
+`_schema_object_defs_collect` line 3141
 
 ```sql
 SELECT c.relname AS tab, rw.rulename AS name,
@@ -4556,7 +4766,7 @@ SELECT c.relname AS tab, rw.rulename AS name,
    AND pg_catalog.obj_description(rw.oid, 'pg_rewrite') IS NOT NULL
 ```
 
-`_schema_object_defs_collect` line 2691
+`_schema_object_defs_collect` line 3155
 
 ```sql
 SELECT c.relname AS tab, pol.polname AS name,
@@ -4568,7 +4778,7 @@ SELECT c.relname AS tab, pol.polname AS name,
    AND pg_catalog.obj_description(pol.oid, 'pg_policy') IS NOT NULL
 ```
 
-`_schema_object_defs_collect` line 2705
+`_schema_object_defs_collect` line 3169
 
 ```sql
 SELECT s.stxname AS name,
@@ -4579,7 +4789,7 @@ SELECT s.stxname AS name,
    AND pg_catalog.obj_description(s.oid, 'pg_statistic_ext') IS NOT NULL
 ```
 
-`_schema_object_defs_collect` line 2718
+`_schema_object_defs_collect` line 3182
 
 ```sql
 SELECT co.collname AS name,
@@ -4590,7 +4800,7 @@ SELECT co.collname AS name,
    AND pg_catalog.obj_description(co.oid, 'pg_collation') IS NOT NULL
 ```
 
-`_tsdb_annotate` line 2783
+`_tsdb_annotate` line 3247
 
 ```sql
 SELECT c.relname, c.relkind::text FROM pg_catalog.pg_class c
@@ -4598,7 +4808,7 @@ SELECT c.relname, c.relkind::text FROM pg_catalog.pg_class c
                           WHERE n.nspname = %s AND c.oid = ANY(%s)
 ```
 
-`_tsdb_annotate` line 2792
+`_tsdb_annotate` line 3256
 
 ```sql
 SELECT hypertable_name::text, attname::text, segmentby_column_index,
@@ -4608,7 +4818,7 @@ SELECT hypertable_name::text, attname::text, segmentby_column_index,
                           ORDER BY 1, segmentby_column_index NULLS LAST, orderby_column_index NULLS LAST
 ```
 
-`_read_seq_values` line 3114
+`_read_seq_values` line 3578
 
 ```sql
 SELECT c.relname AS name FROM pg_class c
@@ -4616,13 +4826,13 @@ SELECT c.relname AS name FROM pg_class c
  WHERE n.nspname = %s AND c.relkind = 'S' ORDER BY c.relname
 ```
 
-`_read_seq_values` line 3123
+`_read_seq_values` line 3587
 
 ```sql
 SELECT last_value, is_called FROM {_qrel(schema, nm)}
 ```
 
-`_read_row_counts` line 3142
+`_read_row_counts` line 3606
 
 ```sql
 SELECT c.relname, c.relkind::text AS relkind,
@@ -4632,13 +4842,13 @@ SELECT c.relname, c.relkind::text AS relkind,
  ORDER BY c.relname
 ```
 
-`_read_row_counts` line 3156
+`_read_row_counts` line 3620
 
 ```sql
 SELECT count(*) AS n FROM {}.{}
 ```
 
-`_read_sizes` line 3172
+`_read_sizes` line 3636
 
 ```sql
 SELECT c.relname, pg_catalog.pg_total_relation_size(c.oid) AS bytes
@@ -4646,7 +4856,7 @@ SELECT c.relname, pg_catalog.pg_total_relation_size(c.oid) AS bytes
  WHERE n.nspname = %s AND c.relkind IN ('r','m')
 ```
 
-`_read_index_state` line 3185
+`_read_index_state` line 3649
 
 ```sql
 SELECT t.relname AS tab, i.relname AS idx, x.indisvalid AS valid,
@@ -4661,7 +4871,7 @@ SELECT t.relname AS tab, i.relname AS idx, x.indisvalid AS valid,
  WHERE n.nspname = %s
 ```
 
-**_READS_SQL** - `(module)` line 3429
+**_READS_SQL** - `(module)` line 3893
 
 ```sql
 SELECT n.nspname, c.relname, a.attname
@@ -4675,55 +4885,55 @@ SELECT n.nspname, c.relname, a.attname
  ORDER BY 1, 2, 3
 ```
 
-`_restore_user` line 3447
+`_restore_user` line 3911
 
 ```sql
 SELECT pg_get_ruledef(oid, true), obj_description(oid, 'pg_rewrite') FROM pg_rewrite WHERE oid = %s
 ```
 
-`_restore_user` line 3453
+`_restore_user` line 3917
 
 ```sql
 COMMENT ON RULE {_qi(u['name'])} ON {on} IS {_literal_str(cmt)}
 ```
 
-**drop** - `_restore_user` line 3457
+**drop** - `_restore_user` line 3921
 
 ```sql
 DROP RULE IF EXISTS {_qi(u['name'])} ON {on}
 ```
 
-`_restore_user` line 3463
+`_restore_user` line 3927
 
 ```sql
 SELECT relispopulated FROM pg_class WHERE oid = %s
 ```
 
-**drop** - `_restore_user` line 3470
+**drop** - `_restore_user` line 3934
 
 ```sql
 DROP {word} IF EXISTS {q}
 ```
 
-`_attachment_column` line 3481
+`_attachment_column` line 3945
 
 ```sql
 ALTER (?:MATERIALIZED )?VIEW {re.escape(ref)} ALTER COLUMN {_QID}
 ```
 
-`_attachment_column` line 3482
+`_attachment_column` line 3946
 
 ```sql
 COMMENT ON COLUMN {re.escape(ref)}\.{_QID}
 ```
 
-`_attachment_column` line 3483
+`_attachment_column` line 3947
 
 ```sql
 GRANT [A-Z ]+ \({_QID}\) ON TABLE {re.escape(ref)}
 ```
 
-`_build_object_ddl` line 3818
+`_build_object_ddl` line 4282
 
 ```sql
 CREATE TABLE {qi(schema)}.{qi(name)} (
@@ -4731,99 +4941,129 @@ CREATE TABLE {qi(schema)}.{qi(name)} (
 );
 ```
 
-`_build_object_ddl` line 3820
+`_build_object_ddl` line 4284
 
 ```sql
 ALTER TABLE {qi(schema)}.{qi(name)} ADD CONSTRAINT {qi(cn)} {sub(m['cons'][cn])};
 ```
 
-`_build_object_ddl` line 3828
+`_build_object_ddl` line 4292
 
 ```sql
 CREATE {kw} {qi(schema)}.{qi(name)} AS
 {sub(m.get('viewdef') or '').rstrip().rstrip(';')};
 ```
 
-`_build_object_ddl` line 3831
+`_build_object_ddl` line 4295
 
 ```sql
 CREATE {'UNLOGGED ' if m.get('persistence') == 'u' else ''}SEQUENCE {qi(schema)}.{qi(name)}{' AS ' + (m.get('data_type') or '') if _typed_seq else ''} START {str(m.get('start'))} INCREMENT {str(m.get('inc'))} MINVALUE {str(m.get('min'))} MAXVALUE {str(m.get('max'))}{' CACHE ' + str(m.get('cache')) if m.get('cache') else ''}{' CYCLE' if m.get('cycle') else ''};
 ```
 
-**st** - `_build_sync_sql._detach` line 3923
+`_rls_sql` line 4330
+
+```sql
+ALTER TABLE {t} ENABLE ROW LEVEL SECURITY;
+```
+
+`_rls_sql` line 4332
+
+```sql
+ALTER TABLE {t} FORCE ROW LEVEL SECURITY;
+```
+
+`_rls_sql` line 4337
+
+```sql
+DROP POLICY IF EXISTS {qi(nm)} ON {t};
+```
+
+`_rls_sql` line 4343
+
+```sql
+CREATE POLICY {qi(nm)} ON {t}{'' if p.get('permissive', True) else ' AS RESTRICTIVE'}{' FOR ' + cmd if cmd else ''}{' TO ' + ', '.join((qi(rr) for rr in p['roles'])) if p.get('roles') else ''}{' USING (' + sub(p['using']) + ')' if p.get('using') else ''}{' WITH CHECK (' + sub(p['check']) + ')' if p.get('check') else ''};
+```
+
+**st** - `_build_sync_sql._detach` line 4427
 
 ```sql
 ALTER TABLE {qi(sb)}.{qi(parent)} DETACH PARTITION {t}
 ```
 
-**st** - `_build_sync_sql._attach` line 3946
+**st** - `_build_sync_sql._attach` line 4450
 
 ```sql
 ALTER TABLE {qi(sb)}.{qi(parent)} ATTACH PARTITION {qi(sb)}.{qi(name)} {bound or 'DEFAULT'};
 ```
 
-`_build_sync_sql._hypertable_note` line 3977
+`_build_sync_sql._hypertable_note` line 4481
 
 ```sql
 SELECT set_chunk_time_interval({lit}, {iv_sql});
 ```
 
-`_build_sync_sql._hypertable_note` line 3979
+`_build_sync_sql._hypertable_note` line 4483
 
 ```sql
  SET (timescaledb.compress ...)
 -- after decompressing its compressed chunks.
 ```
 
-`_build_sync_sql._storage_sql` line 4047
+`_build_sync_sql._storage_sql` line 4551
 
 ```sql
 ALTER TABLE {t} SET TABLESPACE {qi(ts_a)};
 ```
 
-`_build_sync_sql._storage_sql` line 4051
+`_build_sync_sql._storage_sql` line 4555
 
 ```sql
 DO $$BEGIN EXECUTE format('ALTER TABLE %s SET TABLESPACE %I', {_literal_str(t)}, (SELECT ts.spcname FROM pg_catalog.pg_tablespace ts JOIN pg_catalog.pg_database d ON d.dattablespace = ts.oid WHERE d.datname = current_database())); END$$;
 ```
 
-`_build_sync_sql._storage_sql` line 4060
+`_build_sync_sql._storage_sql` line 4564
 
 ```sql
 ALTER TABLE {t} SET ACCESS METHOD {qi(am_a or 'heap')};
 ```
 
-**head** - `_build_sync_sql._identity_alter` line 4115
+`_build_sync_sql._nn_not_valid_sql` line 4620
+
+```sql
+ALTER TABLE {t} ADD CONSTRAINT {qi(c['notnull_invalid'])} NOT NULL {qi(c['name'])} NOT VALID;
+```
+
+**head** - `_build_sync_sql._identity_alter` line 4630
 
 ```sql
 ALTER TABLE {t} ALTER COLUMN {qi(c['name'])}
 ```
 
-`_build_sync_sql._identity_alter` line 4121
+`_build_sync_sql._identity_alter` line 4636
 
 ```sql
 DROP IDENTITY IF EXISTS;
 ```
 
-`_build_sync_sql._identity_alter` line 4131
+`_build_sync_sql._identity_alter` line 4646
 
 ```sql
 SET {kw} {str(sa[k])}
 ```
 
-**head** - `_build_sync_sql._col_props_alter` line 4146
+**head** - `_build_sync_sql._col_props_alter` line 4661
 
 ```sql
 ALTER TABLE {t} ALTER COLUMN {qi(c['name'])}
 ```
 
-`_build_sync_sql._add_constraint_idempotent` line 4217
+`_build_sync_sql._add_constraint_idempotent` line 4732
 
 ```sql
 ALTER TABLE {t} ADD CONSTRAINT {qi(cn)} {sub(cdef)};
 ```
 
-`_build_sync_sql._add_constraint_idempotent` line 4219
+`_build_sync_sql._add_constraint_idempotent` line 4734
 
 ```sql
 DO $$
@@ -4833,31 +5073,7 @@ EXCEPTION WHEN duplicate_object OR duplicate_table OR invalid_table_definition T
 END $$;
 ```
 
-`_build_sync_sql._rls_statements` line 4240
-
-```sql
-ALTER TABLE {t} ENABLE ROW LEVEL SECURITY;
-```
-
-`_build_sync_sql._rls_statements` line 4242
-
-```sql
-ALTER TABLE {t} FORCE ROW LEVEL SECURITY;
-```
-
-`_build_sync_sql._rls_statements` line 4247
-
-```sql
-DROP POLICY IF EXISTS {qi(nm)} ON {t};
-```
-
-`_build_sync_sql._rls_statements` line 4253
-
-```sql
-CREATE POLICY {qi(nm)} ON {t}{'' if p.get('permissive', True) else ' AS RESTRICTIVE'}{' FOR ' + cmd if cmd else ''}{' TO ' + ', '.join((qi(rr) for rr in p['roles'])) if p.get('roles') else ''}{' USING (' + sub(p['using']) + ')' if p.get('using') else ''}{' WITH CHECK (' + sub(p['check']) + ')' if p.get('check') else ''};
-```
-
-`_build_sync_sql._idempotent_type` line 4267
+`_build_sync_sql._idempotent_type` line 4752
 
 ```sql
 DO $$
@@ -4867,31 +5083,37 @@ EXCEPTION WHEN duplicate_object THEN NULL;
 END $$;
 ```
 
-`_build_sync_sql.create_one` line 4275
+`_build_sync_sql.create_one` line 4760
 
 ```sql
 CREATE TYPE {n} AS ENUM ({', '.join((_literal_str(l) for l in m.get('labels') or []))})
 ```
 
-`_build_sync_sql.create_one` line 4280
+`_build_sync_sql.create_one` line 4769
 
 ```sql
-CREATE DOMAIN {n} AS {sub(m.get('base') or 'text')}{' DEFAULT ' + m['typdefault'] if m.get('typdefault') else ''}{' NOT NULL' if m.get('notnull') else ''}{''.join((' CONSTRAINT ' + qi(c) + ' ' + sub(m['checks'][c]) for c in sorted(m.get('checks') or {})))}
+CREATE DOMAIN {n} AS {sub(m.get('base') or 'text')}{' DEFAULT ' + m['typdefault'] if m.get('typdefault') else ''}{' NOT NULL' if m.get('notnull') else ''}{''.join((' CONSTRAINT ' + qi(c) + ' ' + sub(m['checks'][c]) for c in sorted(m.get('checks') or {}) if c not in nv))}
 ```
 
-`_build_sync_sql.create_one` line 4303
+`_build_sync_sql.create_one` line 4776
+
+```sql
+ALTER DOMAIN {n} ADD CONSTRAINT {qi(c)} {sub(m['checks'][c])}
+```
+
+`_build_sync_sql.create_one` line 4797
 
 ```sql
 CREATE TYPE {n} AS RANGE ({', '.join(opts)})
 ```
 
-`_build_sync_sql.create_one` line 4306
+`_build_sync_sql.create_one` line 4800
 
 ```sql
 CREATE TYPE {n} AS ({', '.join((qi(f['name']) + ' ' + sub(f['type']) for f in m.get('fields') or []))})
 ```
 
-`_build_sync_sql.create_one` line 4316
+`_build_sync_sql.create_one` line 4810
 
 ```sql
 CREATE FOREIGN TABLE IF NOT EXISTS {qi(sb)}.{qi(name)} (
@@ -4899,26 +5121,26 @@ CREATE FOREIGN TABLE IF NOT EXISTS {qi(sb)}.{qi(name)} (
 ) SERVER {qi(m.get('server') or '')}{' OPTIONS (' + m['options'] + ')' if m.get('options') else ''};
 ```
 
-`_build_sync_sql.create_one` line 4331
+`_build_sync_sql.create_one` line 4829
 
 ```sql
 CREATE COLLATION {qi(sb)}.{qi(name)} (provider = {prov}, locale = {_literal_str(m.get('lc_collate') or '')}{'' if m.get('deterministic', True) else ', deterministic = false'})
 ```
 
-`_build_sync_sql.create_one` line 4351
+`_build_sync_sql.create_one` line 4851
 
 ```sql
 DROP TRIGGER IF EXISTS {qi(m.get('trigger') or name)} ON {qi(sb)}.{qi(m.get('table') or '')};
-{sub(m.get('trigdef') or '').rstrip().rstrip(';')};
+{sub(m.get('trigdef') or '').rstrip().rstrip(';')};{'\n' + fire if fire else ''}
 ```
 
-`_build_sync_sql.create_one` line 4365
+`_build_sync_sql.create_one` line 4866
 
 ```sql
 CREATE {_unlogged(m)}TABLE IF NOT EXISTS {t} PARTITION OF {qi(sb)}.{qi(m['parent'])} {m.get('partbound') or 'DEFAULT'}{' PARTITION BY ' + sub(m['partkey']) if m.get('partkey') else ''}{storage};
 ```
 
-`_build_sync_sql.create_one` line 4375
+`_build_sync_sql.create_one` line 4878
 
 ```sql
 CREATE {_unlogged(m)}TABLE IF NOT EXISTS {t} (
@@ -4926,131 +5148,143 @@ CREATE {_unlogged(m)}TABLE IF NOT EXISTS {t} (
 ){' INHERITS (' + ', '.join((sub(p) for p in m['inherits'])) + ')' if m.get('inherits') else ''}{' PARTITION BY ' + sub(m['partkey']) if m.get('partkey') else ''}{storage};
 ```
 
-`_build_sync_sql.create_one` line 4395
+`_build_sync_sql.create_one` line 4909
+
+```sql
+ALTER TABLE {t} ADD CONSTRAINT {qi(c['notnull_name'])} NOT NULL {qi(c['name'])};
+```
+
+`_build_sync_sql.create_one` line 4912
+
+```sql
+ALTER TABLE {t} ALTER COLUMN {qi(c['name'])} SET NOT NULL;
+```
+
+`_build_sync_sql.create_one` line 4918
 
 ```sql
 ALTER TABLE {t} SET ({', '.join(m['reloptions'])});
 ```
 
-`_build_sync_sql.create_one` line 4410
+`_build_sync_sql.create_one` line 4933
 
 ```sql
 ALTER TABLE {t} REPLICA IDENTITY {_replident_sql(m)};
 ```
 
-`_build_sync_sql.create_one` line 4419
+`_build_sync_sql.create_one` line 4942
 
 ```sql
 CREATE OR REPLACE VIEW {qi(sb)}.{qi(name)} AS
 {sub(m['viewdef']).rstrip().rstrip(';')};
 ```
 
-`_build_sync_sql.create_one` line 4422
+`_build_sync_sql.create_one` line 4945
 
 ```sql
 CREATE MATERIALIZED VIEW IF NOT EXISTS {qi(sb)}.{qi(name)} AS
 {sub(m['viewdef']).rstrip().rstrip(';')}{'' if m.get('populated', True) else '\n  WITH NO DATA'};
 ```
 
-`_build_sync_sql.create_one` line 4426
+`_build_sync_sql.create_one` line 4949
 
 ```sql
 CREATE {'UNLOGGED ' if m.get('persistence') == 'u' else ''}SEQUENCE {'IF NOT EXISTS ' if _seq_ine else ''}{qi(sb)}.{qi(name)}{' AS ' + m['data_type'] if _typed_seq else ''} START {str(m['start'])} INCREMENT {str(m['inc'])} MINVALUE {str(m['min'])} MAXVALUE {str(m['max'])}{' CACHE ' + str(m['cache']) if m.get('cache') else ''}{' CYCLE' if m['cycle'] else ''};
 ```
 
-`_build_sync_sql.create_one` line 4439
+`_build_sync_sql.create_one` line 4962
 
 ```sql
 CREATE AGGREGATE {_routine_ref(m)} {sub(m['aggbody'])}
 ```
 
-`_build_sync_sql.drop_one` line 4446
+`_build_sync_sql.drop_one` line 4969
 
 ```sql
 DROP {_routine_kw(m or {})} IF EXISTS {_routine_ref(m or {})};
 ```
 
-`_build_sync_sql.drop_one` line 4450
+`_build_sync_sql.drop_one` line 4973
 
 ```sql
 DROP TRIGGER IF EXISTS {qi(m.get('trigger') or name)} ON {qi(sb)}.{qi(m.get('table') or '')};
 ```
 
-`_build_sync_sql.drop_one` line 4454
+`_build_sync_sql.drop_one` line 4977
 
 ```sql
 DROP {kw} IF EXISTS {qi(sb)}.{qi(name)};
 ```
 
-`_build_sync_sql.drop_one` line 4457
+`_build_sync_sql.drop_one` line 4980
 
 ```sql
 DROP RULE IF EXISTS {qi(rl)} ON {qi(sb)}.{qi(tbl)};
 ```
 
-`_build_sync_sql.drop_one` line 4460
+`_build_sync_sql.drop_one` line 4983
 
 ```sql
 DROP FOREIGN TABLE IF EXISTS {qi(sb)}.{qi(name)};
 ```
 
-`_build_sync_sql.drop_one` line 4462
+`_build_sync_sql.drop_one` line 4985
 
 ```sql
 DROP {{'statistics': 'STATISTICS', 'collation': 'COLLATION', 'conversion': 'CONVERSION'}[otype]} IF EXISTS {qi(sb)}.{qi(name)};
 ```
 
-`_build_sync_sql.drop_one` line 4475
+`_build_sync_sql.drop_one` line 4998
 
 ```sql
 DROP {kw} IF EXISTS {qi(sb)}.{qi(name)};
 ```
 
-`_build_sync_sql._drop_column_sql` line 4584
+`_build_sync_sql._drop_column_sql` line 5107
 
 ```sql
 ALTER TABLE {t} DROP COLUMN {qi(c)};  -- DESTRUCTIVE
 ```
 
-`_build_sync_sql.alter_one` line 4646
+`_build_sync_sql.alter_one` line 5169
 
 ```sql
 ALTER TYPE {qi(sb)}.{qi(name)} ADD VALUE IF NOT EXISTS {_literal_str(l)}{' AFTER ' + _literal_str(prev) if prev else ''};
 ```
 
-`_build_sync_sql.alter_one` line 4659
+`_build_sync_sql.alter_one` line 5182
 
 ```sql
 ALTER DOMAIN {qi(sb)}.{qi(name)} DROP CONSTRAINT IF EXISTS {qi(c)};
 ```
 
-`_build_sync_sql.alter_one` line 4663
+`_build_sync_sql.alter_one` line 5186
 
 ```sql
 ALTER DOMAIN {qi(sb)}.{qi(name)} DROP CONSTRAINT IF EXISTS {qi(c)};
 ```
 
-`_build_sync_sql.alter_one` line 4665
+`_build_sync_sql.alter_one` line 5188
 
 ```sql
 ALTER DOMAIN {qi(sb)}.{qi(name)} ADD CONSTRAINT {qi(c)} {sub(ma['checks'][c])};
 ```
 
-`_build_sync_sql.alter_one` line 4677
+`_build_sync_sql.alter_one` line 5200
 
 ```sql
 CREATE OR REPLACE VIEW {qi(sb)}.{qi(name)} AS
 {sub(ma['viewdef']).rstrip().rstrip(';')};
 ```
 
-`_build_sync_sql.alter_one` line 4684
+`_build_sync_sql.alter_one` line 5207
 
 ```sql
 DROP AGGREGATE IF EXISTS {_routine_ref(ma)};
 {create_one('function', name, ma)}
 ```
 
-`_build_sync_sql.alter_one` line 4688
+`_build_sync_sql.alter_one` line 5211
 
 ```sql
 DROP MATERIALIZED VIEW IF EXISTS {qi(sb)}.{qi(name)};
@@ -5058,205 +5292,205 @@ CREATE MATERIALIZED VIEW {qi(sb)}.{qi(name)} AS
 {sub(ma['viewdef']).rstrip().rstrip(';')};
 ```
 
-`_build_sync_sql.alter_one` line 4692
+`_build_sync_sql.alter_one` line 5215
 
 ```sql
 ALTER SEQUENCE {qi(sb)}.{qi(name)}{' AS ' + ma['data_type'] if _typed_seq and ma.get('data_type') != mb.get('data_type') else ''} INCREMENT {str(ma['inc'])} MINVALUE {str(ma['min'])} MAXVALUE {str(ma['max'])}{' CACHE ' + str(ma['cache']) if ma.get('cache') else ''}{' CYCLE' if ma['cycle'] else ' NO CYCLE'};
 ```
 
-`_build_sync_sql.alter_one` line 4704
+`_build_sync_sql.alter_one` line 5227
 
 ```sql
 ALTER SEQUENCE {qi(sb)}.{qi(name)} OWNED BY {qi(sb)}.{qi(tab)}.{qi(col)};
 ```
 
-`_build_sync_sql.alter_one` line 4707
+`_build_sync_sql.alter_one` line 5230
 
 ```sql
 ALTER SEQUENCE {qi(sb)}.{qi(name)} OWNED BY NONE;
 ```
 
-`_build_sync_sql.alter_one` line 4736
+`_build_sync_sql.alter_one` line 5259
 
 ```sql
 ALTER TABLE {t} NO INHERIT {sub(p)};
 ```
 
-`_build_sync_sql.alter_one` line 4737
+`_build_sync_sql.alter_one` line 5260
 
 ```sql
 ALTER TABLE {t} INHERIT {sub(p)};
 ```
 
-`_build_sync_sql.alter_one` line 4762
+`_build_sync_sql.alter_one` line 5285
 
 ```sql
 ALTER TABLE {t} ADD COLUMN IF NOT EXISTS {col_line(c).strip()};
 ```
 
-`_build_sync_sql.alter_one` line 4774
+`_build_sync_sql.alter_one` line 5299
 
 ```sql
 ALTER TABLE {t} ALTER COLUMN {qi(n)} TYPE {c['type']};
 ```
 
-`_build_sync_sql.alter_one` line 4777
+`_build_sync_sql.alter_one` line 5302
 
 ```sql
 ALTER TABLE {t} ALTER COLUMN {qi(n)}{' SET DEFAULT ' + sub(c['default']) if c['default'] else ' DROP DEFAULT'};
 ```
 
-`_build_sync_sql.alter_one` line 4781
+`_build_sync_sql.alter_one` line 5309
 
 ```sql
 ALTER TABLE {t} ALTER COLUMN {qi(n)}{' SET' if c['notnull'] else ' DROP'} NOT NULL;
 ```
 
-`_build_sync_sql.alter_one` line 4829
+`_build_sync_sql.alter_one` line 5357
 
 ```sql
 ALTER TABLE {t} DROP CONSTRAINT IF EXISTS {qi(cn)};
 ```
 
-`_build_sync_sql.alter_one` line 4836
+`_build_sync_sql.alter_one` line 5364
 
 ```sql
 ALTER TABLE {t} DROP CONSTRAINT IF EXISTS {qi(cn)};
 ```
 
-`_build_sync_sql.alter_one` line 4841
+`_build_sync_sql.alter_one` line 5369
 
 ```sql
 DROP INDEX IF EXISTS {qi(sb)}.{qi(ixn)};
 ```
 
-`_build_sync_sql.alter_one` line 4846
+`_build_sync_sql.alter_one` line 5374
 
 ```sql
 DROP INDEX IF EXISTS {qi(sb)}.{qi(ixn)};
 ```
 
-`_build_sync_sql.alter_one` line 4858
+`_build_sync_sql.alter_one` line 5386
 
 ```sql
 ALTER TABLE {t} RESET ({', '.join(gone)});
 ```
 
-`_build_sync_sql.alter_one` line 4860
+`_build_sync_sql.alter_one` line 5388
 
 ```sql
 ALTER TABLE {t} SET ({', '.join(ma['reloptions'])});
 ```
 
-`_build_sync_sql.alter_one` line 4868
+`_build_sync_sql.alter_one` line 5396
 
 ```sql
 DROP POLICY IF EXISTS {qi(nm)} ON {t};
 ```
 
-`_build_sync_sql.alter_one` line 4870
+`_build_sync_sql.alter_one` line 5398
 
 ```sql
 ALTER TABLE {t} DISABLE ROW LEVEL SECURITY;
 ```
 
-`_build_sync_sql.alter_one` line 4872
+`_build_sync_sql.alter_one` line 5400
 
 ```sql
 ALTER TABLE {t} NO FORCE ROW LEVEL SECURITY;
 ```
 
-`_build_sync_sql.alter_one` line 4877
+`_build_sync_sql.alter_one` line 5405
 
 ```sql
 ALTER TABLE {t} REPLICA IDENTITY {_replident_sql(ma)};
 ```
 
-`_build_sync_sql._emit_creates` line 5110
+`_build_sync_sql._emit_creates` line 5638
 
 ```sql
 ALTER SEQUENCE {qi(sb)}.{qi(n)} OWNED BY {qi(sb)}.{qi(tab)}.{qi(col)};
 ```
 
-`_build_sync_sql._emit_comments` line 5213
+`_build_sync_sql._emit_comments` line 5741
 
 ```sql
 COMMENT ON {target} IS {_literal_str(m['comment'])};
 ```
 
-`_build_sync_sql._emit_comments` line 5216
+`_build_sync_sql._emit_comments` line 5744
 
 ```sql
 COMMENT ON COLUMN {qi(sb)}.{qi(name)}.{qi(col)} IS {_literal_str(txt)};
 ```
 
-`_build_sync_sql._emit_comments` line 5223
+`_build_sync_sql._emit_comments` line 5751
 
 ```sql
 COMMENT ON POLICY {qi(pn)} ON {qi(sb)}.{qi(name)} IS {_literal_str(pc)};
 ```
 
-`_build_sync_sql._acl_sync` line 5338
+`_build_sync_sql._acl_sync` line 5866
 
 ```sql
 REVOKE {', '.join(_words(revoke, col))} ON {t} FROM {who};
 ```
 
-`_build_sync_sql._acl_sync` line 5341
+`_build_sync_sql._acl_sync` line 5869
 
 ```sql
 REVOKE GRANT OPTION FOR {', '.join(_words(revoke_go, col))} ON {t} FROM {who};
 ```
 
-`_build_sync_sql._acl_sync` line 5344
+`_build_sync_sql._acl_sync` line 5872
 
 ```sql
 GRANT {', '.join(_words(grant, col))} ON {t} TO {who};
 ```
 
-`_build_sync_sql._acl_sync` line 5347
+`_build_sync_sql._acl_sync` line 5875
 
 ```sql
 GRANT {', '.join(_words(grant_go, col))} ON {t} TO {who} WITH GRANT OPTION;
 ```
 
-**head** - `_build_sync_sql._defacl_sync` line 5375
+**head** - `_build_sync_sql._defacl_sync` line 5903
 
 ```sql
 ALTER DEFAULT PRIVILEGES FOR ROLE {qi(role)} IN SCHEMA {qi(sb)}
 ```
 
-`_build_sync_sql._defacl_sync` line 5396
+`_build_sync_sql._defacl_sync` line 5924
 
 ```sql
 WITH GRANT OPTION;
 ```
 
-`_build_sync_sql._grants_one` line 5422
+`_build_sync_sql._grants_one` line 5950
 
 ```sql
 ALTER {t} OWNER TO {qi(ma['owner'])};
 ```
 
-`_build_sync_sql._setval` line 5512
+`_build_sync_sql._setval` line 6040
 
 ```sql
 SELECT setval({seq_expr}, COALESCE({agg}, {start}), {agg} IS NOT NULL) FROM {qi(sb)}.{qi(tab)};
 ```
 
-`_build_sync_sql._setval` line 5543
+`_build_sync_sql._setval` line 6071
 
 ```sql
 SELECT setval({seq_expr}, {str(int(val[0]))}, {'true' if val[1] else 'false'});
 ```
 
-`_build_sync_sql._state_one` line 5572
+`_build_sync_sql._state_one` line 6100
 
 ```sql
 REFRESH MATERIALIZED VIEW {qi(sb)}.{qi(name)}{'' if d['a'] else ' WITH NO DATA'};
 ```
 
-`_compare_collect` line 5741
+`_compare_collect` line 6269
 
 ```sql
 SELECT c.relname, c.relkind::text,
@@ -5270,7 +5504,7 @@ SELECT c.relname, c.relkind::text,
  WHERE n.nspname = %s AND c.relkind IN ('r','p','m')
 ```
 
-`_compare_collect` line 5761
+`_compare_collect` line 6289
 
 ```sql
 SELECT e.extname, e.extversion,
@@ -5279,72 +5513,96 @@ SELECT e.extname, e.extversion,
   LEFT JOIN pg_namespace n ON n.oid = e.extnamespace
 ```
 
-`_compare_diff` line 5839
+`_compare_diff` line 6367
 
 ```sql
 SELECT setval({_lit(tgt)}, (SELECT last_value FROM {src}), (SELECT is_called FROM {src}));
 ```
 
-`_copy_table_cross` line 6029
+`_copy_table_cross` line 6557
 
 ```sql
 SELECT to_regclass(%s) IS NOT NULL
 ```
 
-`_copy_table_cross` line 6034
-
-```sql
-SELECT a.attname, format_type(a.atttypid, a.atttypmod),
-       a.attnotnull, pg_get_expr(d.adbin, d.adrelid)
-  FROM pg_attribute a
-  JOIN pg_class c ON c.oid = a.attrelid
-  JOIN pg_namespace n ON n.oid = c.relnamespace
-  LEFT JOIN pg_attrdef d ON d.adrelid = c.oid AND d.adnum = a.attnum
- WHERE n.nspname = %s AND c.relname = %s
-   AND a.attnum > 0 AND NOT a.attisdropped
- ORDER BY a.attnum
-```
-
-`_copy_table_cross` line 6052
-
-```sql
-SELECT to_regclass(%s) IS NOT NULL
-```
-
-**ddl** - `_copy_table_cross` line 6064
-
-```sql
-CREATE TABLE {dst_q} ({', '.join(col_defs)})
-```
-
-`_copy_table_cross` line 6078
+`_copy_table_cross` line 6562
 
 ```sql
 SELECT current_setting('server_version_num')::int
 ```
 
-`_copy_table_cross` line 6085
+`_copy_table_cross` line 6574
+
+```sql
+SELECT a.attname, format_type(a.atttypid, a.atttypmod),
+       a.attnotnull, pg_get_expr(d.adbin, d.adrelid), %s, %s
+  FROM pg_attribute a
+  JOIN pg_class c ON c.oid = a.attrelid
+  JOIN pg_namespace n ON n.oid = c.relnamespace
+  LEFT JOIN pg_attrdef d ON d.adrelid = c.oid AND d.adnum = a.attnum
+ WHERE n.nspname = %%s AND c.relname = %%s
+   AND a.attnum > 0 AND NOT a.attisdropped
+ ORDER BY a.attnum
+```
+
+`_copy_table_cross` line 6592
+
+```sql
+SELECT to_regclass(%s) IS NOT NULL
+```
+
+`_copy_table_cross` line 6598
+
+```sql
+SELECT current_setting('server_version_num')::int
+```
+
+`_copy_table_cross` line 6614
+
+```sql
+ALTER TABLE {dst_q} ADD CONSTRAINT {_qi(nn_nv)} NOT NULL "{name}" NOT VALID
+```
+
+**ddl** - `_copy_table_cross` line 6618
+
+```sql
+CREATE TABLE {dst_q} ({', '.join(col_defs)})
+```
+
+`_copy_table_cross` line 6633
 
 ```sql
 SELECT set_config('dbapguin.anon_salt', %s, false)
 ```
 
-**select_sql** - `_copy_table_cross` line 6104
+**select_sql** - `_copy_table_cross` line 6652
 
 ```sql
 SELECT {', '.join(select_parts)} FROM {from_sql}
 ```
 
-`_copy_table_cross` line 6118
+`_copy_table_cross` line 6677
+
+```sql
+SET LOCAL row_security = off
+```
+
+`_copy_table_cross` line 6680
 
 ```sql
 COPY ({select_sql}) TO STDOUT WITH (FORMAT csv, HEADER false)
 ```
 
-`_copy_table_cross` line 6121
+`_copy_table_cross` line 6684
 
 ```sql
 COPY {dst_q} ({dst_cols_sql}) FROM STDIN WITH (FORMAT csv, HEADER false)
+```
+
+`_copy_table_cross` line 6686
+
+```sql
+COPY {dst_q} FROM {src_q}
 ```
 
 ## smoke_test_checks.py

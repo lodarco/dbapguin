@@ -6,15 +6,16 @@ Nothing here is secret: a DBA should be able to see what a tool runs on their se
 
 | Part of the app | Statements |
 |---|---|
-| [Checks](checks.md) | 408 |
-| [Checks (catalogue)](checks-catalogue.md) | 13 |
+| [Checks](checks.md) | 405 |
+| [Checks (catalogue)](checks-catalogue.md) | 18 |
+| [Checks (catalogue)](checks-catalogue.md) | 18 |
 | [Sessions and live load](sessions-and-live-load.md) | 49 |
-| [SQL editor](sql-editor.md) | 58 |
-| [Schema browser](schema-browser.md) | 339 |
-| [Database tools](database-tools.md) | 523 |
-| [The rest of the app](the-rest-of-the-app.md) | 748 |
+| [SQL editor](sql-editor.md) | 59 |
+| [Schema browser](schema-browser.md) | 349 |
+| [Database tools](database-tools.md) | 526 |
+| [The rest of the app](the-rest-of-the-app.md) | 780 |
 
-**2138 statements in all.**
+**2186 statements in all.**
 
 ## Licence
 

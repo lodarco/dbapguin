@@ -219,21 +219,18 @@ Označite **Ne prikazuj više** i napomena prestaje izlaziti. Za povratak:
 Isključivanjem skrivate podsjetnik. Uvjeti na koje upućuje time se ne mijenjaju
  - oni su u Pomoć → Licencni ugovor.
 
-## 2.5 Licenciranje
+## 2.5 Uvjeti korištenja
 
-DBApguin 1.0.x - svako izdanje čija verzija počinje s 1.0, uključujući ovo -
-**besplatan je za sve**, i za privatnu i za poslovnu upotrebu. Nema
-licencnog ključa koji treba unijeti, nema aktivacije, nema probnog roka koji
-istječe i nema zadržanih funkcija.
+DBApguin je **besplatan za sve**, i za privatnu i za poslovnu upotrebu, sa svim
+funkcijama.
 
 Što to znači u praksi:
 
 - **Sve je dostupno od prvog pokretanja**, na koliko god strojeva želiš:
   savjetnici, analiza radnog opterećenja, AWR snimke, povijest upita, analiza
   indeksa i napuhnutosti, alati za usporedbu i migraciju - sve.
-- **Bez ograničenja** na broj spremljenih veza ili otvorenih tabova.
-- **Ništa se ne provjerava preko mreže.** Nema provjere licence, pa se ništa
-  ne javlja kući. Aplikacija razgovara samo s bazama koje sam postaviš - i, ako
+- **Ništa se ne provjerava preko mreže**, pa se ništa ne javlja kući.
+  Aplikacija razgovara samo s bazama koje sam postaviš - i, ako
   instaliraš pluginove, s onim na što su ti pluginovi postavljeni (poglavlje 7,
   Pluginovi).
 - **Bez računa, bez prijave, bez registracije.**
@@ -981,6 +978,13 @@ Sekcija **Maintenance actions** u Advisor tabu također prikazuje bilo koji VACU
 
 `db-sequences` i `db-seq-usage` popisuju sekvence po tome koliko su blizu maksimumu, s vlasničkim stupcem i svakim defaultom koji ih referencira. `integer` sekvenca na 80% je prelazak na `bigint` koji želite isplanirati, a ne otkriti kad `nextval` pukne.
 
+Maksimum koji se računa manji je od dva: vlastiti `MAXVALUE` sekvence i najveća vrijednost koju stupac koji puni može primiti (32.767 za `smallint`, 2.147.483.647 za `integer`). Prije PostgreSQL-a 10 sekvenca nije imala tip - svaka je bila `bigint` - pa je svaki tada napravljen `serial` stupac `integer` koji puni `bigint` sekvenca, a nadograđena shema taj oblik zadržava. Mjeren samo prema sekvenci, takav stupac pokazuje 0% iskorištenosti dok mu je ostalo nekoliko tisuća ID-jeva; sljedeći unos preko ruba pada s *integer out of range*. `db-sequences`, `db-seq-usage` i redak SEQUENCES u pregledu zdravlja mjere prema stupcu i ocjenjuju po dvije stvari, dovoljna je bilo koja:
+
+- **udio iskorištenog raspona**: žuto od 80%, crveno od 95%;
+- **preostalo vrijeme**: preostali ID-jevi podijeljeni s brojem unosa dnevno u tablicu stupca (njezin brojač unosa kroz prozor statistike - isti prozor koji navodi Advisor tablice): žuto ispod 180 dana, crveno ispod 30. Prozor kraći od sat vremena čini ritam procjenom: vrijeme se prikaže, kaže se da je procjena, i ne mijenja boju.
+
+Svaka sekvenca koja se troši navodi stupce stranih ključeva koji pokazuju na nju i uži su od `bigint`: prebacivanje stupca na `bigint` prebacuje problem na njih, pa se mijenjaju u istoj migraciji. Kad je sam stupac već `bigint`, uži stupac stranog ključa postaje strop: na prvi ID preko njegova maksimuma ne može se pokazati, pa se preostali prostor mjeri prema njemu i on se navodi. `ALTER COLUMN ... TYPE bigint` prepisuje cijelu tablicu pod `ACCESS EXCLUSIVE` lockom - nitko je ne čita ni ne piše dok ne završi; put bez prekida je novi `bigint` stupac koji trigger drži usklađenim, punjenje u serijama i zamjena.
+
 `db-seq-sync` piše `SELECT setval(...)` za svaku sekvencu, postavljajući svaku tik iznad najveće vrijednosti trenutno u njenom vlasničkom stupcu. Pokrenite je nakon prebacivanja logičke replikacije ili `pg_dump --data-only` punjenja, gdje retci stignu ali sekvence ostanu na 1 pa se sljedeći `INSERT` sudari s postojećim ključem. Generirana je skripta kao i svaka druga - pregledajte je, pa je pokrenite na cilju.
 
 `db-checkpoints` pokazuje kako checkpointi okidaju: **tempirani** (dobro, vođeni s `checkpoint_timeout`) naspram **traženih** (nametnutih pritiskom `max_wal_size`), prosječan razmak među njima te vrijeme pisanja i sinkronizacije. Visok udio traženih znači da je `max_wal_size` premalen za brzinu pisanja - povećanje mijenja prostor na disku za puno manje checkpoint I/O-a.
@@ -1139,7 +1143,22 @@ Ispod editora je panel s ispisom:
 - Povijest izvođenja i statistike (može se skupiti)
 - Vrijeme i broj redaka po izvođenju
 
-Spremljeni upiti: kliknite karticu "Spremljeno" za pregled svojih isječaka. Radni prostor po vezi čuva otvorene kartice između pokretanja.
+**Spremljeni upiti.** **Save query** (Ctrl+S) sprema tekst editora pod
+imenom; popis **saved** pokraj njega otvara jedan u kartici. **SQL →
+Spremljeni upiti…** (ili *manage saved queries…* na kraju tog popisa)
+otvara njihov vlastiti dijalog: popis koji se pretražuje po imenu, bilješci
+i SQL-u, a za odabrani njegovo ime, bilješka i SQL za uređivanje, **Otvori u
+editoru**, **Dupliciraj** i **Obriši**. Promjena se sprema tek nakon što ju
+je **Pregledaj i spremi** pokazao jednu uz drugu sa spremljenom - prije
+lijevo, poslije desno, redak koji ima samo jedna strana crveno ili zeleno,
+promijenjene riječi označene - i pritisneš **Spremi promjene**. Svaka
+spremljena promjena čuva verziju prije sebe (zadnjih 25): **Ranije verzije**
+uspoređuje bilo koju s trenutnom na isti način i može je vratiti u polja,
+za pregled i spremanje. Kartica otvorena iz spremljenog upita to pamti:
+**Save query** tamo pokaže što se promijenilo jedno uz drugo i nudi
+**Ažuriraj** ili **Spremi kao novi**. Spremljeni upiti nemaju ograničenje;
+popis **history** pokraj njih čuva zadnjih 30 pokrenutih upita. Radni
+prostor po vezi čuva otvorene kartice između pokretanja.
 
 #### EXPLAIN kao stablo {#explain-as-a-tree}
 
@@ -1247,7 +1266,9 @@ transaction block"*, a editor kaže koji izbornik promijeniti.
   prekida izvođenje. Svaka se pokuša, svaki neuspjeh se ispiše uz svoj redni
   broj i poruku, a one koje su prošle ostaju potvrđene. To je mod za datoteku
   DDL-a od koje je dio već primijenjen: želiš da ostatak uđe i popis onoga
-  što nije.
+  što nije. Rezultat je samo sirovi ispis, kakav daje `psql -f` - oznaka ili
+  redovi svake naredbe, njezine obavijesti, njezina greška - s **Copy** uz
+  njega; tablice nema.
 - **drži otvoreno (sam potvrdiš)** - transakcija ostaje otvorena **između**
   pokretanja i završava kad pritisneš Commit ili Rollback, koji se pojave uz
   izbornik dok je otvorena. Pokreni nešto, pogledaj što je napravilo, pa
@@ -1561,13 +1582,58 @@ tablicom u drugim shemama, pogled nad jednim od njih, materijalizirane
 poglede, funkciju kojoj je argument tip retka tablice i strane ključeve
 drugih tablica; `DROP TYPE ... CASCADE` vadi stupce tog tipa iz drugih
 tablica, zajedno s vrijednostima; obrisana funkcija okidača odnosi svoje
-okidače, obrisana sekvenca defaulte koji je pozivaju. Dijalog ih navodi prije
-brisanja, a kopija ih imenuje na vrhu. Kad se proba ne može izvesti -
-tablica prezauzeta da se zaključa u tri sekunde ili event triggeri koji bi
-se na njoj okinuli - popis se čita iz grafa ovisnosti, a kopija kaže da je
-procjena. Ono što kopija ne može zapisati navedeno je pod *NOT in this copy*.
+okidače, obrisana sekvenca defaulte koji je pozivaju. Dijalog ih navodi kad to
+zatražiš (**Izračunaj što drop uzima**), pročitane iz grafa ovisnosti: za
+popis se ništa ne isprobava i ništa ne zaključava, i za shemu sa stotinama
+tablica. Kopija ih imenuje na vrhu, točno kako ih je proba našla. Kad se
+proba ne može izvesti - tablica prezauzeta da se zaključa u tri sekunde ili
+event triggeri koji bi se na njoj okinuli - i popis kopije čita se iz grafa
+ovisnosti, a kopija kaže da je procjena. Ono što kopija ne može zapisati
+navedeno je pod *NOT in this copy*.
 
-**Redovi.** Definicije nisu podaci. **Spremi i redove**, označeno do 1 GB,
+**Što kopirati prije.** Dijalog za brisanje, i dijalog koji briše više
+odabranih objekata, otvaraju se bez ijednog upita poslužitelju. Ispod
+naredbe i njezinih opcija (**CASCADE**, **IF EXISTS**, SQL) pitaju, ovim
+redom:
+
+1. **Spremiti kopiju prije dropa?** Prvi izbor je **Bez kopije - izvrši samo
+   DROP**: ništa se ne sprema i ništa se prije ne računa, izvrši se samo
+   naredba DROP (za shemu s **CASCADE**, `DROP SCHEMA ... CASCADE` na toj
+   shemi i ništa drugo). Ne može se poništiti, osim iz sigurnosne kopije.
+   **Prvo spremi kopiju** otvara sljedeće pitanje.
+2. **Što spremiti:** **Kopiraj samo definicije** (definicije svega što
+   brisanje odnosi; tablica se vraća prazna) ili **Kopiraj definicije i
+   redove** (i redovi tablica koje odlaze zapisuju se u mapu s podacima).
+3. **Izračunaj što drop uzima** - tek kad to klikneš: objekti koje
+   **CASCADE** uklanja i, za tablice koje odlaze, koliko ih je, otprilike
+   koliko redova i koliko podataka. Kopija to treba prije nego što se
+   **Ukloni** omogući; bez kopije to također možeš zatražiti, ali ne moraš.
+
+Veličine su procjena koju poslužitelj vodi (redovi i stranice iz njegove
+statistike), pročitana bez otvaranja ijedne tablice; tablica koja nikad nije
+vacuumirana ni analizirana još nema veličinu, i dijalog to kaže. Kopija
+najprije isproba brisanje da točno utvrdi što odlazi, a to na trenutak drži
+zaključavanja brisanja (čeka ih najviše tri sekunde). Dijalog pamti tvoj
+zadnji izbor dok se aplikacija ne zatvori (nigdje se ne sprema): sljedeće
+brisanje počinje od njega, samo što redovi iznad 50 MB prelaze u samo
+definicije čim analiza to pokaže, i dijalog kaže zašto. Bez kopije, kad
+brisanje može odnijeti podatke ili druge objekte (tablica, shema, bilo što s
+**CASCADE**, osim ako je analiza pokazala da ništa ne odlazi), upisuješ ime
+objekta (za više objekata, koliko ih je) prije nego što se **Ukloni**
+omogući. Vrsta za koju se kopija ne može napisati (ekstenzija, okidač,
+uloga ...) to kaže i nudi samo analizu.
+
+**Dok radi.** Brisanje je pozadinski posao, a dijalog ga prati korak po
+korak: utvrđivanje što točno brisanje uklanja, kopiranje definicija,
+kopiranje redova (toliko od toliko tablica, koliko je zapisano), uklanjanje -
+s vremenom koje je dosad prošlo. Dok sam DROP ne počne, **Odustani** glasi
+**Zaustavi**: staje na sljedećoj sigurnoj točki, ništa se ne uklanja, a
+kopija napravljena dotad briše se zajedno s redovima. Kad DROP krene, više
+se ne može zaustaviti, i gumb to kaže. Zatvaranje dijaloga ne zaustavlja
+posao; ostaje u Pozadinskim poslovima. Premještanje i kloniranje iz istog
+dijaloga pokazuju isto stanje rada.
+
+**Redovi.** Definicije nisu podaci. **Kopiraj definicije i redove**
 zapisuje redove svake tablice koju brisanje odnosi u mapu s podacima uz
 kopiju, kao i vrijednosti stupca koji cascade vadi iz tablice koja ostaje
 (vraćaju se po primarnom ključu; tablica bez njega ne može ih dobiti natrag,
@@ -1584,7 +1650,7 @@ kartici spojenoj na tu bazu, i kaže kad takve nema. Strani ključ tablice koja 
 ta tablica ima redove koji pokazuju na tablicu koja se vraća prazna, a
 provjerava se kad se redovi vrate; tada se osvježavaju i materijalizirani
 pogledi. Redovi strane tablice žive na drugom poslužitelju i ne spremaju se.
-Bez označenih redova kopija na vrhu kaže da sadrži samo definicije.
+Sa samo definicijama kopija na vrhu kaže da sadrži samo definicije.
 
 ### 5.4 Sesije
 
@@ -2668,6 +2734,34 @@ ide prva. Sekvence se pomiču tamo gdje su originali stali, pa prvi insert u
 kopiju ne udari u redak koji je došao s podacima. `IDENTITY` stupac nosi i
 svoje postavke sekvence - `START WITH`, `INCREMENT BY`, `MINVALUE`,
 `MAXVALUE`, `CACHE`, `CYCLE` - pa se kopija ne vraća tiho na zadane.
+
+Redci se preuzimaju **točno onakvi kakvi jesu**, što god u njima bilo. Sve što
+ocjenjuje ili mijenja redak dok se upisuje čeka da redci budu unutra:
+
+- ograničenje koje izvor ima kao `NOT VALID` (`CHECK`, strani ključ, `CHECK`
+  domene, `NOT NULL ... NOT VALID` iz PostgreSQL-a 18) dodaje se kao
+  `NOT VALID` nakon redaka, pa se redci koje izvor nikad nije provjerio ne
+  provjeravaju ni u kopiji, a novi redci da;
+- okidači i pravila stvaraju se nakon redaka, pa nijedan ne odbija, ne mijenja
+  i ne dodaje kopirane retke;
+- sigurnost na razini redaka i njezine politike uključuju se nakon redaka;
+- indeks koji je neuspjeli `CREATE INDEX CONCURRENTLY` ostavio neispravnim ne
+  kopira se (u izvoru ništa ne osigurava, a ponovno izgrađen na istim redcima
+  ponovno pada) - kao što ga ni `pg_dump` ne prenosi.
+
+Sigurnost na razini redaka ne odbija čitanje, nego ga skraćuje. Ako se njezine
+politike odnose na ulogu kojom ste spojeni (niste vlasnik tablice ili tablica
+ima `FORCE ROW LEVEL SECURITY`, a niste ni superkorisnik ni uloga s
+`BYPASSRLS`) ili ne smijete čitati neki njezin stupac, kloniranje **prije**
+pokretanja navodi tablicu i razlog i ne kopira ništa, umjesto da kopira samo
+retke koje vidite.
+
+**Tablica po tablica** za svaku tablicu pokazuje kopirane retke, što je dodano
+kao `NOT VALID` kao u izvoru, što je stvoreno nakon redaka i što nije
+kopirano. Ako se redak ipak ne može kopirati, poruka navodi tablicu, stupac,
+ograničenje, redak koji ne prolazi i retke u izvoru po primarnom ključu.
+**Kloniraj tablicu**, **Kopiraj tablicu** i izbor *kopiraj* u **Spoji shemu**
+preuzimaju retke na isti način.
 
 **Show the script** ispiše cijelu skriptu prije nego išta krene. Sam klon
 radi kao jedna transakcija: ili stigne cijel ili nikako. Izvodi se kao
@@ -4025,13 +4119,13 @@ Sve što DBApguin čuva između pokretanja nalazi se u jednom direktoriju (putan
 
 **Uvezi podatke aplikacije** čita takvu arhivu, pokazuje što sadrži uz ono što je već ovdje i preuzima što označiš (opet sve po defaultu). Spaja, ne zamjenjuje: spremljena povijest (AWR snimke, ASH dani, praćenja sesija, spremljeni izvještaji, logovi poslova, revizijski zapisnik, pluginovi) se dodaje i nikad ne prepisuje datoteku koja već postoji; spremljene konekcije se spajaju po id-u, zauzeto ime dobiva broj, a lozinke se ponovno enkriptiraju ključem ove instalacije; pojedinačna datoteka poput postavki ili spremljenih upita zamjenjuje tvoju. Arhiva bez ključa, ili s ključem zaštićenim master lozinkom, uvozi konekcije bez lozinki i to kaže. Tako DBA prenosi prikupljenu povijest i postavke na drugo računalo; zajedničkog spremišta između instalacija nema.
 
-> Kopija **uključuje `key`, `connections.json` i `license.json`** - podatkovni ključ i tvoje enkriptirane lozinke konekcija. To je namjerno: kopija tvojih postavki bez toga nije kopija. Ali znači da je arhiva osjetljiva. Spremi je na privatno mjesto i **nikad u mapu koja se sinkronizira s uslugom u oblaku** (Dropbox, OneDrive, iCloud, Nextcloud, sinkronizirana mapa Dokumenti). Ako je postavljena master lozinka, lozinke u arhivi ostaju njome enkriptirane; bez nje su tek lagano zamaskirane.
+> Kopija **uključuje `key` i `connections.json`** - podatkovni ključ i tvoje enkriptirane lozinke konekcija. To je namjerno: kopija tvojih postavki bez toga nije kopija. Ali znači da je arhiva osjetljiva. Spremi je na privatno mjesto i **nikad u mapu koja se sinkronizira s uslugom u oblaku** (Dropbox, OneDrive, iCloud, Nextcloud, sinkronizirana mapa Dokumenti). Ako je postavljena master lozinka, lozinke u arhivi ostaju njome enkriptirane; bez nje su tek lagano zamaskirane.
 
 Kopija nosi i **instalirane pluginove** (`plugins/`) i ono što oni čuvaju (`plugin-data/`) - njihove postavke i lozinke koje spremaju, enkriptirane istim `key` - pa vraćanje kopije vraća i pluginove, ispravne. Mapa u kojoj pišeš vlastite pluginove, ako ih pišeš, nije u njoj: nalazi se gdje god si je odabrao.
 
 Izvoz veza iz upravitelja veza je nešto drugo: zapisuje samo veze i njihove grupe, bez lozinki, postavki i pluginova.
 
-**Čišćenje podataka aplikacije** prikazuje popis s veličinom svake stavke. Izvještaji i logovi - AWR snimke, logovi poslova, spremljeni izvještaji provjera, error log - označeni su po defaultu; postavke, spremljeni upiti i SQL workspace su navedeni ali neoznačeni. Spremljene konekcije (`connections.json` + `key`) i licenca (`license.json`) su u zasebnoj sekciji i traže upis riječi `DELETE` za potvrdu, jer njihovo brisanje gubi svaku spremljenu konekciju i njezinu lozinku. `license.json` je također u toj sekciji, ali na besplatnoj instalaciji je nema, pa njezino brisanje ne mijenja ništa. Instalirani pluginovi su navedeni neoznačeni; njihove postavke i spremljene lozinke (`plugin-data/`) su u istoj zaštićenoj sekciji kao konekcije, jer njihovo brisanje gubi te lozinke. `trial.json`, koji su ostavile verzije iz vremena prije nego što je DBApguin postao besplatan, ovdje se nikad ne nudi. Direktorij koji još drži pokrenuti pozadinski posao se odbija; prvo otkaži posao. Svako čišćenje se zapisuje u revizijski zapisnik.
+**Čišćenje podataka aplikacije** prikazuje popis s veličinom svake stavke. Izvještaji i logovi - AWR snimke, logovi poslova, spremljeni izvještaji provjera, error log - označeni su po defaultu; postavke, spremljeni upiti i SQL workspace su navedeni ali neoznačeni. Spremljene konekcije (`connections.json` + `key`) su u zasebnoj sekciji i traže upis riječi `DELETE` za potvrdu, jer njihovo brisanje gubi svaku spremljenu konekciju i njezinu lozinku. Instalirani pluginovi su navedeni neoznačeni; njihove postavke i spremljene lozinke (`plugin-data/`) su u istoj zaštićenoj sekciji kao konekcije, jer njihovo brisanje gubi te lozinke. Direktorij koji još drži pokrenuti pozadinski posao se odbija; prvo otkaži posao. Svako čišćenje se zapisuje u revizijski zapisnik.
 
 ### Pluginovi {#plugins}
 
@@ -4056,7 +4150,19 @@ Klik na snop obavijesti ga širi i omogućuje skrolanje. Kotačić skrola. Klik 
 
 Dok je otvoren prozor, obavijesti ne prekrivaju njegove gumbe. Nova obavijest stane iznad njih ili u prostor pokraj prozora, a kad nigdje nema mjesta, odmah ide u brojač, čiji broj i boja i dalje govore da je stigla. I brojač stoji iznad gumba prozora; ako ni on ne stane, skriven je dok se prozor ne zatvori. Kad se prozor zatvori, sve se vraća u kut.
 
-Jedna radnja nudi Poništi: brisanje spremljene konekcije, koju obavijest može vratiti otprilike šest sekundi. Obavijest ne može poništiti ono što je stiglo do baze. Ono što aplikacija radi umjesto toga jest da ti prije izvršenja pokaže naredbu, pita jednom i zapiše je u audit log; postavka promijenjena ovdje može se poništiti iz prikaza postavki, a brisanje, premještanje ili promjena vlasnika ostavlja kopiju - za brisanje s redovima, kad je označeno - koja vraća objekte (vidi *Kopija definicija prije promjene*).
+Jedna radnja nudi Poništi: brisanje spremljene konekcije, koju obavijest može vratiti otprilike šest sekundi. Obavijest ne može poništiti ono što je stiglo do baze. Ono što aplikacija radi umjesto toga jest da ti prije izvršenja pokaže naredbu, pita jednom i zapiše je u audit log; postavka promijenjena ovdje može se poništiti iz prikaza postavki, a brisanje, premještanje ili promjena vlasnika ostavlja kopiju - za brisanje s redovima, kad su odabrani, a nikakvu kad odabereš brisanje bez kopije - koja vraća objekte (vidi *Kopija definicija prije promjene*).
+
+### 8.1 Dok nešto radi {#while-something-runs}
+
+Sve što si zatražio, a traje dulje od četvrt sekunde, to i kaže, svaki put na istim mjestima:
+
+- Tanka traka klizi uz gornji rub prozora, a na desnom kraju reda kartica ispod izbornika vrti se kružić. Pokaži na kružić, ili dođi do njega tipkom Tab, i vidjet ćeš popis onoga što radi, korak na kojem je svaka stavka i koliko već traje; nakon tri sekunde kružić sam pokazuje vrijeme. Gdje se posao može zaustaviti - provjera, naredba u SQL editoru - njegov redak u popisu ima Odustani.
+- Gumb koji si pritisnuo umjesto natpisa pokazuje kružić i ne prima drugi pritisak dok posao ne završi. Ništa se pokraj njega ne pomiče: gumb zadržava veličinu, a traka, kružić i popis ne uzimaju mjesto na stranici.
+- Dio prozora koji se učitava to i kaže ("Čitam poslove…", "učitavam stupce…") umjesto da pokazuje prazan popis ili vrijednosti koje će se upravo promijeniti, a nakon tri sekunde pokazuje i koliko već čeka. Postavka čija se spremljena vrijednost još čita zatamnjena je i ne može se mijenjati dok vrijednost ne stigne.
+
+Izvozi i izvještaji imenuju svaki korak: sastavljam izvještaj, čekam tvoj odabir u dijalogu za datoteke (ako se dijalog otvorio iza prozora, taj redak je trag), zapisujem datoteku ili PDF. Stanje rada završava čim završi i posao, uspio ili ne, a obavijest kaže kamo je datoteka otišla ili zašto nije.
+
+Ono što aplikacija radi sama od sebe - osvježavanje nadzorne ploče, provjere konekcija, praćenje poslova, upiti kolektora - ovdje se nikad ne pokazuje, pa kružić koji se vrti uvijek znači da je nešto što si zatražio još na putu.
 
 ## 9. Prečaci na tipkovnici
 
@@ -4498,7 +4604,7 @@ njemu se jedan izvještaj razlikuje od drugog.
 ## 15. Kako doći do pomoći
 
 - Interna dokumentacija: ova datoteka plus `docs/TECHNICAL.md` i `ARCHITECTURE.md`
-- Podrijetlo builda: **Pomoć -> O DBApguinu** prikazuje verziju, git commit, vrijeme builda, Python s kojim je građen i stanje vaše licence. Priložite to uz prijavu greške.
+- Podrijetlo builda: **Pomoć -> O DBApguinu** prikazuje verziju, git commit, vrijeme builda i Python s kojim je građen. Priložite to uz prijavu greške.
 - Revizijski zapis: `<DBCHECKS_HOME>/audit/audit-YYYY-MM.jsonl` je JSON Lines datoteka. Otvorite je bilo kojim uređivačem teksta ili s `jq` za analizu.
 - Zapis grešaka: `<DBCHECKS_HOME>/dbchecks_error.log` za najnovije tragove grešaka sa strane poslužitelja. Lozinke se uklanjaju prije zapisa. Rotira na 1 MiB i čuva tri starije kopije, a svako pokretanje koje išta zapiše prvo ispiše zaglavlje - pa su zapisi nakon zadnjeg retka `=== DBApguin ... started ...` oni iz vaše trenutne sesije. Oni iznad mogu biti stari tjednima.
 

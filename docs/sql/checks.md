@@ -1,6 +1,6 @@
 # Checks
 
-[All parts](README.md) · 408 statements
+[All parts](README.md) · 405 statements
 
 ## checks/actual_plans.py
 
@@ -1119,46 +1119,7 @@ SELECT max(age(datfrozenxid))::bigint AS xid_age,
 SELECT members_size FROM pg_get_multixact_stats()
 ```
 
-`run_health_check` line 698
-
-```sql
-SELECT n.nspname AS s, c.relname AS n
-  FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace
- WHERE c.relkind = 'S'
-   AND n.nspname NOT IN ('pg_catalog','information_schema')
-```
-
-`run_health_check` line 710
-
-```sql
-SELECT '%s' AS name, last_value, max_value FROM %s
-```
-
-`run_health_check` line 714
-
-```sql
-SELECT name, round(100.0 * last_value::numeric / nullif(max_value,0), 1) AS pct FROM ({' UNION ALL '.join(_parts)}) q ORDER BY pct DESC NULLS LAST LIMIT 5
-```
-
-`run_health_check` line 719
-
-```sql
-SELECT NULL::text AS name, NULL::numeric AS pct WHERE false
-```
-
-`run_health_check` line 721
-
-```sql
-SELECT s.schemaname || '.' || s.sequencename AS name,
-       round(100.0 * s.last_value::numeric /
-             nullif(s.max_value, 0), 1) AS pct
-FROM pg_sequences s
-WHERE s.last_value IS NOT NULL
-ORDER BY pct DESC NULLS LAST
-LIMIT 5
-```
-
-`run_health_check` line 781
+`run_health_check` line 751
 
 ```sql
 SELECT s.schemaname, s.relname, pg_relation_size(s.indexrelid) AS bytes
@@ -1181,7 +1142,7 @@ WHERE s.idx_scan = 0
 ORDER BY 3 DESC
 ```
 
-`run_health_check` line 802
+`run_health_check` line 772
 
 ```sql
 SELECT s.schemaname, s.relname, pg_relation_size(s.indexrelid) AS bytes
@@ -1194,25 +1155,25 @@ WHERE s.idx_scan = 0
 ORDER BY 3 DESC
 ```
 
-`run_health_check` line 929
+`run_health_check` line 899
 
 ```sql
 SELECT extname FROM pg_extension
 ```
 
-`run_health_check` line 935
+`run_health_check` line 905
 
 ```sql
 SELECT name FROM pg_available_extensions
 ```
 
-`run_health_check` line 944
+`run_health_check` line 914
 
 ```sql
 SELECT setting AS s FROM pg_settings WHERE name = 'shared_preload_libraries'
 ```
 
-`run_health_check` line 1028
+`run_health_check` line 998
 
 ```sql
 SELECT coalesce(usename,'?') AS user,
@@ -1225,14 +1186,14 @@ GROUP BY usename, application_name, client_addr
 ORDER BY n DESC LIMIT 8
 ```
 
-`run_health_check` line 1104
+`run_health_check` line 1074
 
 ```sql
 SELECT pid, usename AS user, application_name AS app,
        age(now(), xact_start) AS duration,
 ```
 
-`run_health_check` line 1201
+`run_health_check` line 1171
 
 ```sql
 SELECT datname,
@@ -1244,7 +1205,7 @@ WHERE blks_hit + blks_read > 0
 ORDER BY hit_pct ASC LIMIT 8
 ```
 
-`run_health_check` line 1231
+`run_health_check` line 1201
 
 ```sql
 SELECT application_name, client_addr::text AS client, state,
@@ -1257,7 +1218,7 @@ SELECT application_name, client_addr::text AS client, state,
  ORDER BY replay_location
 ```
 
-`run_health_check` line 1242
+`run_health_check` line 1212
 
 ```sql
 SELECT application_name, client_addr::text AS client, state,
@@ -1272,13 +1233,13 @@ FROM pg_stat_replication
 ORDER BY replay_lsn
 ```
 
-`run_health_check` line 1270
+`run_health_check` line 1240
 
 ```sql
 VACUUM LAG (dead tuples)
 ```
 
-`run_health_check` line 1272
+`run_health_check` line 1242
 
 ```sql
 SELECT schemaname AS schema, relname AS table_name,
@@ -1292,7 +1253,7 @@ WHERE n_live_tup + n_dead_tup > 1000
 ORDER BY dead_pct DESC NULLS LAST LIMIT 10
 ```
 
-`run_health_check` line 1334
+`run_health_check` line 1304
 
 ```sql
 SELECT s.schemaname AS schema, s.relname AS "table",
@@ -1316,59 +1277,19 @@ WHERE s.n_dead_tup > 10000
 ORDER BY s.n_dead_tup DESC LIMIT 10
 ```
 
-`run_health_check` line 1418
-
-```sql
-SELECT n.nspname AS s, c.relname AS n
-  FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace
- WHERE c.relkind = 'S'
-   AND n.nspname NOT IN ('pg_catalog','information_schema')
-```
-
-`run_health_check` line 1431
-
-```sql
-SELECT '%s' AS schema, '%s' AS sequence, last_value, max_value, 'bigint'::text AS data_type FROM %s
-```
-
-`run_health_check` line 1436
-
-```sql
-SELECT schema, sequence, last_value, max_value, data_type, round(100.0 * last_value::numeric / nullif(max_value,0), 2) AS pct FROM ({' UNION ALL '.join(_parts)}) q WHERE 100.0 * last_value::numeric / nullif(max_value,0) >= 80 ORDER BY pct DESC LIMIT 10
-```
-
-`run_health_check` line 1442
-
-```sql
-SELECT NULL::text AS schema WHERE false
-```
-
-`run_health_check` line 1444
-
-```sql
-SELECT s.schemaname AS schema, s.sequencename AS sequence,
-       s.last_value, s.max_value, s.data_type,
-       round(100.0 * s.last_value::numeric /
-             nullif(s.max_value, 0), 2) AS pct
-FROM pg_sequences s
-WHERE s.last_value IS NOT NULL
-  AND 100.0 * s.last_value::numeric / nullif(s.max_value, 0) >= 80
-ORDER BY pct DESC LIMIT 10
-```
-
-`run_health_check` line 1461
+`run_health_check` line 1401
 
 ```sql
 ALTER TABLE x ALTER COLUMN id TYPE bigint;
 ```
 
-`run_health_check` line 1462
+`run_health_check` line 1402
 
 ```sql
 ALTER SEQUENCE seq AS bigint MAXVALUE 9223372036854775807;
 ```
 
-`run_health_check` line 1493
+`run_health_check` line 1433
 
 ```sql
 SELECT s.schemaname AS schema, s.relname AS "table",
@@ -1423,13 +1344,13 @@ WHERE s.idx_scan = 0
 ORDER BY pg_relation_size(s.indexrelid) DESC LIMIT 30
 ```
 
-`run_health_check` line 1572
+`run_health_check` line 1512
 
 ```sql
 DROP statements (CONCURRENTLY does not block the table):
 ```
 
-`run_health_check` line 1608
+`run_health_check` line 1548
 
 ```sql
 SELECT application_name, client_addr::text AS client, state, sync_state, sync_priority FROM pg_stat_replication ORDER BY sync_priority, application_name
@@ -3742,6 +3663,93 @@ LIMIT 20
 REVOKE EXECUTE ... FROM PUBLIC and grant only to the roles that need it; pin search_path in the function body
 ```
 
+## checks/seq_capacity.py
+
+**_FED_SQL** - `(module)` line 39
+
+```sql
+SELECT d.objid AS seq_oid, t.oid AS table_oid, a.attnum,
+       tn.nspname AS table_schema, t.relname AS table_name, a.attname AS column_name,
+       format_type(a.atttypid, NULL) AS column_type
+  FROM pg_depend d
+  JOIN pg_class s      ON s.oid = d.objid AND s.relkind = 'S'
+  JOIN pg_class t      ON t.oid = d.refobjid
+  JOIN pg_namespace tn ON tn.oid = t.relnamespace
+  JOIN pg_attribute a  ON a.attrelid = t.oid AND a.attnum = d.refobjsubid
+ WHERE d.classid = 'pg_class'::regclass AND d.refclassid = 'pg_class'::regclass
+   AND d.deptype IN ('a', 'i') AND d.refobjsubid > 0
+UNION
+SELECT dep.refobjid, t.oid, a.attnum, tn.nspname, t.relname, a.attname,
+       format_type(a.atttypid, NULL)
+  FROM pg_depend dep
+  JOIN pg_class s      ON s.oid = dep.refobjid AND s.relkind = 'S'
+  JOIN pg_attrdef ad   ON ad.oid = dep.objid
+  JOIN pg_attribute a  ON a.attrelid = ad.adrelid AND a.attnum = ad.adnum
+  JOIN pg_class t      ON t.oid = ad.adrelid
+  JOIN pg_namespace tn ON tn.oid = t.relnamespace
+ WHERE dep.classid = 'pg_attrdef'::regclass AND dep.refclassid = 'pg_class'::regclass
+```
+
+**_FK_SQL** - `(module)` line 63
+
+```sql
+SELECT c.confrelid AS ref_oid, c.confkey[1] AS ref_attnum,
+       tn.nspname AS table_schema, t.relname AS table_name, a.attname AS column_name,
+       format_type(a.atttypid, NULL) AS column_type
+  FROM pg_constraint c
+  JOIN pg_class t      ON t.oid = c.conrelid
+  JOIN pg_namespace tn ON tn.oid = t.relnamespace
+  JOIN pg_attribute a  ON a.attrelid = c.conrelid AND a.attnum = c.conkey[1]
+ WHERE c.contype = 'f' AND array_length(c.conkey, 1) = 1
+```
+
+**_SEQ_SQL** - `(module)` line 77
+
+```sql
+SELECT c.oid AS seq_oid, n.nspname AS schema, c.relname AS sequence,
+       format_type(s.seqtypid, NULL) AS seq_type,
+       s.seqstart AS start_value, s.seqmin AS min_value, s.seqmax AS max_value,
+       s.seqincrement AS increment, s.seqcycle AS cycles,
+       CASE WHEN has_sequence_privilege(c.oid, 'SELECT,USAGE')
+            THEN pg_sequence_last_value(c.oid) END AS last_value
+  FROM pg_class c
+  JOIN pg_namespace n ON n.oid = c.relnamespace
+  JOIN pg_sequence s  ON s.seqrelid = c.oid
+ WHERE c.relkind = 'S' AND n.nspname NOT IN ('pg_catalog', 'information_schema')
+```
+
+**_PRE10_LIST_SQL** - `(module)` line 94
+
+```sql
+SELECT c.oid AS seq_oid, n.nspname AS schema, c.relname AS sequence
+  FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace
+ WHERE c.relkind = 'S' AND n.nspname NOT IN ('pg_catalog', 'information_schema')
+   -- CASE: the planner may test this before relkind, and on a table it errors
+   AND CASE WHEN c.relkind = 'S' THEN has_sequence_privilege(c.oid, 'SELECT') ELSE false END
+```
+
+`_ver` line 113
+
+```sql
+SELECT current_setting('server_version_num')::int AS v
+```
+
+`_sequences` line 140
+
+```sql
+SELECT %d::oid AS seq_oid, 'bigint'::text AS seq_type, start_value, min_value, max_value, increment_by AS increment, is_cycled AS cycles, CASE WHEN is_called THEN last_value END AS last_value FROM %s.%s
+```
+
+`_table_rates` line 169
+
+```sql
+SELECT s.relid AS table_oid, s.n_tup_ins AS tup_ins, {reset_cols}
+       extract(epoch FROM (now() - LEAST(s.last_vacuum, s.last_autovacuum,
+                                         s.last_analyze, s.last_autoanalyze)))::float8 AS oldest_mark_s
+  FROM pg_stat_user_tables s
+ WHERE s.relid = ANY(%s)
+```
+
 ## checks/seq_sync.py
 
 `run_seq_sync_check` line 16
@@ -3885,7 +3893,7 @@ WHERE sc.relkind = 'S'
 ORDER BY sn.nspname, sc.relname
 ```
 
-`run_seq_usage_check` line 193
+`run_seq_usage_check` line 221
 
 ```sql
 ALTER SEQUENCE s AS bigint MAXVALUE 9223372036854775807;
@@ -3952,7 +3960,7 @@ ORDER BY n.nspname, c.relname
 SELECT last_value, start_value, min_value, max_value, increment_by, is_cycled FROM {fq}
 ```
 
-`run_sequences_check` line 141
+`run_sequences_check` line 168
 
 ```sql
 ALTER SEQUENCE s AS bigint MAXVALUE 9223372036854775807;

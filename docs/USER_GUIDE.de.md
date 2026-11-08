@@ -233,21 +233,18 @@ Setzen Sie **Nicht mehr anzeigen** und der Hinweis bleibt weg. Zurückholen:
 Ihn abzuschalten verbirgt die Erinnerung. An den Bedingungen, auf die er
 verweist, ändert das nichts - die stehen unter Hilfe → Lizenzvertrag.
 
-## 2.5 Lizenzierung
+## 2.5 Nutzungsbedingungen
 
-DBApguin 1.0.x - jede Version, deren Nummer mit 1.0 beginnt, diese
-eingeschlossen - ist **für alle kostenlos**, für private wie für kommerzielle
-Nutzung. Es gibt keinen Lizenzschlüssel einzugeben, keine Aktivierung, keinen
-ablaufenden Testzeitraum und keine zurückgehaltene Funktion.
+DBApguin ist **für alle kostenlos**, für private wie für kommerzielle Nutzung,
+mit allen Funktionen.
 
 Was das in der Praxis bedeutet:
 
 - **Alle Funktionen stehen vom ersten Start an bereit**, auf beliebig vielen
   Rechnern: die Berater, die Lastanalyse, AWR-Snapshots, der Abfrageverlauf,
   die Index- und Bloat-Analyse, die Vergleichs- und Migrationswerkzeuge - alles.
-- **Keine Begrenzung** gespeicherter Verbindungen oder offener Tabs.
-- **Über das Netz wird nichts geprüft.** Es gibt keine Lizenzprüfung, also
-  telefoniert nichts nach Hause. Die Anwendung spricht ausschließlich mit den Datenbankservern, die Sie einrichten -
+- **Über das Netz wird nichts geprüft**, also telefoniert nichts nach Hause.
+  Die Anwendung spricht ausschließlich mit den Datenbankservern, die Sie einrichten -
   und, wenn Sie Plugins installieren, mit dem, wofür diese Plugins eingerichtet
   sind (Kapitel 7, Plugins).
 - **Kein Konto, keine Anmeldung, keine Registrierung.**
@@ -1047,6 +1044,13 @@ Der Abschnitt **Maintenance actions** im Advisor-Tab zeigt außerdem jedes VACUU
 
 `db-sequences` und `db-seq-usage` listen Sequenzen danach, wie nah sie ihrem Maximum sind, mit der besitzenden Spalte und jedem Default, der auf sie verweist. Eine `integer`-Sequenz bei 80% ist eine Umstellung auf `bigint`, die Sie planen wollen, nicht entdecken, wenn `nextval` scheitert.
 
+Es zählt das kleinere von zwei Maxima: der eigene `MAXVALUE` der Sequenz und der größte Wert, den die gespeiste Spalte aufnehmen kann (32.767 für `smallint`, 2.147.483.647 für `integer`). Vor PostgreSQL 10 hatte eine Sequenz keinen Typ - jede war `bigint` -, also ist jede damals angelegte `serial`-Spalte eine `integer`-Spalte, gespeist von einer `bigint`-Sequenz, und ein aktualisiertes Schema behält diese Form. Nur an der Sequenz gemessen zeigt eine solche Spalte 0% Verbrauch, während ihr noch ein paar tausend IDs bleiben; die nächste Einfügung über die Kante scheitert mit *integer out of range*. `db-sequences`, `db-seq-usage` und die Zeile SEQUENCES der Gesundheitsübersicht messen an der Spalte und bewerten nach zwei Dingen, eines genügt:
+
+- **Anteil des verbrauchten Bereichs**: gelb ab 80%, rot ab 95%;
+- **verbleibende Zeit**: die verbleibenden IDs geteilt durch die Einfügungen pro Tag in die Tabelle der Spalte (ihr Einfügezähler über das Statistikfenster - dasselbe Fenster, das der Tabellen-Advisor nennt): gelb unter 180 Tagen, rot unter 30. Ein Fenster unter einer Stunde macht die Rate zur Hochrechnung: die Zeit wird gezeigt, als solche bezeichnet und ändert die Farbe nicht.
+
+Jede auslaufende Sequenz nennt die Fremdschlüsselspalten, die auf ihre Spalte zeigen und schmaler als `bigint` sind: die Umstellung der Spalte auf `bigint` verlagert das Problem zu ihnen, also ändern sie sich in derselben Migration. Ist die Spalte selbst schon `bigint`, ist eine schmalere Fremdschlüsselspalte die Obergrenze: auf die erste ID über ihrem Maximum kann nicht verwiesen werden, also wird der verbleibende Platz an ihr gemessen und sie wird genannt. `ALTER COLUMN ... TYPE bigint` schreibt die ganze Tabelle unter einer `ACCESS EXCLUSIVE`-Sperre neu - niemand liest oder schreibt sie, bis es fertig ist; der Weg ohne Ausfall ist eine neue `bigint`-Spalte, per Trigger synchron gehalten, ein Auffüllen in Paketen und ein Tausch.
+
 `db-seq-sync` schreibt ein `SELECT setval(...)` für jede Sequenz und setzt jede knapp über den größten Wert, der aktuell in ihrer besitzenden Spalte steht. Führen Sie es nach einem Logical-Replication-Cutover oder einem `pg_dump --data-only`-Load aus, wo die Zeilen ankommen, die Sequenzen aber bei 1 bleiben und das nächste `INSERT` mit einem vorhandenen Schlüssel kollidiert. Es ist ein generiertes Skript wie jedes andere - prüfen, dann auf dem Ziel ausführen.
 
 `db-checkpoints` zeigt, wie Checkpoints feuern: **zeitgesteuert** (gut, durch `checkpoint_timeout`) gegen **angefordert** (durch `max_wal_size`-Druck erzwungen), den mittleren Abstand und die Schreib- und Sync-Zeit. Ein hoher Anteil angeforderter bedeutet, `max_wal_size` ist zu klein für die Schreibrate - es zu erhöhen tauscht Plattenplatz gegen viel weniger Checkpoint-I/O.
@@ -1208,7 +1212,24 @@ Unter dem Editor liegt der Ausgabebereich mit:
 - Live- und Statistikverlauf (einklappbar)
 - Zeit und Zeilenzahl je Ausführung
 
-Gespeicherte Abfragen: über den Reiter „Gespeichert" erreichbar. Der Arbeitsbereich je Verbindung behält Ihre offenen Tabs über Neustarts hinweg.
+**Gespeicherte Abfragen.** **Save query** (Strg+S) speichert den Text des
+Editors unter einem Namen; die Liste **saved** daneben öffnet eine in einem
+Tab. **SQL → Gespeicherte Abfragen…** (oder *manage saved queries…* am Ende
+dieser Liste) öffnet ihren eigenen Dialog: eine Liste, durchsuchbar nach
+Name, Notiz und SQL, und für die gewählte ihr Name, eine Notiz und das SQL
+zum Bearbeiten, **Im Editor öffnen**, **Duplizieren** und **Löschen**. Eine
+Änderung wird erst gespeichert, nachdem **Prüfen und speichern** sie neben
+dem Gespeicherten gezeigt hat - vorher links, nachher rechts, eine Zeile,
+die nur eine Seite hat, rot oder grün, geänderte Wörter markiert - und Sie
+**Änderungen speichern** drücken. Jede gespeicherte Änderung behält die
+Version davor (die letzten 25): **Frühere Versionen** vergleicht jede davon
+genauso mit der aktuellen und kann sie in die Felder zurücksetzen, zum
+Prüfen und Speichern. Ein Tab, der aus einer gespeicherten Abfrage geöffnet
+wurde, merkt sich das: **Save query** zeigt dort die Änderung nebeneinander
+und bietet **Aktualisieren** oder **Als neu speichern**. Gespeicherte
+Abfragen haben keine Grenze; die Liste **history** daneben behält die
+letzten 30 ausgeführten Abfragen. Der Arbeitsbereich je Verbindung behält
+Ihre offenen Tabs über Neustarts hinweg.
 
 #### EXPLAIN als Baum {#explain-as-a-tree}
 
@@ -1325,7 +1346,9 @@ Auswahlliste, die zu ändern ist.
   seiner Nummer und seiner Meldung ausgegeben, und was durchgelaufen ist,
   bleibt committet. Das ist der Modus für eine DDL-Datei, von der ein Teil
   schon angewandt ist: Sie wollen den Rest drin haben und eine Liste dessen,
-  was nicht ging.
+  was nicht ging. Das Ergebnis ist nur die rohe Ausgabe, wie `psql -f` sie
+  druckt - Tag oder Zeilen jeder Anweisung, ihre Hinweise, ihr Fehler - mit
+  **Copy** daneben; eine Tabelle gibt es nicht.
 - **offen halten (Sie schließen selbst)** - die Transaktion bleibt **zwischen**
   den Läufen offen und endet, wenn Sie Commit oder Rollback drücken; beide
   erscheinen neben der Auswahl, solange sie offen ist. Etwas ausführen,
@@ -1670,15 +1693,66 @@ Sicht auf eine davon, materialisierte Sichten, eine Funktion, deren Argument
 der Zeilentyp der Tabelle ist, und die Fremdschlüssel anderer Tabellen; ein
 `DROP TYPE ... CASCADE` nimmt die Spalten dieses Typs aus anderen Tabellen,
 samt Werten; eine gelöschte Triggerfunktion nimmt ihre Trigger mit, eine
-gelöschte Sequenz die Defaults, die sie aufrufen. Der Dialog listet sie vor
-dem Löschen, und die Kopie nennt sie oben. Kann die Probe nicht laufen -
-eine Tabelle, die sich nicht binnen drei Sekunden sperren lässt, oder
-Event-Trigger, die dabei feuern würden - wird die Liste aus dem
-Abhängigkeitsgraphen gelesen, und die Kopie sagt, dass sie eine Schätzung
-ist. Was die Kopie nicht schreiben kann, steht unter *NOT in this copy*.
+gelöschte Sequenz die Defaults, die sie aufrufen. Der Dialog listet sie, wenn
+Sie es anfordern (**Ermitteln, was der Drop mitnimmt**), aus dem
+Abhängigkeitsgraphen gelesen: für die Liste wird nichts geprobt und nichts
+gesperrt, auch für ein Schema mit Hunderten von Tabellen. Die Kopie nennt sie oben, genau so, wie
+die Probe sie gefunden hat. Kann die Probe nicht laufen - eine Tabelle, die
+sich nicht binnen drei Sekunden sperren lässt, oder Event-Trigger, die dabei
+feuern würden - wird auch die Liste der Kopie aus dem Abhängigkeitsgraphen
+gelesen, und die Kopie sagt, dass sie eine Schätzung ist. Was die Kopie
+nicht schreiben kann, steht unter *NOT in this copy*.
 
-**Die Zeilen.** Die Definitionen sind nicht die Daten. **Auch die Zeilen
-sichern**, bis 1 GB vorausgewählt, schreibt die Zeilen jeder Tabelle, die
+**Was zuerst kopiert wird.** Der Lösch-Dialog und der Dialog, der mehrere
+ausgewählte Objekte löscht, öffnen sich, ohne den Server etwas zu fragen.
+Unter der Anweisung und ihren Optionen (**CASCADE**, **IF EXISTS**, das SQL)
+fragen sie, in dieser Reihenfolge:
+
+1. **Vor dem Drop eine Kopie behalten?** Die erste Wahl ist **Keine Kopie -
+   nur das DROP ausführen**: nichts wird gesichert und nichts vorher
+   ermittelt, nur die DROP-Anweisung läuft (für ein Schema mit **CASCADE**
+   `DROP SCHEMA ... CASCADE` auf diesem Schema und sonst nichts). Sie lässt
+   sich nicht rückgängig machen, außer aus einer Sicherung. **Zuerst eine
+   Kopie behalten** öffnet die nächste Frage.
+2. **Was behalten:** **Nur die Definitionen kopieren** (die Definitionen von
+   allem, was das Löschen mitnimmt; eine Tabelle kommt leer zurück) oder
+   **Definitionen und Zeilen kopieren** (auch die Zeilen der Tabellen, die
+   gehen, werden in den Datenordner geschrieben).
+3. **Ermitteln, was der Drop mitnimmt** - erst, wenn Sie es anklicken: die
+   Objekte, die **CASCADE** entfernt, und für die Tabellen, die gehen, wie
+   viele es sind, etwa wie viele Zeilen und wie viele Daten. Eine Kopie
+   braucht das, bevor **Löschen** freigegeben wird; ohne Kopie können Sie es
+   auch anfordern, müssen aber nicht.
+
+Die Größen sind die Schätzung, die der Server führt (Zeilen und Seiten aus
+seiner Statistik), gelesen, ohne eine Tabelle zu öffnen; eine Tabelle, die
+nie gevacuumt oder analysiert wurde, hat noch keine Größe, und der Dialog
+sagt das. Eine Kopie probt das Löschen zuerst, um genau zu ermitteln, was
+geht, und das hält die Sperren des Löschens einen Moment lang (es wartet
+höchstens drei Sekunden darauf). Der Dialog merkt sich Ihre letzte Wahl, bis
+die Anwendung geschlossen wird (sie wird nirgends gespeichert): das nächste
+Löschen beginnt damit, nur werden Zeilen über 50 MB zu den Definitionen
+allein, sobald die Analyse das zeigt, und der Dialog sagt warum. Ohne Kopie
+geben Sie, wenn das Löschen Daten oder andere Objekte mitnehmen kann (eine
+Tabelle, ein Schema, alles mit **CASCADE**, außer die Analyse hat gezeigt,
+dass nichts geht), den Namen des Objekts ein (bei mehreren Objekten ihre
+Anzahl), bevor **Löschen** freigegeben wird. Eine Art, für die keine Kopie
+geschrieben werden kann (eine Erweiterung, ein Trigger, eine Rolle ...),
+sagt das und bietet nur die Analyse an.
+
+**Während es läuft.** Das Löschen ist ein Hintergrundauftrag, und der Dialog
+folgt ihm Schritt für Schritt: ermitteln, was das Löschen genau entfernt,
+die Definitionen kopieren, die Zeilen kopieren (so viele von so vielen
+Tabellen, wie viel geschrieben ist), löschen - mit der bisher vergangenen
+Zeit. Bis das DROP selbst beginnt, heißt **Abbrechen** **Stopp**: es hält am
+nächsten sicheren Punkt an, nichts wird gelöscht, und eine bis dahin
+erstellte Kopie wird samt ihren Zeilen entfernt. Läuft das DROP, lässt es
+sich nicht mehr anhalten, und der Knopf sagt es. Den Dialog zu schließen
+hält den Auftrag nicht an; er bleibt in den Hintergrundaufträgen. Verschieben
+und Klonen aus demselben Dialog zeigen denselben Arbeitszustand.
+
+**Die Zeilen.** Die Definitionen sind nicht die Daten. **Definitionen und
+Zeilen kopieren** schreibt die Zeilen jeder Tabelle, die
 das Löschen mitnimmt, neben die Kopie in den Datenordner, und die Werte einer
 Spalte, die ein Cascade aus einer bleibenden Tabelle entfernt (über den
 Primärschlüssel zugeordnet; eine Tabelle ohne ihn kann sie nicht
@@ -1698,8 +1772,8 @@ einer bleibenden Tabelle kommt `NOT VALID` zurück, wenn diese Tabelle Zeilen
 hat, die auf eine leer zurückkommende Tabelle zeigen, und wird geprüft,
 sobald die Zeilen zurück sind; dann werden auch materialisierte Sichten
 aufgefrischt. Die Zeilen einer Fremdtabelle liegen auf dem anderen Server
-und werden nicht gesichert. Ohne angehakte Zeilen sagt die Kopie oben, dass
-sie nur die Definitionen enthält.
+und werden nicht gesichert. Mit den Definitionen allein sagt die Kopie oben,
+dass sie nur die Definitionen enthält.
 
 ### 5.4 Sitzungen
 
@@ -2827,6 +2901,36 @@ Kopie nicht mit einer mitgekommenen Zeile kollidiert. Eine `IDENTITY`-Spalte
 nimmt auch ihre Sequenzeinstellungen mit - `START WITH`, `INCREMENT BY`,
 `MINVALUE`, `MAXVALUE`, `CACHE`, `CYCLE` - die Kopie fällt also nicht stumm
 auf die Standardwerte zurück.
+
+Die Zeilen werden **genau so übernommen, wie sie sind**, was immer in ihnen
+steht. Alles, was eine Zeile beim Schreiben prüft oder umschreibt, wartet, bis
+die Zeilen drin sind:
+
+- ein Constraint, den die Quelle `NOT VALID` hat (ein `CHECK`, ein
+  Fremdschlüssel, ein `CHECK` einer Domain, `NOT NULL ... NOT VALID` aus
+  PostgreSQL 18), wird nach den Zeilen `NOT VALID` angelegt: Zeilen, die die
+  Quelle nie geprüft hat, werden auch in der Kopie nicht geprüft, neue Zeilen
+  schon;
+- Trigger und Regeln entstehen nach den Zeilen, keiner davon lehnt eine
+  kopierte Zeile ab, schreibt sie um oder fügt Zeilen hinzu;
+- Row Level Security und ihre Policies werden nach den Zeilen eingeschaltet;
+- ein Index, den ein gescheitertes `CREATE INDEX CONCURRENTLY` ungültig
+  hinterlassen hat, wird nicht kopiert (er erzwingt in der Quelle nichts und
+  scheitert auf denselben Zeilen erneut) - so wie `pg_dump` ihn auslässt.
+
+Row Level Security lehnt ein Lesen nicht ab, sie kürzt es. Gelten ihre Policies
+für die Rolle, mit der Sie verbunden sind (Sie sind nicht Eigentümer der
+Tabelle oder die Tabelle hat `FORCE ROW LEVEL SECURITY`, und Sie sind weder
+Superuser noch eine Rolle mit `BYPASSRLS`), oder dürfen Sie eine ihrer Spalten
+nicht lesen, nennt das Klonen Tabelle und Grund **bevor** etwas läuft und
+kopiert nichts, statt nur die Zeilen zu kopieren, die Sie sehen.
+
+**Tabelle für Tabelle** zeigt für jede Tabelle die kopierten Zeilen, was wie in
+der Quelle `NOT VALID` angelegt wurde, was nach den Zeilen entstand und was
+nicht kopiert wurde. Lässt sich eine Zeile doch nicht kopieren, nennt die
+Meldung Tabelle, Spalte, Constraint, die fehlerhafte Zeile und die Zeilen der
+Quelle nach ihrem Primärschlüssel. **Tabelle klonen**, **Tabelle kopieren** und
+die Wahl *kopieren* in **Schema zusammenführen** übernehmen die Zeilen genauso.
 
 **Show the script** druckt das Ganze, bevor irgendetwas läuft. Der Klon selbst
 läuft als eine Transaktion: entweder ganz oder gar nicht. Er läuft als
@@ -4272,13 +4376,13 @@ Alles, was DBApguin zwischen den Starts behält, liegt in einem Verzeichnis (der
 
 **App-Daten importieren** liest ein solches Archiv, zeigt, was es enthält, neben dem, was schon hier ist, und übernimmt, was Sie anhaken (wieder standardmäßig alles). Es führt zusammen statt zu ersetzen: gespeicherte Historie (AWR-Snapshots, ASH-Tage, Sitzungs-Traces, gespeicherte Berichte, Job-Logs, das Audit-Log, Plugins) wird ergänzt und überschreibt nie eine vorhandene Datei; gespeicherte Verbindungen werden nach ID zusammengeführt, ein vergebener Name bekommt eine Nummer, und ihre Passwörter werden mit dem Schlüssel dieser Installation neu verschlüsselt; eine einzelne Datei wie die Einstellungen oder die gespeicherten Abfragen ersetzt Ihre. Ein Archiv ohne Schlüssel oder mit einem durch Master-Passwort geschützten importiert die Verbindungen ohne Passwörter und sagt das. So nimmt ein DBA die gesammelte Historie und die Einrichtung auf einen anderen Rechner mit; einen gemeinsamen Speicher zwischen Installationen gibt es nicht.
 
-> Die Sicherung **enthält `key`, `connections.json` und `license.json`** - den Datenschlüssel und Ihre verschlüsselten Verbindungspasswörter. Das ist Absicht: eine Sicherung Ihrer Einrichtung ohne diese ist keine. Aber es bedeutet, dass das Archiv sensibel ist. Bewahren Sie es privat auf und **niemals in einem Ordner, der mit einem Cloud-Dienst synchronisiert** (Dropbox, OneDrive, iCloud, Nextcloud, ein synchronisierter Dokumente-Ordner). Wenn ein Master-Passwort gesetzt ist, bleiben die Passwörter im Archiv damit verschlüsselt; ohne eines sind sie nur leicht verschleiert.
+> Die Sicherung **enthält `key` und `connections.json`** - den Datenschlüssel und Ihre verschlüsselten Verbindungspasswörter. Das ist Absicht: eine Sicherung Ihrer Einrichtung ohne diese ist keine. Aber es bedeutet, dass das Archiv sensibel ist. Bewahren Sie es privat auf und **niemals in einem Ordner, der mit einem Cloud-Dienst synchronisiert** (Dropbox, OneDrive, iCloud, Nextcloud, ein synchronisierter Dokumente-Ordner). Wenn ein Master-Passwort gesetzt ist, bleiben die Passwörter im Archiv damit verschlüsselt; ohne eines sind sie nur leicht verschleiert.
 
 Die Sicherung enthält auch Ihre **installierten Plugins** (`plugins/`) und was sie aufbewahren (`plugin-data/`) - ihre Einstellungen und gespeicherten Passwörter, verschlüsselt mit demselben `key` -, sodass die Wiederherstellung die Plugins funktionsfähig zurückbringt. Der Ordner, in dem Sie eigene Plugins schreiben, ist nicht enthalten: er liegt dort, wo Sie ihn gewählt haben.
 
 Der Verbindungsexport aus der Verbindungsverwaltung ist etwas anderes: er schreibt nur die Verbindungen und ihre Gruppen, ohne Passwörter, Einstellungen und Plugins.
 
-**App-Daten löschen** zeigt eine Checkliste mit der Größe jedes Elements. Berichte und Logs - AWR-Snapshots, Job-Logs, gespeicherte Prüfberichte, das Fehlerprotokoll - sind standardmäßig angehakt; Einstellungen, gespeicherte Abfragen und der SQL-Arbeitsbereich sind aufgeführt, aber nicht angehakt. Gespeicherte Verbindungen (`connections.json` + `key`) und die Lizenz (`license.json`) stehen in einem eigenen Abschnitt und erfordern die Eingabe des Wortes `DELETE` zur Bestätigung, weil ihr Löschen jede gespeicherte Verbindung und ihr Passwort verliert. `license.json` steht ebenfalls in diesem Abschnitt, aber eine kostenlose Installation hat keine, und ihr Löschen ändert nichts. Installierte Plugins sind aufgeführt, aber nicht angehakt; ihre Einstellungen und gespeicherten Passwörter (`plugin-data/`) stehen im selben geschützten Abschnitt wie die Verbindungen, weil ihr Löschen diese Passwörter verliert. `trial.json`, das Versionen aus der Zeit vor dem kostenlosen DBApguin hinterlassen haben, wird hier nie angeboten. Ein Verzeichnis, das noch einen laufenden Hintergrundjob hält, wird abgelehnt; brechen Sie den Job zuerst ab. Jedes Löschen wird ins Audit-Log geschrieben.
+**App-Daten löschen** zeigt eine Checkliste mit der Größe jedes Elements. Berichte und Logs - AWR-Snapshots, Job-Logs, gespeicherte Prüfberichte, das Fehlerprotokoll - sind standardmäßig angehakt; Einstellungen, gespeicherte Abfragen und der SQL-Arbeitsbereich sind aufgeführt, aber nicht angehakt. Gespeicherte Verbindungen (`connections.json` + `key`) stehen in einem eigenen Abschnitt und erfordern die Eingabe des Wortes `DELETE` zur Bestätigung, weil ihr Löschen jede gespeicherte Verbindung und ihr Passwort verliert. Installierte Plugins sind aufgeführt, aber nicht angehakt; ihre Einstellungen und gespeicherten Passwörter (`plugin-data/`) stehen im selben geschützten Abschnitt wie die Verbindungen, weil ihr Löschen diese Passwörter verliert. Ein Verzeichnis, das noch einen laufenden Hintergrundjob hält, wird abgelehnt; brechen Sie den Job zuerst ab. Jedes Löschen wird ins Audit-Log geschrieben.
 
 ### Plugins {#plugins}
 
@@ -4303,7 +4407,19 @@ Ein Klick auf den Stapel klappt ihn auf und macht ihn scrollbar. Das Mausrad scr
 
 Solange ein Fenster offen ist, halten Meldungen seine Schaltflächen frei. Eine neue Meldung steht über ihnen oder im Platz neben dem Fenster; wo beides keinen Platz lässt, geht sie sofort in den Zähler, dessen Zahl und Farbe trotzdem zeigen, dass sie gekommen ist. Auch der Zähler steht über den Schaltflächen des Fensters; passt nicht einmal er, ist er ausgeblendet, bis das Fenster geschlossen wird. Danach kehrt alles in die Ecke zurück.
 
-Eine Aktion bietet „Rückgängig": das Löschen einer gespeicherten Verbindung, die die Meldung etwa sechs Sekunden lang zurückholen kann. Eine Meldung kann nicht rückgängig machen, was eine Datenbank erreicht hat; eine hier geänderte Einstellung lässt sich in der Einstellungsansicht zurücknehmen, und ein Löschen, Verschieben oder Eigentümerwechsel hinterlässt eine Kopie - beim Löschen mit den Zeilen, wenn angehakt -, die die Objekte zurückbringt (siehe *Eine Kopie der Definitionen vor der Änderung*). Außerdem zeigt die Anwendung die Anweisung vor der Ausführung, fragt einmal nach und schreibt sie ins Audit-Log.
+Eine Aktion bietet „Rückgängig": das Löschen einer gespeicherten Verbindung, die die Meldung etwa sechs Sekunden lang zurückholen kann. Eine Meldung kann nicht rückgängig machen, was eine Datenbank erreicht hat; eine hier geänderte Einstellung lässt sich in der Einstellungsansicht zurücknehmen, und ein Löschen, Verschieben oder Eigentümerwechsel hinterlässt eine Kopie - beim Löschen mit den Zeilen, wenn gewählt, und keine, wenn Sie ohne Kopie löschen -, die die Objekte zurückbringt (siehe *Eine Kopie der Definitionen vor der Änderung*). Außerdem zeigt die Anwendung die Anweisung vor der Ausführung, fragt einmal nach und schreibt sie ins Audit-Log.
+
+### 8.1 Während etwas läuft {#while-something-runs}
+
+Alles, was Sie angestoßen haben und länger als eine Viertelsekunde dauert, sagt das, jedes Mal an denselben Stellen:
+
+- Ein schmaler Balken gleitet am oberen Fensterrand entlang, und am rechten Ende der Tab-Leiste unter den Menüs dreht sich ein Ring. Zeigen Sie auf den Ring oder gehen Sie mit Tab dorthin, um die Liste dessen zu sehen, was läuft, bei welchem Schritt es ist und wie lange es schon dauert; nach drei Sekunden zeigt der Ring die Zeit selbst. Wo sich die Arbeit anhalten lässt - eine Prüfung, eine Anweisung im SQL-Editor - hat ihre Zeile in der Liste ein Abbrechen.
+- Die Schaltfläche, die Sie gedrückt haben, zeigt statt ihrer Beschriftung einen Ring und nimmt keinen zweiten Druck an, bis die Arbeit beendet ist. Daneben verschiebt sich nichts: Die Schaltfläche behält ihre Größe, und Balken, Ring und Liste nehmen der Seite keinen Platz weg.
+- Ein Teil des Fensters, der lädt, sagt das ("Aufträge werden gelesen…", "Spalten werden geladen…"), statt eine leere Liste oder Werte zu zeigen, die sich gleich ändern, und nach drei Sekunden zeigt er, wie lange er schon wartet. Eine Einstellung, deren gespeicherter Wert noch gelesen wird, ist abgeblendet und lässt sich erst ändern, wenn der Wert da ist.
+
+Exporte und Berichte nennen jeden Schritt: Bericht wird erstellt, wartet auf Ihre Auswahl im Dateidialog (öffnet sich der Dialog hinter dem Fenster, ist diese Zeile der Hinweis), Datei bzw. PDF wird geschrieben. Der Arbeitszustand endet in dem Moment, in dem die Arbeit endet, ob sie gelungen ist oder nicht, und eine Meldung sagt, wohin die Datei gegangen ist oder warum nicht.
+
+Was die Anwendung von sich aus tut - die Aktualisierung des Dashboards, die Verbindungsprüfungen, die Auftragsüberwachung, die Abfragen der Sammler - erscheint hier nie, sodass ein drehender Ring immer bedeutet, dass etwas, das Sie angestoßen haben, noch unterwegs ist.
 
 ## 9. Tastenkürzel
 
@@ -4774,7 +4890,7 @@ daran wird ein Bericht vom anderen unterschieden.
 ## 15. Wie Sie Hilfe bekommen
 
 - Interne Dokumentation: diese Datei plus `docs/TECHNICAL.md` und `ARCHITECTURE.md`
-- Herkunft des Builds: **Hilfe -> Über DBApguin** zeigt Version, Git-Commit, Zeitpunkt des Builds, das verwendete Python und den Lizenzstand. Legen Sie das Fehlermeldungen bei.
+- Herkunft des Builds: **Hilfe -> Über DBApguin** zeigt Version, Git-Commit, Zeitpunkt des Builds und das verwendete Python. Legen Sie das Fehlermeldungen bei.
 - Audit-Log: `<DBCHECKS_HOME>/audit/audit-YYYY-MM.jsonl` ist eine JSON-Lines-Datei. Mit jedem Texteditor oder mit `jq` zur Auswertung zu öffnen.
 - Fehlerprotokoll: `<DBCHECKS_HOME>/dbchecks_error.log` für die jüngsten serverseitigen Tracebacks. Passwörter werden vor dem Schreiben entfernt. Es rotiert bei 1 MiB und hält drei ältere Kopien, und jeder Lauf, der etwas protokolliert, schreibt zuerst eine Kopfzeile - die Einträge nach der letzten Zeile `=== DBApguin ... started ...` gehören also zu Ihrer laufenden Sitzung. Die darüber können Wochen alt sein.
 

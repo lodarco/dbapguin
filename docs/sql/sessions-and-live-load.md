@@ -303,16 +303,17 @@ SELECT
   -- parallel workers, logical replication, and whatever an
   -- extension registered under its own name. The fixed
   -- auxiliary processes are not workers and do not come out
-  -- of max_worker_processes.
+  -- of max_worker_processes (walsummarizer, PG17+, is one of
+  -- them: counting it made the pool look a slot fuller).
   count(*) FILTER (WHERE backend_type NOT IN (
       'client backend', 'autovacuum launcher', 'autovacuum worker',
       'background writer', 'checkpointer', 'startup', 'walwriter',
       'walsender', 'walreceiver', 'logger', 'archiver',
-      'slotsync worker', 'io worker'))                        AS bg_used
+      'slotsync worker', 'io worker', 'walsummarizer'))       AS bg_used
   FROM pg_stat_activity
 ```
 
-`_cluster_alarm_facts` line 1043
+`_cluster_alarm_facts` line 1044
 
 ```sql
 SELECT count(*) AS av_used
@@ -320,7 +321,7 @@ SELECT count(*) AS av_used
  WHERE query LIKE 'autovacuum: %'
 ```
 
-`_cluster_alarm_facts` line 1066
+`_cluster_alarm_facts` line 1067
 
 ```sql
 SELECT COALESCE(SUM(temp_files), 0) AS temp_files,
@@ -329,20 +330,20 @@ SELECT COALESCE(SUM(temp_files), 0) AS temp_files,
   FROM pg_stat_database
 ```
 
-`_cluster_alarm_facts` line 1084
+`_cluster_alarm_facts` line 1085
 
 ```sql
 SELECT (SELECT count(*) FROM pg_stat_progress_create_index) AS index_builds,
        (SELECT count(*) FROM pg_stat_progress_cluster)      AS clusters
 ```
 
-`_cluster_alarm_facts._nmax` line 1109
+`_cluster_alarm_facts._nmax` line 1110
 
 ```sql
 SELECT current_setting('max_notify_queue_pages', true) AS p, current_setting('block_size')::int AS b
 ```
 
-`_cluster_alarm_facts` line 1114
+`_cluster_alarm_facts` line 1115
 
 ```sql
 SELECT pg_notification_queue_usage() AS usage,
@@ -350,7 +351,7 @@ SELECT pg_notification_queue_usage() AS usage,
          WHERE query ~* '^[[:space:]]*listen[[:space:]]') AS listeners
 ```
 
-`api_sessions_load._feats` line 1191
+`api_sessions_load._feats` line 1192
 
 ```sql
 SELECT
@@ -371,31 +372,31 @@ SELECT
           WHERE table_name='pg_stat_progress_vacuum' AND column_name='mode') AS has_p_vac_mode
 ```
 
-`api_sessions_load` line 1227
+`api_sessions_load` line 1228
 
 ```sql
 SELECT pg_is_in_recovery() AS in_recovery
 ```
 
-`api_sessions_load._pss_loaded` line 1325
+`api_sessions_load._pss_loaded` line 1326
 
 ```sql
 SELECT 1 FROM {_pss_rel} LIMIT 1
 ```
 
-**sql** - `api_sessions_load` line 1436
+**sql** - `api_sessions_load` line 1437
 
 ```sql
 SELECT {', '.join(select_lines)} FROM pg_stat_activity a {' '.join(joins)} WHERE a.pid <> pg_backend_pid()    AND (a.state IS NOT NULL AND a.state <> 'idle')  ORDER BY elapsed_s DESC NULLS LAST, a.pid
 ```
 
-`api_sessions_blocking` line 1513
+`api_sessions_blocking` line 1514
 
 ```sql
 SELECT EXISTS (SELECT 1 FROM pg_proc WHERE proname='pg_blocking_pids') AS ok
 ```
 
-`api_sessions_blocking` line 1522
+`api_sessions_blocking` line 1523
 
 ```sql
 SELECT a.pid AS waiter, b.blocker::int AS blocker
@@ -404,7 +405,7 @@ CROSS JOIN LATERAL unnest(pg_blocking_pids(a.pid)) AS b(blocker)
 WHERE a.pid <> pg_backend_pid() AND b.blocker <> 0
 ```
 
-`api_sessions_blocking` line 1536
+`api_sessions_blocking` line 1537
 
 ```sql
 SELECT DISTINCT w.pid AS waiter, h.pid AS blocker
@@ -426,7 +427,7 @@ SELECT DISTINCT w.pid AS waiter, h.pid AS blocker
    AND w.pid <> pg_backend_pid()
 ```
 
-`api_sessions_blocking` line 1565
+`api_sessions_blocking` line 1566
 
 ```sql
 SELECT DISTINCT w.pid AS waiter, px.gid,
@@ -442,7 +443,7 @@ SELECT DISTINCT w.pid AS waiter, px.gid,
    AND w.pid IS NOT NULL AND w.pid <> pg_backend_pid()
 ```
 
-`api_sessions_blocking` line 1621
+`api_sessions_blocking` line 1622
 
 ```sql
 SELECT pid,
@@ -455,7 +456,7 @@ SELECT pid,
        state,
 ```
 
-`api_sessions_blocking` line 1657
+`api_sessions_blocking` line 1658
 
 ```sql
 WITH ungranted AS (
@@ -496,25 +497,25 @@ LEFT JOIN LATERAL (
 ) g ON u.relation IS NULL
 ```
 
-`api_sessions_kill_many` line 1792
+`api_sessions_kill_many` line 1793
 
 ```sql
 SELECT {fn}({int(x)})
 ```
 
-`api_sessions_kill_many` line 1799
+`api_sessions_kill_many` line 1800
 
 ```sql
 SELECT {fn}(%s)
 ```
 
-`api_sessions_kill` line 1823
+`api_sessions_kill` line 1824
 
 ```sql
 SELECT {fn}({int(pid)})
 ```
 
-`api_sessions_kill` line 1827
+`api_sessions_kill` line 1828
 
 ```sql
 SELECT {fn}(%s)

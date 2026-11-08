@@ -1,6 +1,6 @@
 # SQL editor
 
-[All parts](README.md) · 58 statements
+[All parts](README.md) · 59 statements
 
 ## api/sql.py
 
@@ -242,13 +242,13 @@ FROM
 ALTER SYSTEM SET shared_preload_libraries = 'pg_stat_statements';  -- then restart the cluster
 ```
 
-`api_sql_hints` line 1895
+`api_sql_hints` line 1919
 
 ```sql
 SELECT current_schemas(false) AS sp
 ```
 
-`api_sql_hints` line 1898
+`api_sql_hints` line 1922
 
 ```sql
 SELECT n.nspname AS schema
@@ -262,7 +262,7 @@ ORDER BY
   n.nspname
 ```
 
-`api_sql_hints` line 1911
+`api_sql_hints` line 1935
 
 ```sql
 SELECT n.nspname AS schema,
@@ -279,7 +279,7 @@ WHERE c.relkind IN ('r','v','m','p','f')
 ORDER BY n.nspname, c.relname
 ```
 
-`api_sql_hints` line 1930
+`api_sql_hints` line 1954
 
 ```sql
 SELECT a.attrelid::bigint AS oid,
@@ -292,7 +292,7 @@ WHERE a.attrelid = ANY(%s)
 ORDER BY a.attrelid, a.attnum
 ```
 
-`api_sql_hints` line 1955
+`api_sql_hints` line 1979
 
 ```sql
 SELECT DISTINCT n.nspname AS schema, p.proname AS name
@@ -303,49 +303,49 @@ WHERE n.nspname NOT IN ('pg_catalog','information_schema')
 ORDER BY n.nspname, p.proname
 ```
 
-`api_sql_index_tryout` line 2031
+`api_sql_index_tryout` line 2055
 
 ```sql
 SELECT 1 FROM pg_extension WHERE extname = 'hypopg'
 ```
 
-`api_sql_index_tryout` line 2033
+`api_sql_index_tryout` line 2057
 
 ```sql
 SELECT 1 FROM pg_available_extensions WHERE name = 'hypopg'
 ```
 
-`api_sql_index_tryout.plan` line 2048
+`api_sql_index_tryout.plan` line 2072
 
 ```sql
 EXPLAIN (FORMAT JSON) {inner}
 ```
 
-`api_sql_index_tryout` line 2062
+`api_sql_index_tryout` line 2086
 
 ```sql
 SELECT indexname FROM {_hypo_create}(%s)
 ```
 
-`api_sql_index_tryout` line 2071
+`api_sql_index_tryout` line 2095
 
 ```sql
 SELECT pg_size_pretty({_hypo_size}(indexrelid)) FROM {_hypo_list}() WHERE indexname = %s
 ```
 
-`api_sql_index_tryout` line 2078
+`api_sql_index_tryout` line 2102
 
 ```sql
 SELECT {_hypo_reset}()
 ```
 
-`(module)` line 2129
+`(module)` line 2153
 
 ```sql
 CREATE INDEX
 ```
 
-`api_sql_running` line 2169
+`api_sql_running` line 2193
 
 ```sql
 SELECT pid, state, wait_event_type, wait_event,
@@ -359,33 +359,33 @@ SELECT pid, state, wait_event_type, wait_event,
  LIMIT 1
 ```
 
-`api_sql_running` line 2209
+`api_sql_running` line 2233
 
 ```sql
 SELECT row_to_json(p)::text AS j FROM {view} p WHERE pid = %s
 ```
 
-`api_sql_ddl_preflight` line 2319
+`api_sql_ddl_preflight` line 2343
 
 ```sql
 SELECT c.oid FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace
  WHERE n.nspname = %s AND c.relkind IN ('r','p','m','i')
 ```
 
-`api_sql_ddl_preflight` line 2324
+`api_sql_ddl_preflight` line 2348
 
 ```sql
 SELECT c.oid FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace
  WHERE n.nspname = %s AND c.relname = %s
 ```
 
-`api_sql_ddl_preflight` line 2329
+`api_sql_ddl_preflight` line 2353
 
 ```sql
 SELECT c.oid FROM pg_class c WHERE c.relname = %s AND pg_table_is_visible(c.oid)
 ```
 
-`api_sql_cancel` line 2418
+`api_sql_cancel` line 2442
 
 ```sql
 SELECT pid, {fn}(pid) AS signalled
@@ -393,44 +393,50 @@ SELECT pid, {fn}(pid) AS signalled
  WHERE application_name = %s AND pid <> pg_backend_pid()
 ```
 
-`api_sql_cancel` line 2431
+`api_sql_cancel` line 2455
 
 ```sql
 SELECT %s(%s)
 ```
 
-`_page_count` line 2713
+`_page_count` line 2737
 
 ```sql
 SET LOCAL statement_timeout = %d
 ```
 
-`_page_count` line 2718
+`_page_count` line 2742
 
 ```sql
 ROLLBACK TO SAVEPOINT dbapguin_pc
 ```
 
-`_page_count` line 2719
+`_page_count` line 2743
 
 ```sql
 SET LOCAL statement_timeout = 0
 ```
 
-`_page_count` line 2723
+`_page_count` line 2747
 
 ```sql
 SET LOCAL statement_timeout = 0
 ```
 
-`api_sql_page_open` line 2776
+`api_sql_page_open` line 2800
 
 ```sql
 SET LOCAL search_path = {_quote_search_path(sp_parts)}
 ```
 
-`api_sql_page_open` line 2777
+`api_sql_page_open` line 2801
 
 ```sql
 SET LOCAL statement_timeout = %d
+```
+
+`api_sql_page_open` line 2809
+
+```sql
+SET LOCAL application_name = %s
 ```

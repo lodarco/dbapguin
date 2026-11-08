@@ -227,12 +227,10 @@ Marca **No mostrar de nuevo** y deja de aparecer. Para recuperarlo:
 Desactivarlo oculta el recordatorio. No cambia las condiciones a las que apunta:
 esas están en Ayuda → Contrato de licencia.
 
-## 2.5 Licencias
+## 2.5 Condiciones de uso
 
-DBApguin 1.0.x - cada versión cuyo número empieza por 1.0, esta incluida - es
-**gratuito para todos**, tanto para uso personal como comercial. No
-hay clave de licencia que introducir, ni paso de activación, ni periodo de
-prueba que caduque, ni ninguna función reservada.
+DBApguin es **gratuito para todos**, tanto para uso personal como comercial,
+con todas las funciones.
 
 Lo que eso significa en la práctica:
 
@@ -240,9 +238,8 @@ Lo que eso significa en la práctica:
   equipos como quieras: los asesores, el análisis de carga de trabajo, las
   instantáneas AWR, el historial de consultas, el análisis de índices y de
   hinchazón, las herramientas de comparación y migración: todo.
-- **Sin límite** de conexiones guardadas ni de pestañas abiertas.
-- **No se comprueba nada a través de la red.** No hay comprobación de
-  licencia, así que nada llama a casa. La aplicación
+- **No se comprueba nada a través de la red**, así que nada llama a casa.
+  La aplicación
   solo habla con los servidores de base de datos que tú configures y, si
   instalas plugins, con aquello para lo que esos plugins estén configurados
   (capítulo 7, Plugins).
@@ -1018,6 +1015,13 @@ La sección **Maintenance actions** de la pestaña Advisor también muestra cual
 
 `db-sequences` y `db-seq-usage` listan las secuencias por lo cerca que están de su máximo, con la columna propietaria y cada default que las referencia. Una secuencia `integer` al 80% es un cambio a `bigint` que quieres planificar, no descubrir cuando `nextval` falla.
 
+El máximo que cuenta es el menor de dos: el `MAXVALUE` propio de la secuencia y el mayor valor que cabe en la columna que alimenta (32.767 para `smallint`, 2.147.483.647 para `integer`). Antes de PostgreSQL 10 una secuencia no tenía tipo - todas eran `bigint` -, así que cada `serial` creado entonces es una columna `integer` alimentada por una secuencia `bigint`, y un esquema actualizado conserva esa forma. Medida solo contra la secuencia, esa columna marca un 0% de uso cuando le quedan unos miles de ids; la siguiente inserción más allá del borde falla con *integer out of range*. `db-sequences`, `db-seq-usage` y la fila SEQUENCES del resumen de salud miden contra la columna y califican por dos cosas, basta cualquiera:
+
+- **la parte del rango usada**: ámbar desde el 80%, rojo desde el 95%;
+- **el tiempo que queda**: los ids restantes divididos por las inserciones al día en la tabla de la columna (su contador de inserciones en la ventana de estadísticas - la misma ventana que indica el Advisor de tablas): ámbar por debajo de 180 días, rojo por debajo de 30. Una ventana de menos de una hora convierte el ritmo en una proyección: el tiempo se muestra, se dice que lo es y no cambia el color.
+
+Cada secuencia que se agota nombra las columnas de clave foránea que apuntan a su columna y son más estrechas que `bigint`: pasar la columna a `bigint` traslada el problema a ellas, así que cambian en la misma migración. Cuando la columna ya es `bigint`, una columna de clave foránea más estrecha es el techo: el primer id por encima de su máximo no se puede referenciar, así que el espacio restante se mide contra ella y se nombra. `ALTER COLUMN ... TYPE bigint` reescribe toda la tabla bajo un bloqueo `ACCESS EXCLUSIVE` - nadie la lee ni la escribe hasta que termina; el camino sin corte es una nueva columna `bigint` mantenida al día por un trigger, un relleno por lotes y un intercambio.
+
 `db-seq-sync` escribe un `SELECT setval(...)` para cada secuencia, dejando cada una justo por encima del mayor valor que hay ahora en su columna propietaria. Ejecútalo tras un cambio de logical replication o una carga con `pg_dump --data-only`, donde las filas llegan pero las secuencias se quedan en 1 y el siguiente `INSERT` choca con una clave existente. Es un script generado como cualquier otro - revísalo y luego ejecútalo en el destino.
 
 `db-checkpoints` muestra cómo se disparan los checkpoints: **temporizados** (bien, guiados por `checkpoint_timeout`) frente a **solicitados** (forzados por la presión de `max_wal_size`), el intervalo medio entre ellos y el tiempo de escritura y sincronización. Una proporción alta de solicitados significa que `max_wal_size` es demasiado bajo para el ritmo de escritura - subirlo cambia espacio en disco por mucho menos E/S de checkpoint.
@@ -1180,7 +1184,23 @@ Bajo el editor está el panel de salida con:
 - Historial en vivo y de estadísticas (plegable)
 - Tiempo y número de filas por ejecución
 
-Consultas guardadas: pulsa la pestaña «Guardadas» para verlas. El espacio de trabajo por conexión conserva tus pestañas abiertas entre reinicios.
+**Consultas guardadas.** **Save query** (Ctrl+S) guarda el texto del editor
+con un nombre; la lista **saved** de al lado abre una en una pestaña. **SQL
+→ Consultas guardadas…** (o *manage saved queries…* al final de esa lista)
+abre su propio diálogo: una lista que se busca por nombre, nota y SQL, y
+para la elegida su nombre, una nota y el SQL para editar, **Abrir en el
+editor**, **Duplicar** y **Eliminar**. Un cambio se guarda solo después de
+que **Revisar y guardar** lo haya mostrado lado a lado con lo guardado -
+antes a la izquierda, después a la derecha, una línea que solo tiene un lado
+en rojo o verde, las palabras cambiadas marcadas - y se pulse **Guardar
+cambios**. Cada cambio guardado conserva la versión anterior (las últimas
+25): **Versiones anteriores** compara cualquiera con la actual del mismo
+modo y puede devolverla a los campos, para revisarla y guardarla. Una
+pestaña abierta desde una consulta guardada lo recuerda: **Save query** allí
+muestra el cambio lado a lado y ofrece **Actualizar** o **Guardar como
+nueva**. Las consultas guardadas no tienen límite; la lista **history** de
+al lado conserva las últimas 30 consultas ejecutadas. El espacio de trabajo
+por conexión conserva tus pestañas abiertas entre reinicios.
 
 #### EXPLAIN como árbol {#explain-as-a-tree}
 
@@ -1293,7 +1313,9 @@ cambiar.
   falla no interrumpe la ejecución. Se intentan todas, cada fallo se imprime
   con su número y su mensaje, y lo que pasó queda confirmado. Es el modo para
   un archivo de DDL del que ya se aplicó una parte: quiere que entre el resto
-  y una lista de lo que no.
+  y una lista de lo que no. El resultado es solo la salida en bruto, como la
+  imprime `psql -f` - la etiqueta o las filas de cada sentencia, sus avisos,
+  su error - con **Copy** al lado; no hay tabla.
 - **mantener abierta (usted la cierra)** - la transacción sigue abierta
   **entre** ejecuciones y termina cuando pulsa Commit o Rollback, que aparecen
   junto al selector mientras está abierta. Ejecute algo, mire qué hizo y sólo
@@ -1635,15 +1657,65 @@ una función cuyo argumento es el tipo de fila de la tabla y las claves
 foráneas de otras tablas; un `DROP TYPE ... CASCADE` saca las columnas de ese
 tipo de otras tablas, con sus valores; una función de trigger eliminada se
 lleva sus triggers, una secuencia eliminada los valores por defecto que la
-llaman. El diálogo las lista antes de eliminar, y la copia las nombra
-arriba. Cuando el ensayo no puede ejecutarse - una tabla demasiado ocupada
-para bloquearla en tres segundos, o event triggers que se dispararían - la
-lista se lee del grafo de dependencias y la copia dice que es una
+llaman. El diálogo las lista cuando lo pide (**Calcular qué se lleva el
+drop**), leídas del grafo de dependencias: para la lista no se ensaya nada
+ni se bloquea nada, también para un esquema con cientos de tablas. La
+copia las nombra arriba, exactamente como las encontró el ensayo. Cuando el
+ensayo no puede ejecutarse - una tabla demasiado ocupada para bloquearla en
+tres segundos, o event triggers que se dispararían - también la lista de la
+copia se lee del grafo de dependencias y la copia dice que es una
 estimación. Lo que la copia no puede escribir aparece bajo *NOT in this
 copy*.
 
-**Las filas.** Las definiciones no son los datos. **Guardar también las
-filas**, marcado por defecto hasta 1 GB, escribe las filas de cada tabla que
+**Qué copiar antes.** El diálogo de eliminación, y el que elimina varios
+objetos seleccionados, se abren sin preguntar nada al servidor. Bajo la
+sentencia y sus opciones (**CASCADE**, **IF EXISTS**, el SQL) preguntan, en
+este orden:
+
+1. **¿Guardar una copia antes del drop?** La primera opción es **Sin copia -
+   ejecutar solo el DROP**: no se guarda nada ni se calcula nada antes, solo
+   se ejecuta la sentencia DROP (para un esquema con **CASCADE**, `DROP
+   SCHEMA ... CASCADE` sobre ese esquema y nada más). No se puede deshacer,
+   salvo desde una copia de seguridad. **Guardar antes una copia** abre la
+   pregunta siguiente.
+2. **Qué guardar:** **Copiar solo las definiciones** (las definiciones de
+   todo lo que se lleva la eliminación; una tabla vuelve vacía) o **Copiar
+   definiciones y filas** (también las filas de las tablas que se van se
+   escriben en la carpeta de datos).
+3. **Calcular qué se lleva el drop** - solo cuando lo pulsa: los objetos que
+   quita **CASCADE** y, para las tablas que se van, cuántas son, unas
+   cuántas filas y cuántos datos. Una copia lo necesita antes de habilitar
+   **Eliminar**; sin copia también puede pedirlo, pero no hace falta.
+
+Los tamaños son la estimación que lleva el servidor (filas y páginas de sus
+estadísticas), leída sin abrir ninguna tabla; una tabla nunca pasada por
+vacuum ni analizada aún no tiene tamaño, y el diálogo lo dice. Una copia
+ensaya primero la eliminación para saber exactamente qué se va, y eso
+mantiene los bloqueos de la eliminación un momento (espera como mucho tres
+segundos por ellos). El diálogo recuerda la última elección hasta que se
+cierra la aplicación (no se guarda en ningún sitio): la siguiente
+eliminación empieza por ella, salvo que las filas por encima de 50 MB pasan
+a solo las definiciones en cuanto el análisis lo muestra, y el diálogo dice
+por qué. Sin copia, cuando la eliminación puede llevarse datos u otros
+objetos (una tabla, un esquema, cualquier cosa con **CASCADE**, salvo que
+el análisis haya mostrado que no se va nada), escribe el nombre del objeto
+(para varios objetos, cuántos son) antes de que se habilite **Eliminar**.
+Un tipo del que no se puede escribir copia (una extensión, un disparador, un
+rol ...) lo dice y ofrece solo el análisis.
+
+**Mientras se ejecuta.** La eliminación es un trabajo en segundo plano, y el
+diálogo la sigue paso a paso: averiguar exactamente qué quita la
+eliminación, copiar las definiciones, copiar las filas (tantas de tantas
+tablas, cuánto se ha escrito), eliminar - con el tiempo transcurrido hasta
+ahora. Hasta que empieza el propio DROP, **Cancelar** dice **Detener**: se
+detiene en el próximo punto seguro, no se elimina nada, y una copia hecha
+hasta entonces se borra con sus filas. Una vez en marcha el DROP ya no se
+puede detener, y el botón lo dice. Cerrar el diálogo no detiene el trabajo;
+sigue en Trabajos en segundo plano. Mover y clonar desde el mismo diálogo
+muestran el mismo estado de trabajo.
+
+**Las filas.** Las definiciones no son los datos. **Copiar definiciones y
+filas** escribe las filas de cada tabla que
 se lleva la eliminación en la carpeta de datos junto a la copia, y los
 valores de una columna que un cascade quita de una tabla que se queda
 (emparejados por su clave primaria; una tabla sin ella no puede recuperarlos,
@@ -1661,8 +1733,8 @@ esa base de datos, y lo dice cuando no hay ninguna. Una clave foránea de una ta
 vuelve como `NOT VALID` cuando esa tabla tiene filas que apuntan a una tabla
 que vuelve vacía, y se comprueba cuando vuelven las filas; entonces también
 se refrescan las vistas materializadas. Las filas de una tabla foránea viven
-en el otro servidor y no se guardan. Sin las filas marcadas, la copia dice
-arriba que solo contiene las definiciones.
+en el otro servidor y no se guardan. Con solo las definiciones, la copia
+dice arriba que solo contiene las definiciones.
 
 ### 5.4 Sesiones
 
@@ -2761,6 +2833,36 @@ originales, para que el primer insert en la copia no choque con una fila que
 vino con los datos. Una columna `IDENTITY` se lleva también sus ajustes de
 secuencia - `START WITH`, `INCREMENT BY`, `MINVALUE`, `MAXVALUE`, `CACHE`,
 `CYCLE` - así que la copia no vuelve en silencio a los valores por defecto.
+
+Las filas se toman **exactamente como son**, tengan lo que tengan. Todo lo que
+juzga o reescribe una fila mientras se escribe espera a que las filas estén
+dentro:
+
+- una restricción que el origen tiene `NOT VALID` (un `CHECK`, una clave
+  foránea, un `CHECK` de un dominio, el `NOT NULL ... NOT VALID` de
+  PostgreSQL 18) se añade `NOT VALID` después de las filas, así que las filas
+  que el origen nunca comprobó tampoco se comprueban en la copia, y las nuevas
+  sí;
+- los triggers y las reglas se crean después de las filas, así que ninguno
+  rechaza, reescribe o añade filas a lo copiado;
+- la seguridad a nivel de fila y sus políticas se activan después de las filas;
+- un índice que un `CREATE INDEX CONCURRENTLY` fallido dejó inválido no se
+  copia (en el origen no impone nada y, construido de nuevo sobre las mismas
+  filas, vuelve a fallar) - igual que `pg_dump` lo omite.
+
+La seguridad a nivel de fila no rechaza una lectura, la acorta. Si sus
+políticas se aplican al rol con el que está conectado (no es el propietario de
+la tabla o la tabla tiene `FORCE ROW LEVEL SECURITY`, y no es superusuario ni un
+rol con `BYPASSRLS`), o no puede leer alguna de sus columnas, la clonación
+nombra la tabla y el motivo **antes** de ejecutar nada y no copia nada, en vez
+de copiar solo las filas que usted ve.
+
+**Tabla por tabla** muestra, para cada tabla, las filas copiadas, lo que se
+añadió `NOT VALID` como en el origen, lo que se creó después de las filas y lo
+que no se copió. Si una fila no se puede copiar, el mensaje nombra la tabla, la
+columna, la restricción, la fila que falla y las filas del origen por su clave
+primaria. **Clonar tabla**, **Copiar tabla** y la opción *copiar* de
+**Fusionar esquema** toman las filas de la misma manera.
 
 **Show the script** imprime todo antes de que se ejecute nada. El clon en sí se
 ejecuta como una única transacción: llega entero o no llega. Se ejecuta como
@@ -4173,13 +4275,13 @@ Todo lo que DBApguin conserva entre ejecuciones vive en un directorio (su ruta a
 
 **Importar datos de la app** lee un archivo así, muestra lo que contiene junto a lo que ya hay aquí y toma lo que marques (de nuevo, todo por defecto). Combina en lugar de reemplazar: el historial guardado (instantáneas AWR, días ASH, trazas de sesión, informes guardados, registros de trabajos, el registro de auditoría, plugins) se añade y nunca sobrescribe un fichero que ya existe; las conexiones guardadas se combinan por id, un nombre ya usado recibe un número y sus contraseñas se vuelven a cifrar con la clave de esta instalación; un fichero suelto como las preferencias o las consultas guardadas reemplaza el tuyo. Un archivo sin clave, o con una protegida por contraseña maestra, importa las conexiones sin contraseñas y lo dice. Así un DBA lleva el historial recogido y su configuración a otro equipo; no hay un almacén compartido entre instalaciones.
 
-> La copia **incluye `key`, `connections.json` y `license.json`** - la clave de datos y tus contraseñas de conexión cifradas. Es intencionado: una copia de tu configuración sin ellas no lo es. Pero significa que el archivo es sensible. Guárdalo en un lugar privado y **nunca en una carpeta que se sincronice con un servicio en la nube** (Dropbox, OneDrive, iCloud, Nextcloud, una carpeta Documentos sincronizada). Si hay una contraseña maestra, las contraseñas del archivo siguen cifradas con ella; sin una, solo están ligeramente ofuscadas.
+> La copia **incluye `key` y `connections.json`** - la clave de datos y tus contraseñas de conexión cifradas. Es intencionado: una copia de tu configuración sin ellas no lo es. Pero significa que el archivo es sensible. Guárdalo en un lugar privado y **nunca en una carpeta que se sincronice con un servicio en la nube** (Dropbox, OneDrive, iCloud, Nextcloud, una carpeta Documentos sincronizada). Si hay una contraseña maestra, las contraseñas del archivo siguen cifradas con ella; sin una, solo están ligeramente ofuscadas.
 
 La copia también lleva tus **plugins instalados** (`plugins/`) y lo que guardan (`plugin-data/`): sus ajustes y las contraseñas que almacenan, cifradas con la misma `key`, de modo que al restaurarla los plugins vuelven funcionando. La carpeta en la que escribes tus propios plugins, si lo haces, no está incluida: está donde tú elegiste.
 
 Exportar conexiones desde el gestor de conexiones es otra cosa: escribe solo las conexiones y sus grupos, sin contraseñas, ajustes ni plugins.
 
-**Borrar datos de la app** muestra una lista con el tamaño de cada elemento. Informes y registros - snapshots AWR, registros de trabajos, informes de comprobación guardados, el registro de errores - están marcados por defecto; las preferencias, las consultas guardadas y el espacio de trabajo SQL se listan sin marcar. Las conexiones guardadas (`connections.json` + `key`) y la licencia (`license.json`) están en una sección aparte y requieren escribir la palabra `DELETE` para confirmar, porque borrarlas pierde cada conexión guardada y su contraseña. `license.json` también aparece en esa sección, pero una instalación gratuita no tiene ninguna, y borrarlo no cambia nada. Los plugins instalados aparecen sin marcar; sus ajustes y contraseñas guardadas (`plugin-data/`) están en la misma sección protegida que las conexiones, porque borrarlos pierde esas contraseñas. `trial.json`, que dejaron las versiones anteriores a que DBApguin fuera gratuito, nunca se ofrece aquí. Un directorio que aún tiene un trabajo en segundo plano en ejecución se rechaza; cancela el trabajo primero. Cada borrado se escribe en el registro de auditoría.
+**Borrar datos de la app** muestra una lista con el tamaño de cada elemento. Informes y registros - snapshots AWR, registros de trabajos, informes de comprobación guardados, el registro de errores - están marcados por defecto; las preferencias, las consultas guardadas y el espacio de trabajo SQL se listan sin marcar. Las conexiones guardadas (`connections.json` + `key`) están en una sección aparte y requieren escribir la palabra `DELETE` para confirmar, porque borrarlas pierde cada conexión guardada y su contraseña. Los plugins instalados aparecen sin marcar; sus ajustes y contraseñas guardadas (`plugin-data/`) están en la misma sección protegida que las conexiones, porque borrarlos pierde esas contraseñas. Un directorio que aún tiene un trabajo en segundo plano en ejecución se rechaza; cancela el trabajo primero. Cada borrado se escribe en el registro de auditoría.
 
 ### Plugins {#plugins}
 
@@ -4204,7 +4306,19 @@ Un clic en la pila la expande y permite desplazarse. La rueda desplaza. Un clic 
 
 Mientras hay una ventana abierta, las notificaciones dejan libres sus botones. Una nueva se coloca encima de ellos o en el espacio junto a la ventana; si no hay sitio en ninguno, pasa directamente al contador, cuyo número y color siguen indicando que llegó. El contador también queda por encima de los botones de la ventana; si ni él cabe, se oculta hasta que la ventana se cierra. Al cerrarla, todo vuelve a la esquina.
 
-Una sola acción ofrece «Deshacer»: eliminar una conexión guardada, que el aviso puede restaurar durante unos seis segundos. Un aviso no puede deshacer lo que llegó a una base de datos; un ajuste cambiado aquí se puede deshacer desde la vista de ajustes, y una eliminación, un movimiento o un cambio de propietario deja una copia - en una eliminación con las filas, si se marcó - que devuelve los objetos (ver *Una copia de las definiciones antes del cambio*). Lo que hace la aplicación en su lugar es mostrarte la sentencia antes de ejecutarla, preguntar una vez y registrarla en el log de auditoría.
+Una sola acción ofrece «Deshacer»: eliminar una conexión guardada, que el aviso puede restaurar durante unos seis segundos. Un aviso no puede deshacer lo que llegó a una base de datos; un ajuste cambiado aquí se puede deshacer desde la vista de ajustes, y una eliminación, un movimiento o un cambio de propietario deja una copia - en una eliminación con las filas, si se eligieron, y ninguna si elige eliminar sin copia - que devuelve los objetos (ver *Una copia de las definiciones antes del cambio*). Lo que hace la aplicación en su lugar es mostrarte la sentencia antes de ejecutarla, preguntar una vez y registrarla en el log de auditoría.
+
+### 8.1 Mientras algo está en curso {#while-something-runs}
+
+Todo lo que has pedido y tarda más de un cuarto de segundo lo dice, siempre en los mismos sitios:
+
+- Una barra fina se desliza por el borde superior de la ventana y un anillo gira en el extremo derecho de la fila de pestañas bajo los menús. Señala el anillo, o llega a él con Tab, para ver la lista de lo que está en curso, el paso en que está cada cosa y cuánto lleva; pasados tres segundos el anillo muestra el tiempo él mismo. Donde el trabajo se puede detener - una comprobación, una sentencia en el editor SQL - su línea en la lista tiene un Cancelar.
+- El botón que has pulsado muestra un anillo en lugar de su texto y no admite una segunda pulsación hasta que el trabajo termina. Nada a su lado se mueve: el botón conserva su tamaño, y la barra, el anillo y la lista no le quitan sitio a la página.
+- Una parte de la ventana que está cargando lo dice ("Leyendo los trabajos…", "cargando columnas…") en lugar de mostrar una lista vacía o valores que están a punto de cambiar, y pasados tres segundos muestra cuánto lleva esperando. Un ajuste cuyo valor guardado aún se está leyendo aparece atenuado y no se puede cambiar hasta que llega el valor.
+
+Las exportaciones y los informes nombran cada paso: generando el informe, esperando tu elección en el diálogo de archivos (si el diálogo se abrió detrás de la ventana, esa línea es la pista), escribiendo el archivo o el PDF. El estado de trabajo termina en cuanto termina el trabajo, haya salido bien o mal, y una notificación dice adónde ha ido el archivo o por qué no.
+
+Lo que la aplicación hace por su cuenta - la actualización del panel, las comprobaciones de conexión, el vigilante de trabajos, las consultas de los recolectores - nunca aparece aquí, así que un anillo que gira siempre significa que algo que has pedido sigue en camino.
 
 ## 9. Atajos de teclado
 
@@ -4658,7 +4772,7 @@ es como se distingue un informe de otro.
 ## 15. Cómo obtener ayuda
 
 - Documentación interna: este archivo más `docs/TECHNICAL.md` y `ARCHITECTURE.md`
-- Procedencia de la compilación: **Ayuda -> Acerca de DBApguin** muestra versión, commit de git, marca de tiempo de compilación, el Python con el que se compiló y el estado de tu licencia. Inclúyelo en los informes de fallo.
+- Procedencia de la compilación: **Ayuda -> Acerca de DBApguin** muestra versión, commit de git, marca de tiempo de compilación y el Python con el que se compiló. Inclúyelo en los informes de fallo.
 - Registro de auditoría: `<DBCHECKS_HOME>/audit/audit-YYYY-MM.jsonl` es un archivo JSON Lines. Ábrelo con cualquier editor de texto, o con `jq` para analizarlo.
 - Registro de errores: `<DBCHECKS_HOME>/dbchecks_error.log` para las trazas más recientes del lado del servidor. Las contraseñas se redactan antes de escribir. Rota a 1 MiB y guarda tres copias anteriores, y cada ejecución que registre algo escribe primero una cabecera - así que las entradas posteriores a la última línea `=== DBApguin ... started ...` son las de tu sesión actual. Las de más arriba pueden tener semanas.
 

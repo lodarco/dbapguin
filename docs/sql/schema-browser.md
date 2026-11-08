@@ -1,6 +1,6 @@
 # Schema browser
 
-[All parts](README.md) · 339 statements
+[All parts](README.md) · 349 statements
 
 ## api/schema/acl.py
 
@@ -748,25 +748,25 @@ SELECT i.relname AS name, pg_get_indexdef(x.indexrelid) AS def,
    AND i.relname <> %s
 ```
 
-`_index_findings` line 1884
+`_index_findings` line 1880
 
 ```sql
 REINDEX INDEX CONCURRENTLY %s;
 ```
 
-`_index_findings` line 1890
+`_index_findings` line 1886
 
 ```sql
 REINDEX INDEX %s;
 ```
 
-`_index_findings` line 1901
+`_index_findings` line 1897
 
 ```sql
 DROP INDEX CONCURRENTLY
 ```
 
-`_index_findings` line 1902
+`_index_findings` line 1898
 
 ```sql
 DROP INDEX CONCURRENTLY %s;
@@ -774,7 +774,7 @@ DROP INDEX CONCURRENTLY %s;
 
 ## api/schema/data.py
 
-`api_schema_row_modify` line 68
+`api_schema_row_modify` line 69
 
 ```sql
 SELECT a.attname,
@@ -786,7 +786,7 @@ SELECT a.attname,
    AND a.attnum > 0 AND NOT a.attisdropped
 ```
 
-`api_schema_row_modify` line 82
+`api_schema_row_modify` line 83
 
 ```sql
 SELECT a.attname FROM pg_index i
@@ -796,25 +796,25 @@ SELECT a.attname FROM pg_index i
  WHERE i.indisprimary AND n.nspname = %s AND c.relname = %s
 ```
 
-`api_schema_row_modify` line 124
+`api_schema_row_modify` line 125
 
 ```sql
 INSERT INTO {s}.{t} (
 ```
 
-`api_schema_row_modify` line 134
+`api_schema_row_modify` line 135
 
 ```sql
 INSERT INTO {s}.{t} DEFAULT VALUES RETURNING *
 ```
 
-`api_schema_row_modify` line 167
+`api_schema_row_modify` line 168
 
 ```sql
 DELETE FROM {s}.{t} WHERE
 ```
 
-`api_schema_distinct` line 226
+`api_schema_distinct` line 227
 
 ```sql
 SELECT 1 FROM pg_attribute a
@@ -824,13 +824,13 @@ SELECT 1 FROM pg_attribute a
    AND a.attnum > 0 AND NOT a.attisdropped
 ```
 
-`api_schema_distinct` line 236
+`api_schema_distinct` line 237
 
 ```sql
 SELECT v::text AS v, count(*)::bigint AS c   FROM (SELECT {col} AS v FROM {sch}.{tbl} LIMIT {n}) s  GROUP BY v  ORDER BY c DESC NULLS LAST, v  LIMIT {l}
 ```
 
-`api_schema_sample` line 320
+`api_schema_sample` line 321
 
 ```sql
 SELECT a.attname
@@ -841,7 +841,7 @@ WHERE n.nspname = %s AND c.relname = %s
   AND a.attnum > 0 AND NOT a.attisdropped
 ```
 
-**wrapped** - `_sample_raw` line 400
+**wrapped** - `_sample_raw` line 401
 
 ```sql
 SELECT * FROM (
@@ -849,31 +849,31 @@ SELECT * FROM (
 ) AS dbapguin_raw{'' if limit is None else ' LIMIT %d' % limit}
 ```
 
-`api_schema_copy_table` line 513
+`api_schema_copy_table` line 514
 
 ```sql
 SELECT to_regclass(%s) IS NOT NULL
 ```
 
-`api_schema_copy_table` line 517
+`api_schema_copy_table` line 518
 
 ```sql
 SELECT to_regclass(%s) IS NOT NULL
 ```
 
-`api_schema_copy_table` line 523
+`api_schema_copy_table` line 529
 
 ```sql
-SELECT a.attname
+SELECT a.attname, %s, %s
   FROM pg_attribute a
   JOIN pg_class c ON c.oid = a.attrelid
   JOIN pg_namespace n ON n.oid = c.relnamespace
- WHERE n.nspname = %s AND c.relname = %s
+ WHERE n.nspname = %%s AND c.relname = %%s
    AND a.attnum > 0 AND NOT a.attisdropped
  ORDER BY a.attnum
 ```
 
-**ddl** - `api_schema_copy_table` line 535
+**ddl** - `api_schema_copy_table` line 544
 
 ```sql
 CREATE TABLE {dst_q} (LIKE {src_q} INCLUDING ALL)
@@ -882,16 +882,34 @@ CREATE TABLE {dst_q} (LIKE {src_q} INCLUDING ALL)
 `api_schema_copy_table` line 553
 
 ```sql
+SELECT %s::regclass::oid
+```
+
+`api_schema_copy_table` line 570
+
+```sql
 SELECT set_config('dbapguin.anon_salt', %s, true)
 ```
 
-**data_sql** - `api_schema_copy_table` line 586
+**data_sql** - `api_schema_copy_table` line 604
 
 ```sql
-INSERT INTO {dst_q} ({dst_cols_sql}) SELECT {select_sql} FROM {from_sql}
+INSERT INTO {dst_q} ({dst_cols_sql}){_ovr} SELECT {select_sql} FROM {from_sql}
 ```
 
-`api_schema_copy_table` line 606
+`api_schema_copy_table` line 620
+
+```sql
+SET LOCAL row_security = off
+```
+
+`api_schema_copy_table` line 635
+
+```sql
+RESET row_security
+```
+
+`api_schema_copy_table` line 643
 
 ```sql
 SELECT quote_ident(n.nspname) || '.' || quote_ident(ic.relname)
@@ -903,7 +921,7 @@ SELECT quote_ident(n.nspname) || '.' || quote_ident(ic.relname)
  ORDER BY 1
 ```
 
-**stmt** - `api_schema_copy_table` line 616
+**stmt** - `api_schema_copy_table` line 653
 
 ```sql
 REINDEX INDEX {ix}
@@ -911,7 +929,7 @@ REINDEX INDEX {ix}
 
 ## api/schema/ddl.py
 
-`api_schema_ddl` line 121
+`api_schema_ddl` line 123
 
 ```sql
 SELECT {_part_col} AS is_partition,
@@ -924,13 +942,13 @@ SELECT {_part_col} AS is_partition,
   FROM pg_class c WHERE c.oid = %s::regclass
 ```
 
-**head** - `api_schema_ddl` line 149
+**head** - `api_schema_ddl` line 151
 
 ```sql
 CREATE TABLE {qname} PARTITION OF {pq} {pinfo.get('partbound') or 'DEFAULT'}
 ```
 
-`api_schema_ddl` line 155
+`api_schema_ddl` line 157
 
 ```sql
 SELECT a.attname,
@@ -943,7 +961,7 @@ WHERE a.attrelid = %s::regclass AND a.attnum > 0 AND NOT a.attisdropped
 ORDER BY a.attnum
 ```
 
-`api_schema_ddl` line 178
+`api_schema_ddl` line 180
 
 ```sql
 CREATE {kw} {qname} (
@@ -951,7 +969,7 @@ CREATE {kw} {qname} (
 ){tail};
 ```
 
-`api_schema_ddl` line 184
+`api_schema_ddl` line 186
 
 ```sql
 SELECT conname, pg_get_constraintdef(oid) AS def
@@ -959,13 +977,13 @@ FROM pg_constraint WHERE conrelid = %s::regclass{_con_filter}
 ORDER BY contype, conname
 ```
 
-`api_schema_ddl` line 191
+`api_schema_ddl` line 193
 
 ```sql
 ALTER TABLE {qname} ADD CONSTRAINT {_qi(c['conname'])} {c['def']};
 ```
 
-`api_schema_ddl` line 195
+`api_schema_ddl` line 197
 
 ```sql
 SELECT ic.relname AS indexname, pg_get_indexdef(x.indexrelid) AS indexdef
@@ -977,33 +995,33 @@ SELECT ic.relname AS indexname, pg_get_indexdef(x.indexrelid) AS indexdef
  ORDER BY ic.relname
 ```
 
-`api_schema_ddl` line 207
+`api_schema_ddl` line 209
 
 ```sql
 SELECT pg_get_viewdef(%s::regclass, true) AS def
 ```
 
-`api_schema_ddl` line 208
+`api_schema_ddl` line 210
 
 ```sql
 CREATE OR REPLACE VIEW {qname} AS
 {cur.fetchone()['def']}
 ```
 
-`api_schema_ddl` line 210
+`api_schema_ddl` line 212
 
 ```sql
 SELECT pg_get_viewdef(%s::regclass, true) AS def
 ```
 
-`api_schema_ddl` line 211
+`api_schema_ddl` line 213
 
 ```sql
 CREATE MATERIALIZED VIEW {qname} AS
 {cur.fetchone()['def']}
 ```
 
-`api_schema_ddl` line 214
+`api_schema_ddl` line 216
 
 ```sql
 SELECT 'CREATE SEQUENCE ' || quote_ident(schemaname) || '.' || quote_ident(sequencename)
@@ -1017,31 +1035,31 @@ SELECT 'CREATE SEQUENCE ' || quote_ident(schemaname) || '.' || quote_ident(seque
 FROM pg_sequences WHERE schemaname=%s AND sequencename=%s
 ```
 
-`api_schema_ddl` line 232
+`api_schema_ddl` line 234
 
 ```sql
 SELECT start_value, increment_by, min_value, max_value, is_cycled FROM "{schema}"."{name}"
 ```
 
-`api_schema_ddl` line 237
+`api_schema_ddl` line 239
 
 ```sql
 CREATE SEQUENCE "{schema}"."{name}" START {r['start_value']} INCREMENT {r['increment_by']} MINVALUE {r['min_value']} MAXVALUE {r['max_value']}{' CYCLE' if r['is_cycled'] else ''};
 ```
 
-`api_schema_ddl` line 248
+`api_schema_ddl` line 250
 
 ```sql
 SELECT pg_get_functiondef(%s::oid) AS def
 ```
 
-`api_schema_ddl` line 256
+`api_schema_ddl` line 258
 
 ```sql
 SELECT pg_get_triggerdef(%s::oid, true) AS def
 ```
 
-`api_schema_ddl` line 264
+`api_schema_ddl` line 266
 
 ```sql
 SELECT t.typname, t.typtype, n.nspname, t.typbasetype,
@@ -1052,19 +1070,19 @@ FROM pg_type t JOIN pg_namespace n ON n.oid = t.typnamespace
 WHERE t.oid = %s::oid
 ```
 
-`api_schema_ddl` line 278
+`api_schema_ddl` line 280
 
 ```sql
 CREATE TYPE "{r['nspname']}"."{r['typname']}" AS ENUM ({lits});
 ```
 
-`api_schema_ddl` line 280
+`api_schema_ddl` line 282
 
 ```sql
 CREATE DOMAIN "{r['nspname']}"."{r['typname']}" AS {r['basetype']};
 ```
 
-`api_schema_ddl` line 282
+`api_schema_ddl` line 284
 
 ```sql
 SELECT a.attname, pg_catalog.format_type(a.atttypid, a.atttypmod) AS type
@@ -1074,7 +1092,7 @@ WHERE t.oid = %s::oid AND a.attnum > 0 AND NOT a.attisdropped
 ORDER BY a.attnum
 ```
 
-`api_schema_ddl` line 291
+`api_schema_ddl` line 293
 
 ```sql
 CREATE TYPE "{r['nspname']}"."{r['typname']}" AS (
@@ -1082,20 +1100,20 @@ CREATE TYPE "{r['nspname']}"."{r['typname']}" AS (
 );
 ```
 
-`api_schema_ddl` line 293
+`api_schema_ddl` line 295
 
 ```sql
 SELECT extname, extversion FROM pg_extension WHERE extname=%s
 ```
 
-`api_schema_ddl` line 296
+`api_schema_ddl` line 298
 
 ```sql
 -- extension installed: {r['extname']} {r['extversion']}
 CREATE EXTENSION IF NOT EXISTS "{r['extname']}";
 ```
 
-`api_schema_ddl` line 306
+`api_schema_ddl` line 308
 
 ```sql
 SELECT pg_get_indexdef(c.oid) AS def
@@ -1103,7 +1121,7 @@ SELECT pg_get_indexdef(c.oid) AS def
  WHERE c.relkind IN ('i','I') AND n.nspname = %s AND c.relname = %s
 ```
 
-`api_schema_ddl` line 318
+`api_schema_ddl` line 320
 
 ```sql
 SELECT pg_get_ruledef(r.oid, true) AS def
@@ -1114,7 +1132,7 @@ SELECT pg_get_ruledef(r.oid, true) AS def
    AND (%s = '' OR c.relname = %s)
 ```
 
-`api_schema_ddl` line 330
+`api_schema_ddl` line 332
 
 ```sql
 SELECT pg_get_statisticsobjdef(st.oid) AS def
@@ -1122,7 +1140,7 @@ SELECT pg_get_statisticsobjdef(st.oid) AS def
  WHERE n.nspname = %s AND st.stxname = %s
 ```
 
-`api_schema_ddl` line 339
+`api_schema_ddl` line 341
 
 ```sql
 SELECT pg_catalog.format_type(t.typbasetype, t.typtypmod) AS basetype,
@@ -1138,19 +1156,19 @@ SELECT pg_catalog.format_type(t.typbasetype, t.typtypmod) AS basetype,
  WHERE t.typtype = 'd' AND n.nspname = %s AND t.typname = %s
 ```
 
-**sql_txt** - `api_schema_ddl` line 354
+**sql_txt** - `api_schema_ddl` line 356
 
 ```sql
 CREATE DOMAIN {qname} AS {r['basetype']}
 ```
 
-`api_schema_ddl` line 371
+`api_schema_ddl` line 373
 
 ```sql
 SELECT pg_get_functiondef(%s::oid) AS def
 ```
 
-`api_schema_ddl` line 376
+`api_schema_ddl` line 378
 
 ```sql
 SELECT p.proname,
@@ -1165,7 +1183,7 @@ SELECT p.proname,
  WHERE n.nspname = %s AND p.proname = %s
 ```
 
-`api_schema_ddl` line 395
+`api_schema_ddl` line 397
 
 ```sql
 CREATE AGGREGATE {qname}({r['args']}) (
@@ -1173,7 +1191,7 @@ CREATE AGGREGATE {qname}({r['args']}) (
 );
 ```
 
-`api_schema_ddl` line 398
+`api_schema_ddl` line 400
 
 ```sql
 SELECT collprovider, collcollate, collctype, collisdeterministic
@@ -1181,13 +1199,13 @@ SELECT collprovider, collcollate, collctype, collisdeterministic
  WHERE n.nspname = %s AND c.collname = %s
 ```
 
-`api_schema_ddl` line 413
+`api_schema_ddl` line 415
 
 ```sql
 CREATE COLLATION {qname} ({', '.join(opts)});
 ```
 
-`api_schema_ddl` line 418
+`api_schema_ddl` line 420
 
 ```sql
 SELECT tablename, policyname, permissive, roles, cmd, qual, with_check
@@ -1196,32 +1214,32 @@ SELECT tablename, policyname, permissive, roles, cmd, qual, with_check
    AND (%s = '' OR tablename = %s)
 ```
 
-**sql_txt** - `api_schema_ddl` line 426
+**sql_txt** - `api_schema_ddl` line 428
 
 ```sql
 CREATE POLICY "{r['policyname']}" ON {schema and chr(34) + schema + chr(34) + '.'}"{r['tablename']}"
 ```
 
-`api_schema_ddl` line 438
+`api_schema_ddl` line 440
 
 ```sql
 WITH CHECK ({r['with_check']})
 ```
 
-`api_schema_ddl` line 441
+`api_schema_ddl` line 443
 
 ```sql
 SELECT evtname, evtevent, evtfoid::regproc::text AS fn, evtenabled, evttags
   FROM pg_event_trigger WHERE evtname = %s
 ```
 
-**sql_txt** - `api_schema_ddl` line 447
+**sql_txt** - `api_schema_ddl` line 449
 
 ```sql
 CREATE EVENT TRIGGER "{r['evtname']}" ON {r['evtevent']}
 ```
 
-`api_schema_ddl` line 454
+`api_schema_ddl` line 456
 
 ```sql
 SELECT lanname, lanpltrusted,
@@ -1230,7 +1248,7 @@ SELECT lanname, lanpltrusted,
   FROM pg_language WHERE lanname = %s
 ```
 
-`api_schema_ddl` line 473
+`api_schema_ddl` line 475
 
 ```sql
 SELECT pg_catalog.format_type(castsource, NULL) AS src,
@@ -1239,13 +1257,13 @@ SELECT pg_catalog.format_type(castsource, NULL) AS src,
   FROM pg_cast WHERE oid = %s::oid
 ```
 
-`api_schema_ddl` line 483
+`api_schema_ddl` line 485
 
 ```sql
 CREATE CAST ({r['src']} AS {r['tgt']}) {how}{ctx};
 ```
 
-`api_schema_ddl` line 485
+`api_schema_ddl` line 487
 
 ```sql
 SELECT conname, condefault,
@@ -1256,13 +1274,13 @@ SELECT conname, condefault,
  WHERE n.nspname = %s AND c.conname = %s
 ```
 
-`api_schema_ddl` line 495
+`api_schema_ddl` line 497
 
 ```sql
 CREATE {'DEFAULT ' if r['condefault'] else ''}CONVERSION {qname} FOR '{r['src']}' TO '{r['tgt']}' FROM {r['fn']};
 ```
 
-`api_schema_ddl` line 499
+`api_schema_ddl` line 501
 
 ```sql
 SELECT oprname, oprcode::regproc::text AS fn,
@@ -1274,7 +1292,7 @@ SELECT oprname, oprcode::regproc::text AS fn,
  WHERE n.nspname = %s AND o.oprname = %s
 ```
 
-`api_schema_ddl` line 515
+`api_schema_ddl` line 517
 
 ```sql
 CREATE OPERATOR "{schema}".{r['oprname']} (
@@ -1282,7 +1300,7 @@ CREATE OPERATOR "{schema}".{r['oprname']} (
 );
 ```
 
-`api_schema_ddl` line 518
+`api_schema_ddl` line 520
 
 ```sql
 SELECT t.typname,
@@ -1297,7 +1315,7 @@ SELECT t.typname,
  WHERE n.nspname = %s AND t.typname = %s
 ```
 
-`api_schema_ddl` line 536
+`api_schema_ddl` line 538
 
 ```sql
 CREATE TYPE {qname} AS RANGE (
@@ -1305,7 +1323,7 @@ CREATE TYPE {qname} AS RANGE (
 );
 ```
 
-`api_schema_ddl` line 539
+`api_schema_ddl` line 541
 
 ```sql
 SELECT fdwname, NULLIF(fdwhandler,0)::regproc::text AS handler,
@@ -1313,7 +1331,7 @@ SELECT fdwname, NULLIF(fdwhandler,0)::regproc::text AS handler,
   FROM pg_foreign_data_wrapper WHERE fdwname = %s
 ```
 
-`api_schema_ddl` line 555
+`api_schema_ddl` line 557
 
 ```sql
 SELECT s.srvname, s.srvtype, s.srvversion, s.srvoptions, w.fdwname
@@ -1322,40 +1340,40 @@ SELECT s.srvname, s.srvtype, s.srvversion, s.srvoptions, w.fdwname
  WHERE s.srvname = %s
 ```
 
-`api_schema_ddl` line 573
+`api_schema_ddl` line 575
 
 ```sql
 SELECT pubname, puballtables, pubinsert, pubupdate, pubdelete, pubtruncate
   FROM pg_publication WHERE pubname = %s
 ```
 
-`api_schema_ddl` line 582
+`api_schema_ddl` line 584
 
 ```sql
 SELECT schemaname, tablename FROM pg_publication_tables
  WHERE pubname = %s ORDER BY schemaname, tablename
 ```
 
-**with_txt** - `api_schema_ddl` line 592
+**with_txt** - `api_schema_ddl` line 594
 
 ```sql
 WITH (publish = '{', '.join(ops)}')
 ```
 
-`api_schema_ddl` line 593
+`api_schema_ddl` line 595
 
 ```sql
 CREATE PUBLICATION "{r['pubname']}"{target}{with_txt};
 ```
 
-`api_schema_ddl` line 595
+`api_schema_ddl` line 597
 
 ```sql
 SELECT subname, subpublications, subenabled, subslotname
   FROM pg_subscription WHERE subname = %s
 ```
 
-`api_schema_ddl` line 605
+`api_schema_ddl` line 607
 
 ```sql
 CREATE SUBSCRIPTION "{r['subname']}"
@@ -1364,7 +1382,7 @@ CREATE SUBSCRIPTION "{r['subname']}"
     WITH (slot_name = '{(r['subslotname'] or '').replace(chr(39), chr(39) * 2)}', enabled = {'true' if r['subenabled'] else 'false'});
 ```
 
-`api_schema_ddl` line 622
+`api_schema_ddl` line 624
 
 ```sql
 SELECT n.nspname, o.opcname, am.amname, o.opcdefault,
@@ -1380,7 +1398,7 @@ SELECT n.nspname, o.opcname, am.amname, o.opcdefault,
  WHERE o.oid = %s::oid
 ```
 
-`api_schema_ddl` line 637
+`api_schema_ddl` line 639
 
 ```sql
 SELECT amop.amopstrategy, op.oprname,
@@ -1394,7 +1412,7 @@ SELECT amop.amopstrategy, op.oprname,
  ORDER BY amop.amopstrategy
 ```
 
-`api_schema_ddl` line 650
+`api_schema_ddl` line 652
 
 ```sql
 SELECT amproc.amprocnum, amproc.amproc::regprocedure AS fn,
@@ -1407,7 +1425,7 @@ SELECT amproc.amprocnum, amproc.amproc::regprocedure AS fn,
  ORDER BY amproc.amprocnum
 ```
 
-`api_schema_ddl` line 673
+`api_schema_ddl` line 675
 
 ```sql
 CREATE OPERATOR CLASS {_qi(r['nspname'])}.{_qi(r['opcname'])}{default_clause}
@@ -1415,7 +1433,7 @@ CREATE OPERATOR CLASS {_qi(r['nspname'])}.{_qi(r['opcname'])}{default_clause}
     {',\n    '.join(members)};
 ```
 
-`api_schema_ddl` line 680
+`api_schema_ddl` line 682
 
 ```sql
 SELECT n.nspname, opf.opfname, am.amname
@@ -1425,13 +1443,13 @@ SELECT n.nspname, opf.opfname, am.amname
  WHERE opf.oid = %s::oid
 ```
 
-`api_schema_ddl` line 690
+`api_schema_ddl` line 692
 
 ```sql
 CREATE OPERATOR FAMILY {qname_f} USING {r['amname']};
 ```
 
-`api_schema_ddl` line 701
+`api_schema_ddl` line 703
 
 ```sql
 SELECT amop.amopstrategy, op.oprname,
@@ -1446,7 +1464,7 @@ SELECT amop.amopstrategy, op.oprname,
  ORDER BY amop.amoplefttype, amop.amoprighttype, amop.amopstrategy
 ```
 
-`api_schema_ddl` line 715
+`api_schema_ddl` line 717
 
 ```sql
 SELECT amproc.amprocnum, amproc.amproc::regprocedure AS fn,
@@ -1461,14 +1479,14 @@ SELECT amproc.amprocnum, amproc.amproc::regprocedure AS fn,
  ORDER BY amproc.amproclefttype, amproc.amprocrighttype, amproc.amprocnum
 ```
 
-`api_schema_ddl` line 730
+`api_schema_ddl` line 732
 
 ```sql
 ALTER OPERATOR FAMILY {qname_f} USING {r['amname']} ADD
     {',\n    '.join(add_members)};
 ```
 
-`api_schema_ddl` line 737
+`api_schema_ddl` line 739
 
 ```sql
 SELECT n.nspname, c.cfgname, pn.nspname AS parser_schema, p.prsname AS parser_name
@@ -1479,13 +1497,13 @@ SELECT n.nspname, c.cfgname, pn.nspname AS parser_schema, p.prsname AS parser_na
  WHERE c.oid = %s::oid
 ```
 
-`api_schema_ddl` line 748
+`api_schema_ddl` line 750
 
 ```sql
 CREATE TEXT SEARCH CONFIGURATION {qname_c} (PARSER = {_qi(r['parser_schema'])}.{_qi(r['parser_name'])});
 ```
 
-`api_schema_ddl` line 753
+`api_schema_ddl` line 755
 
 ```sql
 SELECT tt.alias,
@@ -1499,13 +1517,13 @@ SELECT tt.alias,
  ORDER BY tt.tokid
 ```
 
-`api_schema_ddl` line 766
+`api_schema_ddl` line 768
 
 ```sql
 ALTER TEXT SEARCH CONFIGURATION {qname_c} ADD MAPPING FOR {m['alias']} WITH {dicts};
 ```
 
-`api_schema_ddl` line 773
+`api_schema_ddl` line 775
 
 ```sql
 SELECT n.nspname, d.dictname, tn.nspname AS tmpl_schema, t.tmplname AS tmpl_name,
@@ -1517,13 +1535,13 @@ SELECT n.nspname, d.dictname, tn.nspname AS tmpl_schema, t.tmplname AS tmpl_name
  WHERE d.oid = %s::oid
 ```
 
-`api_schema_ddl` line 789
+`api_schema_ddl` line 791
 
 ```sql
 CREATE TEXT SEARCH DICTIONARY {_qi(r['nspname'])}.{_qi(r['dictname'])} (TEMPLATE = {_qi(r['tmpl_schema'])}.{_qi(r['tmpl_name'])}{opts});
 ```
 
-`api_schema_ddl` line 795
+`api_schema_ddl` line 797
 
 ```sql
 SELECT n.nspname, p.prsname,
@@ -1536,7 +1554,7 @@ SELECT n.nspname, p.prsname,
  WHERE p.oid = %s::oid
 ```
 
-`api_schema_ddl` line 823
+`api_schema_ddl` line 825
 
 ```sql
 CREATE TEXT SEARCH PARSER {_qi(r['nspname'])}.{_qi(r['prsname'])} (
@@ -1544,7 +1562,7 @@ CREATE TEXT SEARCH PARSER {_qi(r['nspname'])}.{_qi(r['prsname'])} (
 );
 ```
 
-`api_schema_ddl` line 829
+`api_schema_ddl` line 831
 
 ```sql
 SELECT n.nspname, t.tmplname,
@@ -1554,7 +1572,7 @@ SELECT n.nspname, t.tmplname,
  WHERE t.oid = %s::oid
 ```
 
-`api_schema_ddl` line 844
+`api_schema_ddl` line 846
 
 ```sql
 CREATE TEXT SEARCH TEMPLATE {_qi(r['nspname'])}.{_qi(r['tmplname'])} (
@@ -1562,7 +1580,7 @@ CREATE TEXT SEARCH TEMPLATE {_qi(r['nspname'])}.{_qi(r['tmplname'])} (
 );
 ```
 
-`api_schema_ddl` line 850
+`api_schema_ddl` line 852
 
 ```sql
 SELECT um.umuser, pg_catalog.pg_get_userbyid(um.umuser) AS user_name,
@@ -1572,13 +1590,13 @@ SELECT um.umuser, pg_catalog.pg_get_userbyid(um.umuser) AS user_name,
  WHERE um.oid = %s::oid
 ```
 
-`api_schema_ddl` line 872
+`api_schema_ddl` line 874
 
 ```sql
 CREATE USER MAPPING FOR {who} SERVER {_qi(r['srvname'])}{opts};
 ```
 
-`api_schema_ddl` line 884
+`api_schema_ddl` line 886
 
 ```sql
 SELECT DISTINCT s.relname AS seq_name,
@@ -1595,19 +1613,19 @@ SELECT DISTINCT s.relname AS seq_name,
  ORDER BY 1
 ```
 
-`api_schema_ddl` line 907
+`api_schema_ddl` line 909
 
 ```sql
 CREATE SEQUENCE IF NOT EXISTS {fq};
 ```
 
-`api_schema_ddl` line 910
+`api_schema_ddl` line 912
 
 ```sql
 ALTER SEQUENCE {fq} OWNED BY {qname}.{_qi(sq['col_name'])};
 ```
 
-**_DEPEND_OBJECTS_BASE** - `(module)` line 1033
+**_DEPEND_OBJECTS_BASE** - `(module)` line 1035
 
 ```sql
 SELECT 'pg_class'::regclass AS cls, c.oid AS id, c.relnamespace AS ns,
@@ -1641,7 +1659,7 @@ SELECT 'pg_trigger'::regclass, tg.oid, c.relnamespace,
   JOIN pg_catalog.pg_class c ON c.oid = tg.tgrelid
 ```
 
-`_depends_on_sql` line 1082
+`_depends_on_sql` line 1084
 
 ```sql
 WITH obj AS (%s)
@@ -1659,7 +1677,7 @@ SELECT DISTINCT
  ORDER BY 1, 2, 3, 4
 ```
 
-`(module)` line 1104
+`(module)` line 1106
 
 ```sql
 SELECT c.conname AS name,
@@ -1669,7 +1687,7 @@ SELECT c.conname AS name,
                        WHERE n.nspname = %s
 ```
 
-`(module)` line 1109
+`(module)` line 1111
 
 ```sql
 SELECT c.relname || '.' || a.attname AS name,
@@ -1682,7 +1700,7 @@ SELECT c.relname || '.' || a.attname AS name,
                            WHERE n.nspname = %s
 ```
 
-`(module)` line 1117
+`(module)` line 1119
 
 ```sql
 SELECT i.relname AS name,
@@ -1692,7 +1710,7 @@ SELECT i.relname AS name,
                   WHERE n.nspname = %s AND i.relkind IN ('i', 'I')
 ```
 
-`(module)` line 1122
+`(module)` line 1124
 
 ```sql
 SELECT c.relname AS name,
@@ -1702,7 +1720,7 @@ SELECT c.relname AS name,
                  WHERE n.nspname = %s AND c.relkind IN ('v', 'm')
 ```
 
-`(module)` line 1131
+`(module)` line 1133
 
 ```sql
 SELECT p.proname AS name,
@@ -1712,7 +1730,7 @@ SELECT p.proname AS name,
                      WHERE n.nspname = %s AND {prokind_where}
 ```
 
-`(module)` line 1136
+`(module)` line 1138
 
 ```sql
 SELECT t.tgname AS name,
@@ -1723,7 +1741,7 @@ SELECT t.tgname AS name,
                     WHERE n.nspname = %s AND NOT t.tgisinternal
 ```
 
-`(module)` line 1142
+`(module)` line 1144
 
 ```sql
 SELECT c.relname || '.' || a.attname AS name,
@@ -1735,7 +1753,7 @@ SELECT c.relname || '.' || a.attname AS name,
                           AND c.relkind IN ('r', 'p', 'v', 'm')
 ```
 
-`(module)` line 1149
+`(module)` line 1151
 
 ```sql
 SELECT t.typname AS name,
@@ -1745,7 +1763,7 @@ SELECT t.typname AS name,
                    WHERE n.nspname = %s AND t.typtype = 'd'
 ```
 
-**_CENSUS_SQL_BASE** - `(module)` line 1168
+**_CENSUS_SQL_BASE** - `(module)` line 1170
 
 ```sql
 SELECT kind, name FROM (
@@ -1787,7 +1805,7 @@ SELECT kind, name FROM (
    WHERE n.nspname = %s
 ```
 
-`_schema_sequences` line 1329
+`_schema_sequences` line 1331
 
 ```sql
 SELECT sequencename AS name, data_type::text AS data_type,
@@ -1797,7 +1815,7 @@ SELECT sequencename AS name, data_type::text AS data_type,
  WHERE schemaname = %s
 ```
 
-`_schema_sequences` line 1339
+`_schema_sequences` line 1341
 
 ```sql
 SELECT c.relname AS name
@@ -1806,24 +1824,35 @@ SELECT c.relname AS name
  WHERE n.nspname = %s AND c.relkind = 'S'
 ```
 
-`_schema_sequences` line 1346
+`_schema_sequences` line 1348
 
 ```sql
 SELECT increment_by, min_value, max_value, is_cycled AS cycle, cache_value AS cache_size, last_value FROM {fq}
 ```
 
-`_verify_schema_copy` line 1511
+`_verify_schema_copy._not_valid` line 1519
 
 ```sql
-SELECT c.relname || '.' || co.conname AS name
+SELECT COALESCE(c.relname, t.typname)::text AS owner, co.conname::text AS con
   FROM pg_catalog.pg_constraint co
-  JOIN pg_catalog.pg_class c ON c.oid = co.conrelid
-  JOIN pg_catalog.pg_namespace n ON n.oid = c.relnamespace
+  JOIN pg_catalog.pg_namespace n ON n.oid = co.connamespace
+  LEFT JOIN pg_catalog.pg_class c ON c.oid = co.conrelid AND co.conrelid <> 0
+  LEFT JOIN pg_catalog.pg_type t ON t.oid = co.contypid AND co.contypid <> 0
  WHERE n.nspname = %s AND NOT co.convalidated
- ORDER BY 1
+ ORDER BY 1, 2
 ```
 
-`_verify_schema_copy` line 1530
+`_verify_schema_copy` line 1541
+
+```sql
+SELECT c.relname AS name FROM pg_catalog.pg_class c
+  JOIN pg_catalog.pg_namespace n ON n.oid = c.relnamespace WHERE n.nspname = %s
+UNION
+SELECT t.typname FROM pg_catalog.pg_type t
+  JOIN pg_catalog.pg_namespace n ON n.oid = t.typnamespace WHERE n.nspname = %s
+```
+
+`_verify_schema_copy` line 1561
 
 ```sql
 SELECT s.relname AS name
@@ -1839,7 +1868,7 @@ SELECT s.relname AS name
  ORDER BY 1
 ```
 
-`_verify_schema_copy` line 1549
+`_verify_schema_copy` line 1580
 
 ```sql
 SELECT i.relname AS name
@@ -1850,7 +1879,7 @@ SELECT i.relname AS name
  ORDER BY 1
 ```
 
-`_verify_schema_copy` line 1569
+`_verify_schema_copy` line 1600
 
 ```sql
 SELECT c.relname AS name
@@ -1861,91 +1890,142 @@ SELECT c.relname AS name
  ORDER BY c.relname
 ```
 
-`_verify_schema_copy` line 1580
+`_verify_schema_copy` line 1614
 
 ```sql
-SELECT (SELECT count(*) FROM %s.%s) AS a, (SELECT count(*) FROM %s.%s) AS b
+SELECT (SELECT count(*) FROM %s.%s%s) AS a, (SELECT count(*) FROM %s.%s) AS b
 ```
 
-`api_schema_clone` line 1695
+`_outside_partitions` line 1746
+
+```sql
+WITH RECURSIVE t(oid) AS (
+    SELECT i.inhrelid FROM pg_catalog.pg_inherits i
+     WHERE i.inhparent = pg_catalog.to_regclass(%s)
+  UNION ALL
+    SELECT i.inhrelid FROM pg_catalog.pg_inherits i JOIN t ON i.inhparent = t.oid)
+SELECT c.oid::regclass::text AS rel FROM t
+  JOIN pg_catalog.pg_class c ON c.oid = t.oid
+  JOIN pg_catalog.pg_namespace n ON n.oid = c.relnamespace
+ WHERE n.nspname <> %s AND c.relkind IN ('r', 'f')
+ ORDER BY 1
+```
+
+`api_schema_clone` line 1882
 
 ```sql
 SELECT 1 FROM pg_namespace WHERE nspname = %s
 ```
 
-`api_schema_clone` line 1698
+`api_schema_clone` line 1885
 
 ```sql
 SELECT 1 FROM pg_namespace WHERE nspname = %s
 ```
 
-`api_schema_clone` line 1732
+`api_schema_clone` line 1919
 
 ```sql
 SELECT usesuper FROM pg_user WHERE usename = current_user
 ```
 
-`api_schema_clone` line 1808
+`api_schema_clone` line 1998
 
 ```sql
 CREATE SCHEMA {qi(tgt)};
 ```
 
-`api_schema_clone` line 1872
+**st** - `api_schema_clone` line 2087
 
 ```sql
-INSERT INTO {qi(tgt)}.{qi(t)} ({collist}){override} SELECT {', '.join(sel)} FROM {qi(src)}.{qi(t)};
+INSERT INTO {qi(tgt)}.{qi(t)} ({collist}){override} SELECT {', '.join(sel)} FROM {only}{qi(src)}.{qi(t)}{where};
 ```
 
-`api_schema_clone` line 1884
+`api_schema_clone` line 2101
+
+```sql
+SET LOCAL row_security = off;
+```
+
+`api_schema_clone` line 2103
+
+```sql
+RESET row_security;
+```
+
+`api_schema_clone` line 2111
 
 ```sql
 SELECT setval({_literal_str(qi(tgt) + '.' + qi(s))}, (SELECT last_value FROM {qi(src)}.{qi(s)}), (SELECT is_called FROM {qi(src)}.{qi(s)}));
 ```
 
-`api_schema_clone` line 1905
+`api_schema_clone` line 2132
 
 ```sql
 SELECT setval({tgt_seq}, COALESCE({src_last}, 1), {src_last} IS NOT NULL);
 ```
 
-`api_schema_clone` line 1932
+**st** - `api_schema_clone` line 2143
+
+```sql
+ALTER TABLE {qi(tgt)}.{qi(t)} ADD CONSTRAINT {qi(cn)} {cdef.replace('{SCHEMA}.', qi(tgt) + '.').rstrip().rstrip(';')};
+```
+
+**st** - `api_schema_clone` line 2148
+
+```sql
+ALTER TABLE {qi(tgt)}.{qi(t)} ADD CONSTRAINT {qi(cn)} NOT NULL {qi(col)} NOT VALID;
+```
+
+**st** - `api_schema_clone` line 2155
+
+```sql
+ALTER DOMAIN {qi(tgt)}.{qi(dn)} ADD CONSTRAINT {qi(cn)} {cdef.replace('{SCHEMA}.', qi(tgt) + '.').rstrip().rstrip(';')};
+```
+
+`api_schema_clone` line 2199
+
+```sql
+COMMENT ON POLICY {qi(pn)} ON {qi(tgt)}.{qi(t)} IS {_literal_str(pc)};
+```
+
+`api_schema_clone` line 2214
 
 ```sql
 REFRESH MATERIALIZED VIEW {qi(tgt)}.{qi(n)};
 ```
 
-`api_schema_compare` line 2084
+`api_schema_compare` line 2400
 
 ```sql
 SELECT rolname FROM pg_catalog.pg_roles
 ```
 
-`api_schema_apply_sync` line 2339
+`api_schema_apply_sync` line 2655
 
 ```sql
 SELECT current_setting('server_version_num')::int, split_part(current_setting('server_version'), ' ', 1)
 ```
 
-`api_schema_apply_sync` line 2350
+`api_schema_apply_sync` line 2666
 
 ```sql
 SELECT pg_catalog.current_setting('search_path')
 ```
 
-`api_schema_apply_sync` line 2352
+`api_schema_apply_sync` line 2668
 
 ```sql
 SELECT pg_catalog.set_config('search_path', '', false)
 ```
 
-`api_schema_apply_sync` line 2363
+`api_schema_apply_sync` line 2679
 
 ```sql
 SELECT to_regclass(%s) IS NOT NULL
 ```
 
-`api_schema_apply_sync` line 2372
+`api_schema_apply_sync` line 2688
 
 ```sql
 SELECT pg_catalog.set_config('search_path', %s, false)
@@ -1953,7 +2033,7 @@ SELECT pg_catalog.set_config('search_path', %s, false)
 
 ## api/schema/objects.py
 
-`api_schema_trigger_functions` line 109
+`api_schema_trigger_functions` line 110
 
 ```sql
 SELECT n.nspname            AS schema,
@@ -1969,43 +2049,43 @@ SELECT n.nspname            AS schema,
  ORDER BY n.nspname, p.proname
 ```
 
-`api_schema_create_trigger` line 199
+`api_schema_create_trigger` line 200
 
 ```sql
 UPDATE OF {', '.join((_ident(c) for c in upd_cols))}
 ```
 
-**sql** - `api_schema_alter_trigger` line 294
+**sql** - `api_schema_alter_trigger` line 295
 
 ```sql
 ALTER TABLE {tbl} ENABLE TRIGGER {_ident(name)}
 ```
 
-**sql** - `api_schema_alter_trigger` line 296
+**sql** - `api_schema_alter_trigger` line 297
 
 ```sql
 ALTER TABLE {tbl} DISABLE TRIGGER {_ident(name)}
 ```
 
-**sql** - `api_schema_alter_trigger` line 298
+**sql** - `api_schema_alter_trigger` line 299
 
 ```sql
 ALTER TABLE {tbl} ENABLE REPLICA TRIGGER {_ident(name)}
 ```
 
-**sql** - `api_schema_alter_trigger` line 300
+**sql** - `api_schema_alter_trigger` line 301
 
 ```sql
 ALTER TABLE {tbl} ENABLE ALWAYS TRIGGER {_ident(name)}
 ```
 
-**sql** - `api_schema_alter_trigger` line 305
+**sql** - `api_schema_alter_trigger` line 306
 
 ```sql
 ALTER TRIGGER {_ident(name)} ON {tbl} RENAME TO {_ident(new_name)}
 ```
 
-**q** - `api_schema_policies` line 349
+**q** - `api_schema_policies` line 350
 
 ```sql
 SELECT schemaname AS schema, tablename AS table,
@@ -2019,7 +2099,7 @@ SELECT schemaname AS schema, tablename AS table,
  WHERE schemaname = %s
 ```
 
-`api_schema_policies` line 368
+`api_schema_policies` line 369
 
 ```sql
 SELECT n.nspname  AS schema, c.relname AS table,
@@ -2031,58 +2111,52 @@ SELECT n.nspname  AS schema, c.relname AS table,
    AND c.relkind IN ('r','p')
 ```
 
-**sql** - `api_schema_create_policy` line 444
+**sql** - `api_schema_create_policy` line 445
 
 ```sql
 CREATE POLICY {_ident(name)} ON {_ident(schema)}.{_ident(table)} AS {perm} FOR {cmd} TO {', '.join(role_sql_parts)}
 ```
 
-`api_schema_create_policy` line 447
+`api_schema_create_policy` line 448
 
 ```sql
 WITH CHECK ({check_})
 ```
 
-`api_schema_alter_policy` line 507
+`api_schema_alter_policy` line 508
 
 ```sql
 WITH CHECK ({new_check.strip() or 'true'})
 ```
 
-`api_schema_alter_policy` line 513
+`api_schema_alter_policy` line 514
 
 ```sql
 ALTER POLICY {_ident(name)} ON {_ident(schema)}.{_ident(table)} {' '.join(parts)}
 ```
 
-`api_schema_alter_policy` line 518
+`api_schema_alter_policy` line 519
 
 ```sql
 ALTER POLICY {_ident(name)} ON {_ident(schema)}.{_ident(table)} RENAME TO {_ident(new_name)}
 ```
 
-`api_schema_drop_policy` line 540
+`api_schema_drop_policy` line 541
 
 ```sql
 DROP POLICY name ON schema.table. Body: { conn params, schema, table, name }
 ```
 
-**sql** - `api_schema_drop_policy` line 551
+**sql** - `api_schema_drop_policy` line 552
 
 ```sql
 DROP POLICY {_ident(name)} ON {_ident(schema)}.{_ident(table)}
 ```
 
-**sql** - `api_schema_rls_toggle` line 599
+**sql** - `api_schema_rls_toggle` line 600
 
 ```sql
 ALTER TABLE {tbl} {clause}
-```
-
-**sql** - `(module)` line 620
-
-```sql
-DROP TABLE {n}{cascade}
 ```
 
 **sql** - `(module)` line 621
@@ -2097,10 +2171,10 @@ DROP TABLE {n}{cascade}
 DROP TABLE {n}{cascade}
 ```
 
-**sql** - `(module)` line 629
+**sql** - `(module)` line 623
 
 ```sql
-DROP FOREIGN TABLE {n}{cascade}
+DROP TABLE {n}{cascade}
 ```
 
 **sql** - `(module)` line 630
@@ -2112,70 +2186,70 @@ DROP FOREIGN TABLE {n}{cascade}
 **sql** - `(module)` line 631
 
 ```sql
-DROP INDEX {n}{cascade}
+DROP FOREIGN TABLE {n}{cascade}
 ```
 
 **sql** - `(module)` line 632
 
 ```sql
-DROP SCHEMA {n}{cascade}
+DROP INDEX {n}{cascade}
 ```
 
 **sql** - `(module)` line 633
 
 ```sql
-DROP FUNCTION {n}({args}){cascade}
+DROP SCHEMA {n}{cascade}
 ```
 
 **sql** - `(module)` line 634
 
 ```sql
-DROP PROCEDURE {n}({args}){cascade}
+DROP FUNCTION {n}({args}){cascade}
 ```
 
 **sql** - `(module)` line 635
 
 ```sql
-DROP AGGREGATE {n}({args}){cascade}
+DROP PROCEDURE {n}({args}){cascade}
 ```
 
 **sql** - `(module)` line 636
 
 ```sql
-DROP FUNCTION {n}({args}){cascade}
+DROP AGGREGATE {n}({args}){cascade}
 ```
 
 **sql** - `(module)` line 637
 
 ```sql
-DROP TRIGGER {tgname} ON {n}{cascade}
+DROP FUNCTION {n}({args}){cascade}
 ```
 
 **sql** - `(module)` line 638
 
 ```sql
-DROP RULE {rulename} ON {n}{cascade}
+DROP TRIGGER {tgname} ON {n}{cascade}
 ```
 
 **sql** - `(module)` line 639
 
 ```sql
+DROP RULE {rulename} ON {n}{cascade}
+```
+
+**sql** - `(module)` line 640
+
+```sql
 DROP POLICY {polname} ON {n}{cascade}
 ```
 
-**sql** - `(module)` line 652
+**sql** - `(module)` line 653
 
 ```sql
 DROP EXTENSION {n}{cascade}
 ```
 
-`api_schema_drop_preview` line 792
-
-```sql
-SELECT pg_size_pretty(%s::bigint)
-```
-
-`api_schema_create_view` line 815
+`api_schema_create_view` line 854
 
 ```sql
 CREATE [OR REPLACE] VIEW. Body:
@@ -2185,13 +2259,13 @@ CREATE [OR REPLACE] VIEW. Body:
     actually creating the view.
 ```
 
-`api_schema_create_view` line 849
+`api_schema_create_view` line 888
 
 ```sql
 EXPLAIN (FORMAT TEXT) {sql_body}
 ```
 
-`api_schema_function_detail` line 1013
+`api_schema_function_detail` line 1052
 
 ```sql
 SELECT p.oid,
@@ -2217,7 +2291,7 @@ WHERE n.nspname = %s AND p.proname = %s
   AND pg_get_function_identity_arguments(p.oid) = %s
 ```
 
-`api_schema_create_function` line 1055
+`api_schema_create_function` line 1094
 
 ```sql
 CREATE OR REPLACE FUNCTION / PROCEDURE. Body:
@@ -2238,7 +2312,7 @@ CREATE OR REPLACE FUNCTION / PROCEDURE. Body:
     Postgres do the parse. Catalog still rolls back cleanly if it fails.
 ```
 
-`api_schema_create_function` line 1155
+`api_schema_create_function` line 1194
 
 ```sql
 SELECT p.oid, p.prokind, p.procost, p.prorows, p.proretset,
@@ -2249,25 +2323,25 @@ FROM pg_proc p JOIN pg_namespace n ON n.oid = p.pronamespace
 WHERE n.nspname = %s AND p.proname = %s
 ```
 
-`api_schema_create_function` line 1187
+`api_schema_create_function` line 1226
 
 ```sql
 ALTER {what} {target} {' '.join(keep)}
 ```
 
-`api_schema_create_function` line 1193
+`api_schema_create_function` line 1232
 
 ```sql
 ALTER {what} {target} SET {} = {}
 ```
 
-`api_schema_create_function` line 1195
+`api_schema_create_function` line 1234
 
 ```sql
 SET {k} = {v}
 ```
 
-`api_schema_alter_function` line 1210
+`api_schema_alter_function` line 1249
 
 ```sql
 ALTER FUNCTION / PROCEDURE. Body:
@@ -2288,19 +2362,19 @@ ALTER FUNCTION / PROCEDURE. Body:
       parallel     parallel: UNSAFE|RESTRICTED|SAFE   (PG 9.6+)
 ```
 
-`api_schema_alter_function` line 1301
+`api_schema_alter_function` line 1340
 
 ```sql
 SET search_path =
 ```
 
-`api_schema_alter_function` line 1303
+`api_schema_alter_function` line 1342
 
 ```sql
 RESET search_path
 ```
 
-`api_schema_type_detail` line 1351
+`api_schema_type_detail` line 1390
 
 ```sql
 SELECT t.oid, t.typtype::text AS typtype,
@@ -2313,7 +2387,7 @@ JOIN pg_namespace n ON n.oid = t.typnamespace
 WHERE n.nspname = %s AND t.typname = %s
 ```
 
-`api_schema_type_detail` line 1367
+`api_schema_type_detail` line 1406
 
 ```sql
 SELECT enumlabel, enumsortorder
@@ -2321,7 +2395,7 @@ FROM pg_enum WHERE enumtypid = %s
 ORDER BY enumsortorder
 ```
 
-`api_schema_type_detail` line 1376
+`api_schema_type_detail` line 1415
 
 ```sql
 SELECT a.attname,
@@ -2336,7 +2410,7 @@ WHERE t.oid = %s
 ORDER BY a.attnum
 ```
 
-`api_schema_type_detail` line 1391
+`api_schema_type_detail` line 1430
 
 ```sql
 SELECT conname,
@@ -2346,14 +2420,14 @@ WHERE contypid = %s
 ORDER BY conname
 ```
 
-`api_schema_type_detail` line 1405
+`api_schema_type_detail` line 1444
 
 ```sql
 SELECT format_type(rngsubtype, NULL) AS subtype
 FROM pg_range WHERE rngtypid = %s
 ```
 
-`api_schema_create_type` line 1430
+`api_schema_create_type` line 1469
 
 ```sql
 CREATE TYPE for enum / composite / domain.
@@ -2370,25 +2444,25 @@ CREATE TYPE for enum / composite / domain.
     name clash is surfaced verbatim from the server.
 ```
 
-**stmt** - `api_schema_create_type` line 1464
+**stmt** - `api_schema_create_type` line 1503
 
 ```sql
 CREATE TYPE {fq} AS ENUM ({vals_sql})
 ```
 
-**stmt** - `api_schema_create_type` line 1479
+**stmt** - `api_schema_create_type` line 1518
 
 ```sql
 CREATE TYPE {fq} AS ({', '.join(cols)})
 ```
 
-`api_schema_create_type` line 1490
+`api_schema_create_type` line 1529
 
 ```sql
 CREATE DOMAIN {fq} AS {base}
 ```
 
-`api_schema_alter_type` line 1526
+`api_schema_alter_type` line 1565
 
 ```sql
 ALTER TYPE / ALTER DOMAIN. One endpoint, many actions; the `action`
@@ -2421,85 +2495,85 @@ ALTER TYPE / ALTER DOMAIN. One endpoint, many actions; the `action`
     (psycopg2 wouldn't quote them anyway), with semicolon-block defence.
 ```
 
-**stmt** - `api_schema_alter_type` line 1580
+**stmt** - `api_schema_alter_type` line 1619
 
 ```sql
 ALTER TYPE {fq} RENAME TO {_id(new_name, 'new_name')}
 ```
 
-**stmt** - `api_schema_alter_type` line 1583
+**stmt** - `api_schema_alter_type` line 1622
 
 ```sql
 ALTER TYPE {fq} SET SCHEMA {_id(new_schema, 'new_schema')}
 ```
 
-**stmt** - `api_schema_alter_type` line 1588
+**stmt** - `api_schema_alter_type` line 1627
 
 ```sql
 ALTER TYPE {fq} OWNER TO {_id(owner_to, 'owner_to')}
 ```
 
-**stmt** - `api_schema_alter_type` line 1604
+**stmt** - `api_schema_alter_type` line 1643
 
 ```sql
 ALTER TYPE {fq} ADD VALUE {'IF NOT EXISTS ' if ife else ''}{_lit(v)}{pos}
 ```
 
-**stmt** - `api_schema_alter_type` line 1610
+**stmt** - `api_schema_alter_type` line 1649
 
 ```sql
 ALTER TYPE {fq} RENAME VALUE {_lit(ov)} TO {_lit(nv)}
 ```
 
-**stmt** - `api_schema_alter_type` line 1617
+**stmt** - `api_schema_alter_type` line 1656
 
 ```sql
 ALTER TYPE {fq} ADD ATTRIBUTE {_id(an, 'attr_name')} {at}
 ```
 
-**stmt** - `api_schema_alter_type` line 1621
+**stmt** - `api_schema_alter_type` line 1660
 
 ```sql
 ALTER TYPE {fq} DROP ATTRIBUTE {_id(an, 'attr_name')}{cas}
 ```
 
-**stmt** - `api_schema_alter_type` line 1626
+**stmt** - `api_schema_alter_type` line 1665
 
 ```sql
 ALTER TYPE {fq} ALTER ATTRIBUTE {_id(an, 'attr_name')} SET DATA TYPE {nt}
 ```
 
-**stmt** - `api_schema_alter_type` line 1630
+**stmt** - `api_schema_alter_type` line 1669
 
 ```sql
 ALTER TYPE {fq} RENAME ATTRIBUTE {_id(an, 'attr_name')} TO {_id(nn, 'new_attr_name')}
 ```
 
-**stmt** - `api_schema_alter_type` line 1640
+**stmt** - `api_schema_alter_type` line 1679
 
 ```sql
 ALTER DOMAIN {fq} {'SET' if nn else 'DROP'} NOT NULL
 ```
 
-**stmt** - `api_schema_alter_type` line 1644
+**stmt** - `api_schema_alter_type` line 1683
 
 ```sql
 ALTER DOMAIN {fq} ADD CONSTRAINT {_id(cn, 'constraint_name')} CHECK ({ex})
 ```
 
-**stmt** - `api_schema_alter_type` line 1647
+**stmt** - `api_schema_alter_type` line 1686
 
 ```sql
 ALTER DOMAIN {fq} DROP CONSTRAINT {_id(cn, 'constraint_name')}
 ```
 
-**stmt** - `api_schema_alter_type` line 1651
+**stmt** - `api_schema_alter_type` line 1690
 
 ```sql
 ALTER DOMAIN {fq} RENAME CONSTRAINT {_id(old, 'old')} TO {_id(new_, 'new')}
 ```
 
-`api_table_create` line 1678
+`api_table_create` line 1717
 
 ```sql
 CREATE TABLE from a structured spec OR raw SQL.
@@ -2512,37 +2586,37 @@ CREATE TABLE from a structured spec OR raw SQL.
           comment?} - built via sql.Identifier/Literal, identifiers regex-checked.
 ```
 
-`api_table_create` line 1785
+`api_table_create` line 1824
 
 ```sql
 CREATE TABLE
 ```
 
-`api_table_create` line 1822
+`api_table_create` line 1861
 
 ```sql
 ALTER TABLE {s}.{t} OWNER TO {o}
 ```
 
-`api_table_create` line 1828
+`api_table_create` line 1867
 
 ```sql
 COMMENT ON TABLE {s}.{t} IS {c}
 ```
 
-`api_schema_alter_column` line 2004
+`api_schema_alter_column` line 2043
 
 ```sql
 SET NOT NULL
 ```
 
-`api_schema_alter_column` line 2006
+`api_schema_alter_column` line 2045
 
 ```sql
 DROP NOT NULL
 ```
 
-`api_schema_index_detail` line 2095
+`api_schema_index_detail` line 2134
 
 ```sql
 SELECT ic.relname                             AS name,
@@ -2571,7 +2645,7 @@ SELECT ic.relname                             AS name,
  WHERE n.nspname = %s AND ic.relname = %s
 ```
 
-`api_schema_alter_index` line 2180
+`api_schema_alter_index` line 2219
 
 ```sql
 SELECT am.amname FROM pg_class c
@@ -2580,37 +2654,37 @@ SELECT am.amname FROM pg_class c
                             WHERE n.nspname = %s AND c.relname = %s
 ```
 
-**sql** - `api_schema_alter_index` line 2199
+**sql** - `api_schema_alter_index` line 2238
 
 ```sql
 ALTER INDEX {fq} RENAME TO {_qi(new_name)}
 ```
 
-**sql** - `api_schema_alter_index` line 2204
+**sql** - `api_schema_alter_index` line 2243
 
 ```sql
 ALTER INDEX {fq} SET TABLESPACE {_qi(ts)}
 ```
 
-**sql** - `api_schema_alter_index` line 2225
+**sql** - `api_schema_alter_index` line 2264
 
 ```sql
 ALTER INDEX {fq} SET ({', '.join(parts)})
 ```
 
-**sql** - `api_schema_alter_index` line 2233
+**sql** - `api_schema_alter_index` line 2272
 
 ```sql
 ALTER INDEX {fq} RESET ({', '.join((_qi(str(k).strip()) for k in names))})
 ```
 
-**sql** - `api_schema_alter_index` line 2245
+**sql** - `api_schema_alter_index` line 2284
 
 ```sql
 ALTER INDEX {fq} ALTER COLUMN {colnum} SET STATISTICS {value}
 ```
 
-`api_schema_relation_detail` line 2324
+`api_schema_relation_detail` line 2363
 
 ```sql
 SELECT c.oid,
@@ -2630,7 +2704,7 @@ SELECT c.oid,
  WHERE n.nspname = %s AND c.relname = %s
 ```
 
-`api_schema_relation_detail` line 2352
+`api_schema_relation_detail` line 2391
 
 ```sql
 SELECT ic.relname AS name, i.indisclustered AS clustered,
@@ -2639,19 +2713,19 @@ SELECT ic.relname AS name, i.indisclustered AS clustered,
  WHERE i.indrelid = %s ORDER BY ic.relname
 ```
 
-`api_schema_relation_detail` line 2368
+`api_schema_relation_detail` line 2407
 
 ```sql
 SELECT relispartition FROM pg_class WHERE oid = %s
 ```
 
-`api_schema_relation_detail` line 2371
+`api_schema_relation_detail` line 2410
 
 ```sql
 SELECT count(*) AS n FROM pg_inherits WHERE inhparent = %s
 ```
 
-`api_schema_alter_relation` line 2427
+`api_schema_alter_relation` line 2466
 
 ```sql
 SELECT c.relkind::text, c.relpersistence::text
@@ -2659,7 +2733,7 @@ SELECT c.relkind::text, c.relpersistence::text
                         WHERE n.nspname = %s AND c.relname = %s
 ```
 
-**sql** - `api_schema_alter_sequence` line 2648
+**sql** - `api_schema_alter_sequence` line 2687
 
 ```sql
 ALTER SEQUENCE {fq} {' '.join(parts)}
