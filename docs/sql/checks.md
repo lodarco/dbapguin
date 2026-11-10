@@ -1,6 +1,6 @@
 # Checks
 
-[All parts](README.md) · 405 statements
+[All parts](README.md) · 408 statements
 
 ## checks/actual_plans.py
 
@@ -10,7 +10,7 @@
 SELECT current_setting('is_superuser') = 'on'           AS su,
        current_setting('logging_collector', true)       AS collector,
        current_setting('log_destination', true)         AS dest,
-       current_setting('log_directory', true)           AS dir,
+       (SELECT setting FROM pg_settings WHERE name = 'log_directory') AS dir,
        has_function_privilege('pg_catalog.pg_ls_logdir()', 'EXECUTE') AS can_ls,
        has_function_privilege('pg_catalog.pg_read_file(text,bigint,bigint,boolean)', 'EXECUTE') AS can_exec_read,
        pg_has_role(current_user, 'pg_monitor', 'MEMBER') AS monitor
@@ -96,11 +96,11 @@ GRANT pg_monitor TO %s;
 GRANT EXECUTE ON FUNCTION pg_catalog.pg_read_file(text, bigint, bigint, boolean) TO %s;
 ```
 
-`auto_explain_config` line 895
+`auto_explain_config` line 898
 
 ```sql
-SELECT current_setting('shared_preload_libraries', true)   AS spl,
-       current_setting('session_preload_libraries', true)  AS sesspl,
+SELECT (SELECT setting FROM pg_settings WHERE name = 'shared_preload_libraries')  AS spl,
+       (SELECT setting FROM pg_settings WHERE name = 'session_preload_libraries') AS sesspl,
        current_setting('auto_explain.log_min_duration', true) AS min_duration,
        current_setting('auto_explain.log_format', true)    AS log_format,
        current_setting('auto_explain.log_verbose', true)   AS log_verbose,
@@ -110,7 +110,7 @@ SELECT current_setting('shared_preload_libraries', true)   AS spl,
        %s AS compute_query_id
 ```
 
-`collect_plans` line 961
+`collect_plans` line 964
 
 ```sql
 SELECT current_setting('TimeZone') AS name, EXTRACT(EPOCH FROM (now() - now() AT TIME ZONE 'UTC'))::float8 AS off
@@ -145,55 +145,55 @@ SELECT 1 FROM pg_extension WHERE extname = %s
 SELECT 1 FROM pg_available_extensions WHERE name = %s
 ```
 
-`_data_directory` line 93
+`_data_directory` line 96
 
 ```sql
-SELECT current_setting('data_directory', true) AS d
+SELECT setting AS d FROM pg_settings WHERE name = 'data_directory'
 ```
 
-`_is_superuser` line 106
+`_is_superuser` line 109
 
 ```sql
 SELECT current_setting('is_superuser') AS issu
 ```
 
-`collect` line 263
+`collect` line 281
 
 ```sql
 CREATE EXTENSION
 ```
 
-`collect` line 267
+`collect` line 285
 
 ```sql
 CREATE EXTENSION IF NOT EXISTS pg_stat_statements;
 ```
 
-`_plan_rows` line 478
+`_plan_rows` line 504
 
 ```sql
 SELECT current_user AS u
 ```
 
-`_plan_rows` line 531
+`_plan_rows` line 557
 
 ```sql
 CREATE EXTENSION
 ```
 
-`_plan_rows` line 533
+`_plan_rows` line 559
 
 ```sql
 CREATE EXTENSION IF NOT EXISTS pg_store_plans;
 ```
 
-`_pending_libs` line 546
+`_pending_libs` line 583
 
 ```sql
 SELECT setting AS s FROM pg_file_settings WHERE name = 'shared_preload_libraries' ORDER BY seqno DESC LIMIT 1
 ```
 
-`_log_read_targets` line 577
+`_log_read_targets` line 614
 
 ```sql
 SELECT r.rolname AS r FROM pg_roles r
@@ -203,7 +203,7 @@ SELECT r.rolname AS r FROM pg_roles r
  ORDER BY 1 LIMIT 200
 ```
 
-`_can_grant_log_read` line 600
+`_can_grant_log_read` line 637
 
 ```sql
 SELECT has_function_privilege('pg_catalog.pg_read_file(text,bigint,bigint,boolean)', 'EXECUTE WITH GRANT OPTION')
@@ -442,7 +442,7 @@ SELECT idx.nspname AS schema, t.relname AS "table", idx."index" AS index,
 SELECT current_setting('server_version_num')::int AS v
 ```
 
-`run_buffer_cache_check` line 48
+`run_buffer_cache_check` line 55
 
 ```sql
 SELECT buffers_used, buffers_unused, buffers_dirty, buffers_pinned,
@@ -450,7 +450,7 @@ SELECT buffers_used, buffers_unused, buffers_dirty, buffers_pinned,
 FROM {_bc_summary}()
 ```
 
-`run_buffer_cache_check` line 66
+`run_buffer_cache_check` line 73
 
 ```sql
 SELECT
@@ -847,7 +847,7 @@ SELECT n.nspname AS nsp
  WHERE e.extname = %s
 ```
 
-`ext_relation` line 82
+`ext_relation` line 84
 
 ```sql
 SELECT n.nspname AS nsp
@@ -858,10 +858,11 @@ SELECT n.nspname AS nsp
                       AND d.deptype = 'e'
   JOIN pg_extension e  ON e.oid = d.refobjid
  WHERE e.extname = %s AND c.relname = %s
+   AND (NOT %s OR has_table_privilege(c.oid, 'SELECT'))
  LIMIT 1
 ```
 
-`ext_function` line 106
+`ext_function` line 109
 
 ```sql
 SELECT n.nspname AS nsp
@@ -872,22 +873,23 @@ SELECT n.nspname AS nsp
                       AND d.deptype = 'e'
   JOIN pg_extension e  ON e.oid = d.refobjid
  WHERE e.extname = %s AND p.proname = %s
+   AND (NOT %s OR has_function_privilege(p.oid, 'EXECUTE'))
  LIMIT 1
 ```
 
-`require_extension` line 167
+`require_extension` line 171
 
 ```sql
 SELECT 1 FROM pg_extension WHERE extname = %s
 ```
 
-`require_extension` line 179
+`require_extension` line 183
 
 ```sql
 SELECT default_version, comment FROM pg_available_extensions WHERE name = %s
 ```
 
-`require_extension` line 205
+`require_extension` line 209
 
 ```sql
 CREATE EXTENSION IF NOT EXISTS %s SCHEMA %s
@@ -1531,19 +1533,24 @@ JOIN pg_type ty ON ty.oid = a.atttypid
    cannot name the format specifier here: psycopg2 scans
    the whole string for its own placeholders, comments
    included, and a bare percent makes it miscount. */
-WHERE a.attrelid = format('%%I.%%I', %s::text, %s::text)::regclass
+/* Looked up in the catalogue, not cast to regclass: the
+   cast needs USAGE on the schema, and its refusal was an
+   ERROR line in the server log for every login without it. */
+WHERE a.attrelid = (SELECT c.oid FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace
+                     WHERE n.nspname = %s AND c.relname = %s)
   AND a.attnum > 0 AND NOT a.attisdropped
 ```
 
-`run_index_advisor_check` line 323
+`run_index_advisor_check` line 327
 
 ```sql
 SELECT lower(pg_get_indexdef(i.indexrelid)) AS def
   FROM pg_index i
- WHERE i.indrelid = format('%%I.%%I', %s::text, %s::text)::regclass
+ WHERE i.indrelid = (SELECT c.oid FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace
+                      WHERE n.nspname = %s AND c.relname = %s)
 ```
 
-`run_index_advisor_check` line 492
+`run_index_advisor_check` line 497
 
 ```sql
 WITH idxinfo AS (
@@ -1624,7 +1631,7 @@ SELECT a.schema, a."table",
  LIMIT 50
 ```
 
-**drop_sql** - `run_index_advisor_check` line 580
+**drop_sql** - `run_index_advisor_check` line 585
 
 ```sql
 DROP INDEX CONCURRENTLY IF EXISTS {_qq(r['schema'], r['dup_index'])};
@@ -1734,7 +1741,13 @@ SELECT setting FROM pg_settings WHERE name = %s
 
 ## checks/logical_replication.py
 
-`run_logical_replication_check` line 30
+`run_logical_replication_check` line 34
+
+```sql
+SELECT has_column_privilege('pg_catalog.pg_subscription', 'oid', 'SELECT') AS ok
+```
+
+`run_logical_replication_check` line 37
 
 ```sql
 SELECT s.subname,
@@ -1753,11 +1766,11 @@ SELECT s.subname,
        st.last_msg_receipt_time,
        st.latest_end_time
 FROM pg_subscription s
-LEFT JOIN pg_stat_subscription st ON st.subid = s.oid
+LEFT JOIN pg_stat_subscription st ON {_sub_join}
 ORDER BY s.subname
 ```
 
-`run_logical_replication_check` line 89
+`run_logical_replication_check` line 96
 
 ```sql
 SELECT s.subname,
@@ -2286,25 +2299,25 @@ SELECT * FROM {q}
 SELECT extract(epoch FROM %s::interval) / 86400.0 AS d
 ```
 
-`_partman` line 120
+`_partman` line 122
 
 ```sql
-SELECT current_setting('shared_preload_libraries') AS spl
+SELECT setting AS spl FROM pg_settings WHERE name = 'shared_preload_libraries'
 ```
 
-`_partman` line 126
+`_partman` line 128
 
 ```sql
 SELECT current_setting('pg_partman_bgw.dbname', true) AS d
 ```
 
-`_partman` line 133
+`_partman` line 135
 
 ```sql
 SELECT count(*) AS n FROM cron.job WHERE command ILIKE '%run_maintenance%' AND active
 ```
 
-`collect` line 164
+`collect` line 166
 
 ```sql
 SELECT c.oid::bigint AS oid, n.nspname AS schema, c.relname AS name,
@@ -2320,7 +2333,7 @@ SELECT c.oid::bigint AS oid, n.nspname AS schema, c.relname AS name,
  ORDER BY n.nspname, c.relname
 ```
 
-`collect` line 180
+`collect` line 182
 
 ```sql
 SELECT i.inhparent::bigint AS parent, c.oid::bigint AS oid, n.nspname AS schema,
@@ -2334,7 +2347,7 @@ SELECT i.inhparent::bigint AS parent, c.oid::bigint AS oid, n.nspname AS schema,
  WHERE i.inhparent = ANY(%s::oid[])
 ```
 
-`collect` line 230
+`collect` line 232
 
 ```sql
 SELECT x.k::bigint AS k, x.u AS u,
@@ -2360,43 +2373,43 @@ SELECT 1 FROM pg_extension WHERE extname = 'pg_stat_statements'
 SELECT 1 FROM pg_available_extensions WHERE name = 'pg_stat_statements'
 ```
 
-`pgss_state` line 42
+`pgss_state` line 44
 
 ```sql
-SELECT current_setting('shared_preload_libraries', true)
+SELECT setting FROM pg_settings WHERE name = 'shared_preload_libraries'
 ```
 
-`pgss_state` line 50
+`pgss_state` line 52
 
 ```sql
 SELECT usesuper FROM pg_user WHERE usename = current_user
 ```
 
-`pgss_advice` line 88
+`pgss_advice` line 90
 
 ```sql
 CREATE EXTENSION again will not change anything.
 ```
 
-`_pgss_columns_now` line 191
+`_pgss_columns_now` line 193
 
 ```sql
 SELECT column_name FROM information_schema.columns WHERE table_name = 'pg_stat_statements'
 ```
 
-`pgss_info` line 265
+`pgss_info` line 267
 
 ```sql
 SELECT current_setting('pg_stat_statements.max', true) AS v
 ```
 
-`pgss_info` line 268
+`pgss_info` line 270
 
 ```sql
 SELECT count(*)::bigint AS n FROM {pss_name}
 ```
 
-`pgss_info` line 281
+`pgss_info` line 283
 
 ```sql
 SELECT dealloc::bigint AS dealloc, stats_reset::text AS stats_reset FROM {info}
@@ -2410,7 +2423,7 @@ SELECT dealloc::bigint AS dealloc, stats_reset::text AS stats_reset FROM {info}
 SELECT extversion FROM pg_extension WHERE extname = 'pgstattuple'
 ```
 
-`run_pgstattuple_check` line 96
+`run_pgstattuple_check` line 103
 
 ```sql
 SELECT n.nspname AS schema, c.relname AS "table",
@@ -2422,7 +2435,7 @@ WHERE n.nspname = %s AND c.relname = %s
   AND c.relkind IN ('r','m')
 ```
 
-`run_pgstattuple_check` line 106
+`run_pgstattuple_check` line 113
 
 ```sql
 SELECT n.nspname AS schema, c.relname AS "table",
@@ -2439,13 +2452,13 @@ ORDER BY pg_total_relation_size(c.oid) DESC
 LIMIT %s
 ```
 
-`run_pgstattuple_check` line 172
+`run_pgstattuple_check` line 179
 
 ```sql
 SELECT * FROM {_pgstattuple}(format('%%I.%%I', %s, %s)::regclass)
 ```
 
-`run_pgstattuple_check` line 250
+`run_pgstattuple_check` line 257
 
 ```sql
 SELECT i.relname AS index, i.oid AS index_oid,
@@ -2461,7 +2474,7 @@ SELECT i.relname AS index, i.oid AS index_oid,
  ORDER BY pg_relation_size(i.oid) DESC
 ```
 
-`run_pgstattuple_check` line 274
+`run_pgstattuple_check` line 281
 
 ```sql
 SELECT avg_leaf_density, leaf_fragmentation, leaf_pages, internal_pages, deleted_pages FROM {_pgstatindex}(%s::regclass)
@@ -3337,7 +3350,7 @@ SELECT
     LIMIT 1) AS repl_via
 ```
 
-`_build_role_audit_ctx` line 612
+`_build_role_audit_ctx` line 615
 
 ```sql
 SELECT CASE
@@ -3349,31 +3362,31 @@ END AS m
 FROM pg_shadow WHERE usename = %s
 ```
 
-`_interp_db_priv` line 696
+`_interp_db_priv` line 699
 
 ```sql
 CREATE (can create schemas inside)
 ```
 
-`_collect_role_findings` line 900
+`_collect_role_findings` line 903
 
 ```sql
 REVOKE the membership, or grant with INHERIT FALSE (PG16+), or NOINHERIT on '{p0}'
 ```
 
-`_collect_role_findings` line 906
+`_collect_role_findings` line 909
 
 ```sql
 ALTER ROLE {p0} NOBYPASSRLS if not required
 ```
 
-`_collect_role_findings` line 928
+`_collect_role_findings` line 931
 
 ```sql
 SET password_encryption = 'scram-sha-256'; then \password {p0} (or ALTER ROLE)
 ```
 
-`_collect_role_findings` line 971
+`_collect_role_findings` line 974
 
 ```sql
 GRANT USAGE ON SCHEMA <schema> TO {p0} for each, or REVOKE the dangling table grants
@@ -3518,7 +3531,7 @@ JOIN pg_roles g ON g.oid = am.roleid
 ORDER BY m.rolname, g.rolname
 ```
 
-`run_roles_list_check` line 252
+`run_roles_list_check` line 257
 
 ```sql
 SELECT rolname FROM pg_roles
@@ -3527,7 +3540,7 @@ WHERE rolsuper = true AND rolcanlogin = true
 ORDER BY rolname
 ```
 
-`run_roles_list_check` line 274
+`run_roles_list_check` line 279
 
 ```sql
 SELECT rolname FROM pg_roles
@@ -3536,7 +3549,7 @@ WHERE rolbypassrls = true AND rolsuper = false
 ORDER BY rolname
 ```
 
-`run_roles_list_check` line 293
+`run_roles_list_check` line 298
 
 ```sql
 SELECT rolname FROM pg_roles
@@ -3545,7 +3558,7 @@ WHERE rolcreaterole = true AND rolsuper = false
 ORDER BY rolname
 ```
 
-`run_roles_list_check` line 311
+`run_roles_list_check` line 316
 
 ```sql
 SELECT rolname FROM pg_roles
@@ -3557,7 +3570,7 @@ WHERE rolcanlogin = true
 ORDER BY rolname
 ```
 
-`run_roles_list_check` line 332
+`run_roles_list_check` line 337
 
 ```sql
 SELECT rolname,
@@ -3570,14 +3583,14 @@ WHERE rolcanlogin = true
 ORDER BY rolvaliduntil
 ```
 
-`run_roles_list_check` line 355
+`run_roles_list_check` line 360
 
 ```sql
 SELECT coalesce((SELECT setting::bigint FROM pg_settings
                   WHERE name = 'password_expiration_warning_threshold'), 604800) AS s
 ```
 
-`run_roles_list_check` line 360
+`run_roles_list_check` line 365
 
 ```sql
 SELECT rolname, to_char(rolvaliduntil, 'YYYY-MM-DD HH24:MI') AS expires_at
@@ -3590,13 +3603,13 @@ WHERE rolcanlogin = true
 ORDER BY rolvaliduntil
 ```
 
-`run_roles_list_check` line 373
+`run_roles_list_check` line 378
 
 ```sql
 ALTER ROLE ... VALID UNTIL '...' (or set a new password) before it lapses and the login stops working
 ```
 
-`run_roles_list_check` line 392
+`run_roles_list_check` line 397
 
 ```sql
 SELECT rolname FROM pg_roles
@@ -3606,7 +3619,7 @@ WHERE rolreplication = true AND rolcanlogin = true
 ORDER BY rolname
 ```
 
-`run_roles_list_check` line 411
+`run_roles_list_check` line 416
 
 ```sql
 SELECT d.datname
@@ -3616,13 +3629,13 @@ WHERE d.datistemplate = false
 ORDER BY d.datname
 ```
 
-`run_roles_list_check` line 424
+`run_roles_list_check` line 429
 
 ```sql
 REVOKE CONNECT ON DATABASE x FROM PUBLIC; then GRANT to specific roles
 ```
 
-`run_roles_list_check` line 435
+`run_roles_list_check` line 440
 
 ```sql
 SELECT n.nspname
@@ -3633,13 +3646,13 @@ WHERE n.nspname NOT LIKE 'pg_%%'
 ORDER BY n.nspname
 ```
 
-`run_roles_list_check` line 448
+`run_roles_list_check` line 453
 
 ```sql
 REVOKE CREATE ON SCHEMA {s} FROM PUBLIC;
 ```
 
-`run_roles_list_check` line 457
+`run_roles_list_check` line 462
 
 ```sql
 SELECT n.nspname AS schema,
@@ -3657,7 +3670,7 @@ ORDER BY n.nspname, p.proname
 LIMIT 20
 ```
 
-`run_roles_list_check` line 476
+`run_roles_list_check` line 481
 
 ```sql
 REVOKE EXECUTE ... FROM PUBLIC and grant only to the roles that need it; pin search_path in the function body
@@ -3827,7 +3840,7 @@ SELECT
     s.seqmax                                                AS max_value,
     s.seqincrement                                          AS increment,
     s.seqcycle                                              AS cycles,
-    pg_sequence_last_value(sc.oid)                          AS current_value,
+    (CASE WHEN has_sequence_privilege(sc.oid, 'SELECT, USAGE') THEN pg_sequence_last_value(sc.oid) END)                          AS current_value,
     -- Consumption measured across the sequence's actual range and in its
     -- actual direction. last_value / seqmax was wrong three ways, all
     -- reproduced on a live server:
@@ -3839,14 +3852,14 @@ SELECT
     --     having also consumed half. That one is the dangerous direction:
     --     the alarm was silent, not noisy.
     CASE
-        WHEN pg_sequence_last_value(sc.oid) IS NULL THEN NULL
+        WHEN (CASE WHEN has_sequence_privilege(sc.oid, 'SELECT, USAGE') THEN pg_sequence_last_value(sc.oid) END) IS NULL THEN NULL
         WHEN s.seqcycle THEN NULL          -- wraps; exhaustion is not a thing
         WHEN s.seqmax = s.seqmin THEN NULL -- degenerate, avoid /0
         WHEN s.seqincrement > 0 THEN
-            round(100.0 * (pg_sequence_last_value(sc.oid)::numeric - s.seqmin)
+            round(100.0 * ((CASE WHEN has_sequence_privilege(sc.oid, 'SELECT, USAGE') THEN pg_sequence_last_value(sc.oid) END)::numeric - s.seqmin)
                          / (s.seqmax::numeric - s.seqmin), 2)
         ELSE
-            round(100.0 * (s.seqmax::numeric - pg_sequence_last_value(sc.oid))
+            round(100.0 * (s.seqmax::numeric - (CASE WHEN has_sequence_privilege(sc.oid, 'SELECT, USAGE') THEN pg_sequence_last_value(sc.oid) END))
                          / (s.seqmax::numeric - s.seqmin), 2)
     END                                                     AS used_pct,
     -- The owning column. A SERIAL column (or OWNED BY) records the
@@ -3893,7 +3906,7 @@ WHERE sc.relkind = 'S'
 ORDER BY sn.nspname, sc.relname
 ```
 
-`run_seq_usage_check` line 221
+`run_seq_usage_check` line 230
 
 ```sql
 ALTER SEQUENCE s AS bigint MAXVALUE 9223372036854775807;
@@ -3901,7 +3914,19 @@ ALTER SEQUENCE s AS bigint MAXVALUE 9223372036854775807;
 
 ## checks/sequences.py
 
-`run_sequences_check` line 16
+`unreadable_sequences` line 10
+
+```sql
+SELECT n.nspname || '.' || c.relname AS s
+  FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace
+ WHERE c.relkind = 'S' AND n.nspname NOT IN ('pg_catalog', 'information_schema')
+   -- In a CASE: the planner may test the WHERE terms in any order,
+   -- and has_sequence_privilege() on a view is an error.
+   AND CASE WHEN c.relkind = 'S' THEN NOT has_sequence_privilege(c.oid, 'SELECT, USAGE') END
+ ORDER BY 1
+```
+
+`run_sequences_check` line 37
 
 ```sql
 SELECT schemaname || '.' || sequencename                  AS sequence,
@@ -3943,7 +3968,7 @@ ORDER BY used_pct DESC NULLS LAST, sequence
 LIMIT 50
 ```
 
-`run_sequences_check` line 64
+`run_sequences_check` line 85
 
 ```sql
 SELECT n.nspname AS schemaname, c.relname AS sequencename
@@ -3954,13 +3979,13 @@ WHERE c.relkind = 'S'
 ORDER BY n.nspname, c.relname
 ```
 
-`run_sequences_check` line 81
+`run_sequences_check` line 102
 
 ```sql
 SELECT last_value, start_value, min_value, max_value, increment_by, is_cycled FROM {fq}
 ```
 
-`run_sequences_check` line 168
+`run_sequences_check` line 196
 
 ```sql
 ALTER SEQUENCE s AS bigint MAXVALUE 9223372036854775807;
@@ -4115,19 +4140,22 @@ SELECT
     pg_get_userbyid(t.spcowner)                                AS owner,
     CASE WHEN t.spcname IN ('pg_default','pg_global')
          THEN '(under data_directory: ' ||
-              (SELECT setting FROM pg_settings WHERE name='data_directory') ||
+              COALESCE((SELECT setting FROM pg_settings WHERE name='data_directory'), 'data_directory') ||
               CASE WHEN t.spcname='pg_global' THEN '/global)' ELSE '/base)' END
          ELSE COALESCE(NULLIF(pg_tablespace_location(t.oid), ''), '(unknown)')
     END                                                        AS location,
-    pg_size_pretty(pg_tablespace_size(t.oid))                  AS size,
-    pg_tablespace_size(t.oid)                                  AS size_bytes,
+    -- The size needs CREATE on the tablespace, pg_read_all_stats, or
+    -- being this database's default; without it the whole section
+    -- was lost to "permission denied for tablespace pg_global".
+    CASE WHEN (has_tablespace_privilege(t.oid, 'CREATE') OR pg_has_role(current_user, 'pg_read_all_stats', 'USAGE') OR t.oid = (SELECT dattablespace FROM pg_database WHERE datname = current_database())) THEN pg_size_pretty(pg_tablespace_size(t.oid)) END AS size,
+    CASE WHEN (has_tablespace_privilege(t.oid, 'CREATE') OR pg_has_role(current_user, 'pg_read_all_stats', 'USAGE') OR t.oid = (SELECT dattablespace FROM pg_database WHERE datname = current_database())) THEN pg_tablespace_size(t.oid) END        AS size_bytes,
     t.spcoptions                                               AS options,
     t.spcacl::text                                             AS acl
 FROM pg_tablespace t
-ORDER BY pg_tablespace_size(t.oid) DESC NULLS LAST
+ORDER BY CASE WHEN (has_tablespace_privilege(t.oid, 'CREATE') OR pg_has_role(current_user, 'pg_read_all_stats', 'USAGE') OR t.oid = (SELECT dattablespace FROM pg_database WHERE datname = current_database())) THEN pg_tablespace_size(t.oid) END DESC NULLS LAST
 ```
 
-`run_tablespaces_check` line 55
+`run_tablespaces_check` line 58
 
 ```sql
 SELECT
@@ -4139,7 +4167,7 @@ JOIN pg_database d ON d.oid = db_oid.oid
 ORDER BY t.spcname, d.datname
 ```
 
-`run_tablespaces_check` line 82
+`run_tablespaces_check` line 85
 
 ```sql
 WITH this_db AS (
@@ -4197,13 +4225,13 @@ SELECT oid, spcname
  ORDER BY spcname
 ```
 
-`_read_temp_files` line 95
+`_read_temp_files` line 100
 
 ```sql
 SELECT name, size, modification FROM pg_ls_tmpdir(%s)
 ```
 
-`_activity_for` line 155
+`_activity_for` line 160
 
 ```sql
 SELECT pid, {leader}, {btype},
@@ -4217,7 +4245,7 @@ SELECT pid, {leader}, {btype},
  WHERE pid = ANY(%s)
 ```
 
-`_relations_for` line 186
+`_relations_for` line 191
 
 ```sql
 SELECT l.pid,
@@ -4235,7 +4263,7 @@ SELECT l.pid,
  ORDER BY l.pid, (l.mode <> 'AccessShareLock') DESC, n.nspname, c.relname
 ```
 
-`_work_mem` line 358
+`_work_mem` line 363
 
 ```sql
 SELECT name,
@@ -4259,7 +4287,7 @@ SELECT name,
                 'temp_tablespaces', 'log_temp_files')
 ```
 
-`(module)` line 425
+`(module)` line 430
 
 ```sql
 CREATE INDEX, REINDEX, CLUSTER, ALTER TABLE rewrites and VACUUM are bounded by maintenance_work_mem, never by work_mem. A spill during an index build is not a work_mem problem and raising work_mem does nothing for it.
@@ -4341,19 +4369,19 @@ SELECT queryid, query, calls,
 
 ## checks/tuning_advice.py
 
-`_read_file` line 112
+`_read_file` line 117
 
 ```sql
-SELECT pg_read_file(%s) AS t
+SELECT pg_read_file(%s, 0, 1048576, true) AS t
 ```
 
-`facts` line 150
+`facts` line 159
 
 ```sql
 SELECT name, setting, unit, context, source FROM pg_settings WHERE name = ANY(%s)
 ```
 
-`facts` line 183
+`facts` line 192
 
 ```sql
 SELECT coalesce(sum(temp_files), 0) AS temp_files,
@@ -4362,14 +4390,14 @@ SELECT coalesce(sum(temp_files), 0) AS temp_files,
                        FROM pg_stat_database
 ```
 
-`facts` line 190
+`facts` line 199
 
 ```sql
 SELECT count(*) AS n, count(*) FILTER (WHERE state = 'active') AS active
                           FROM pg_stat_activity WHERE backend_type = 'client backend'
 ```
 
-`facts` line 203
+`facts` line 212
 
 ```sql
 SELECT s.query, s.calls, s.temp_blks_written, d.datname AS db, r.rolname AS "user"
@@ -4380,7 +4408,7 @@ SELECT s.query, s.calls, s.temp_blks_written, d.datname AS db, r.rolname AS "use
                            ORDER BY s.temp_blks_written DESC LIMIT 10
 ```
 
-`facts` line 217
+`facts` line 226
 
 ```sql
 SELECT num_timed AS timed, num_requested AS req,
@@ -4388,7 +4416,7 @@ SELECT num_timed AS timed, num_requested AS req,
                            FROM pg_stat_checkpointer
 ```
 
-`facts` line 221
+`facts` line 230
 
 ```sql
 SELECT checkpoints_timed AS timed, checkpoints_req AS req,
@@ -4396,19 +4424,19 @@ SELECT checkpoints_timed AS timed, checkpoints_req AS req,
                            FROM pg_stat_bgwriter
 ```
 
-`facts` line 231
+`facts` line 240
 
 ```sql
 SELECT wal_bytes, extract(epoch FROM now() - stats_reset) AS age_s FROM pg_stat_wal
 ```
 
-`facts` line 239
+`facts` line 248
 
 ```sql
 SELECT buffers_clean, maxwritten_clean FROM pg_stat_bgwriter
 ```
 
-`facts` line 244
+`facts` line 253
 
 ```sql
 SELECT coalesce(sum(writes), 0) AS w FROM pg_stat_io
@@ -4416,13 +4444,13 @@ SELECT coalesce(sum(writes), 0) AS w FROM pg_stat_io
                              AND context = 'normal'
 ```
 
-`facts` line 250
+`facts` line 259
 
 ```sql
 SELECT buffers_backend FROM pg_stat_bgwriter
 ```
 
-`facts` line 262
+`facts` line 271
 
 ```sql
 SELECT coalesce(sum(reads), 0)::float8 AS n, coalesce(sum(read_time), 0)::float8 AS ms
@@ -4431,31 +4459,31 @@ SELECT coalesce(sum(reads), 0)::float8 AS n, coalesce(sum(read_time), 0)::float8
 
 ## checks/upgrade_readiness.py
 
-`run_upgrade_readiness_check._mule` line 80
+`run_upgrade_readiness_check._mule` line 87
 
 ```sql
 SELECT datname FROM pg_database WHERE pg_encoding_to_char(encoding) = 'MULE_INTERNAL' ORDER BY 1
 ```
 
-`run_upgrade_readiness_check._crlf` line 91
+`run_upgrade_readiness_check._crlf` line 98
 
 ```sql
 SELECT datname AS n FROM pg_database
 ```
 
-`run_upgrade_readiness_check._crlf` line 92
+`run_upgrade_readiness_check._crlf` line 99
 
 ```sql
 SELECT rolname AS n FROM pg_roles
 ```
 
-`run_upgrade_readiness_check._crlf` line 93
+`run_upgrade_readiness_check._crlf` line 100
 
 ```sql
 SELECT spcname AS n FROM pg_tablespace
 ```
 
-`run_upgrade_readiness_check._gist_inet` line 106
+`run_upgrade_readiness_check._gist_inet` line 113
 
 ```sql
 SELECT n.nspname AS schema, ic.relname AS index, tc.relname AS "table", opc.opcname
@@ -4469,19 +4497,19 @@ SELECT n.nspname AS schema, ic.relname AS index, tc.relname AS "table", opc.opcn
  ORDER BY 1, 2
 ```
 
-`run_upgrade_readiness_check._radius` line 132
+`run_upgrade_readiness_check._radius` line 139
 
 ```sql
 SELECT line_number FROM pg_hba_file_rules WHERE auth_method = 'radius' ORDER BY 1
 ```
 
-`run_upgrade_readiness_check._esc` line 147
+`run_upgrade_readiness_check._esc` line 155
 
 ```sql
 SELECT sourcefile, sourceline FROM pg_file_settings WHERE name = 'escape_string_warning'
 ```
 
-`run_upgrade_readiness_check._esc` line 149
+`run_upgrade_readiness_check._esc` line 157
 
 ```sql
 SELECT coalesce(d.datname, '*') AS db, coalesce(r.rolname, '*') AS role
@@ -4491,19 +4519,19 @@ SELECT coalesce(d.datname, '*') AS db, coalesce(r.rolname, '*') AS role
  WHERE EXISTS (SELECT 1 FROM unnest(s.setconfig) c WHERE c LIKE 'escape_string_warning=%')
 ```
 
-`run_upgrade_readiness_check._esc` line 155
+`run_upgrade_readiness_check._esc` line 163
 
 ```sql
 ALTER ROLE/DATABASE SET (db {x['db']}, role {x['role']})
 ```
 
-`run_upgrade_readiness_check._scs` line 165
+`run_upgrade_readiness_check._scs` line 174
 
 ```sql
 SHOW standard_conforming_strings
 ```
 
-`run_upgrade_readiness_check._scs` line 167
+`run_upgrade_readiness_check._scs` line 176
 
 ```sql
 SELECT coalesce(d.datname, '*') AS db, coalesce(r.rolname, '*') AS role
@@ -4513,31 +4541,39 @@ SELECT coalesce(d.datname, '*') AS db, coalesce(r.rolname, '*') AS role
  WHERE EXISTS (SELECT 1 FROM unnest(s.setconfig) c WHERE c = 'standard_conforming_strings=off')
 ```
 
-`run_upgrade_readiness_check._md5` line 183
+`run_upgrade_readiness_check._md5` line 192
 
 ```sql
 SELECT count(*) AS n FROM pg_authid WHERE rolpassword LIKE 'md5%'
 ```
 
-`run_upgrade_readiness_check._locks` line 195
+`run_upgrade_readiness_check._locks` line 204
 
 ```sql
 SELECT setting, source FROM pg_settings WHERE name = 'max_locks_per_transaction'
 ```
 
-`run_upgrade_readiness_check._jit` line 207
+`run_upgrade_readiness_check._jit` line 216
 
 ```sql
 SELECT setting, source FROM pg_settings WHERE name = 'jit'
 ```
 
-`run_upgrade_readiness_check._jit` line 212
+`run_upgrade_readiness_check._jit` line 223
+
+```sql
+SELECT 1 FROM pg_attribute
+ WHERE attrelid = to_regclass('pg_stat_statements') AND attname = 'jit_functions' AND NOT attisdropped
+   AND EXISTS (SELECT 1 FROM pg_settings WHERE name = 'pg_stat_statements.max')
+```
+
+`run_upgrade_readiness_check._jit` line 229
 
 ```sql
 SELECT sum(jit_functions)::bigint AS n FROM pg_stat_statements
 ```
 
-`run_upgrade_readiness_check._ext` line 227
+`run_upgrade_readiness_check._ext` line 244
 
 ```sql
 SELECT extname, extversion FROM pg_extension ORDER BY 1

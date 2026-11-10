@@ -1,6 +1,6 @@
 # Sessions and live load
 
-[All parts](README.md) · 49 statements
+[All parts](README.md) · 50 statements
 
 ## api/sessions.py
 
@@ -390,13 +390,19 @@ SELECT 1 FROM {_pss_rel} LIMIT 1
 SELECT {', '.join(select_lines)} FROM pg_stat_activity a {' '.join(joins)} WHERE a.pid <> pg_backend_pid()    AND (a.state IS NOT NULL AND a.state <> 'idle')  ORDER BY elapsed_s DESC NULLS LAST, a.pid
 ```
 
-`api_sessions_blocking` line 1514
+`api_sessions_load` line 1465
+
+```sql
+SELECT count(*) AS n FROM pg_stat_activity WHERE pid <> pg_backend_pid() AND query = '<insufficient privilege>'
+```
+
+`api_sessions_blocking` line 1526
 
 ```sql
 SELECT EXISTS (SELECT 1 FROM pg_proc WHERE proname='pg_blocking_pids') AS ok
 ```
 
-`api_sessions_blocking` line 1523
+`api_sessions_blocking` line 1535
 
 ```sql
 SELECT a.pid AS waiter, b.blocker::int AS blocker
@@ -405,7 +411,7 @@ CROSS JOIN LATERAL unnest(pg_blocking_pids(a.pid)) AS b(blocker)
 WHERE a.pid <> pg_backend_pid() AND b.blocker <> 0
 ```
 
-`api_sessions_blocking` line 1537
+`api_sessions_blocking` line 1549
 
 ```sql
 SELECT DISTINCT w.pid AS waiter, h.pid AS blocker
@@ -427,7 +433,7 @@ SELECT DISTINCT w.pid AS waiter, h.pid AS blocker
    AND w.pid <> pg_backend_pid()
 ```
 
-`api_sessions_blocking` line 1566
+`api_sessions_blocking` line 1578
 
 ```sql
 SELECT DISTINCT w.pid AS waiter, px.gid,
@@ -443,7 +449,7 @@ SELECT DISTINCT w.pid AS waiter, px.gid,
    AND w.pid IS NOT NULL AND w.pid <> pg_backend_pid()
 ```
 
-`api_sessions_blocking` line 1622
+`api_sessions_blocking` line 1634
 
 ```sql
 SELECT pid,
@@ -456,7 +462,7 @@ SELECT pid,
        state,
 ```
 
-`api_sessions_blocking` line 1658
+`api_sessions_blocking` line 1670
 
 ```sql
 WITH ungranted AS (
@@ -497,25 +503,25 @@ LEFT JOIN LATERAL (
 ) g ON u.relation IS NULL
 ```
 
-`api_sessions_kill_many` line 1793
+`api_sessions_kill_many` line 1805
 
 ```sql
 SELECT {fn}({int(x)})
 ```
 
-`api_sessions_kill_many` line 1800
+`api_sessions_kill_many` line 1812
 
 ```sql
 SELECT {fn}(%s)
 ```
 
-`api_sessions_kill` line 1824
+`api_sessions_kill` line 1836
 
 ```sql
 SELECT {fn}({int(pid)})
 ```
 
-`api_sessions_kill` line 1828
+`api_sessions_kill` line 1840
 
 ```sql
 SELECT {fn}(%s)

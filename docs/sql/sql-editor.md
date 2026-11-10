@@ -1,6 +1,6 @@
 # SQL editor
 
-[All parts](README.md) · 59 statements
+[All parts](README.md) · 60 statements
 
 ## api/sql.py
 
@@ -40,67 +40,73 @@ SELECT COALESCE(
        ) AS obj
 ```
 
-`_detect_source` line 357
+`_lock_queue_snapshot` line 295
 
 ```sql
-SELECT n.nspname, c.relname, c.relkind::text   FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace  WHERE c.oid = %s
+SELECT locktype, mode FROM pg_locks WHERE pid = %s AND NOT granted LIMIT 1
 ```
 
 `_detect_source` line 367
 
 ```sql
+SELECT n.nspname, c.relname, c.relkind::text   FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace  WHERE c.oid = %s
+```
+
+`_detect_source` line 377
+
+```sql
 SELECT a.attname FROM pg_index i   JOIN pg_class c ON c.oid = i.indrelid   JOIN pg_namespace n ON n.oid = c.relnamespace   JOIN pg_attribute a ON a.attrelid = c.oid AND a.attnum = ANY(i.indkey)  WHERE i.indisprimary AND n.nspname = %s AND c.relname = %s  ORDER BY (SELECT u.ord FROM unnest(i.indkey::smallint[]) WITH ORDINALITY AS u(k, ord) WHERE u.k = a.attnum LIMIT 1)
 ```
 
-`_detect_source` line 380
+`_detect_source` line 390
 
 ```sql
 SELECT attnum, attname FROM pg_attribute  WHERE attrelid = %s AND attnum > 0 AND NOT attisdropped
 ```
 
-`api_sql_exec` line 563
+`api_sql_exec` line 573
 
 ```sql
 SET LOCAL statement_timeout = %s
 ```
 
-`api_sql_exec` line 565
+`api_sql_exec` line 575
 
 ```sql
 SET LOCAL lock_timeout = %s
 ```
 
-`api_sql_exec` line 574
+`api_sql_exec` line 584
 
 ```sql
 SHOW transaction_read_only
 ```
 
-`api_sql_exec` line 577
+`api_sql_exec` line 587
 
 ```sql
 SET LOCAL transaction_read_only = on
 ```
 
-`api_sql_exec` line 593
+`api_sql_exec` line 603
 
 ```sql
 SET application_name = %s
 ```
 
-`api_sql_exec` line 597
+`api_sql_exec` line 607
 
 ```sql
 SET search_path = {quoted}
 ```
 
-`_search_path_diagnosis` line 956
+`_search_path_diagnosis` line 966
 
 ```sql
 SHOW search_path
 ```
 
-`_resolve_missing_relation` line 985
+`_resolve_missing_relation` line 995
 
 ```sql
 SELECT n.nspname
@@ -113,85 +119,85 @@ SELECT n.nspname
  ORDER BY n.nspname
 ```
 
-`api_sql_validate` line 1050
+`api_sql_validate` line 1060
 
 ```sql
 SET search_path = {_quote_search_path(sp_parts)}
 ```
 
-`api_sql_validate` line 1053
+`api_sql_validate` line 1063
 
 ```sql
 EXPLAIN (FORMAT TEXT, GENERIC_PLAN) {sql}
 ```
 
-`api_sql_actual_plans` line 1270
+`api_sql_actual_plans` line 1280
 
 ```sql
 SELECT current_database() AS d
 ```
 
-`api_sql_explain` line 1306
+`api_sql_explain` line 1316
 
 ```sql
 COPY table directly (without SELECT) cannot be EXPLAINed. Use COPY (SELECT ...) TO ...
 ```
 
-**error** - `api_sql_explain` line 1319
+**error** - `api_sql_explain` line 1329
 
 ```sql
 EXPLAIN does not support this statement (allowed: {', '.join(_EXPLAINABLE_PREFIXES)})
 ```
 
-`api_sql_explain._apply_sp` line 1348
+`api_sql_explain._apply_sp` line 1358
 
 ```sql
 SET search_path = {_quote_search_path(sp_parts)}
 ```
 
-`api_sql_explain._run_explain` line 1379
+`api_sql_explain._run_explain` line 1389
 
 ```sql
 EXPLAIN (FORMAT JSON, GENERIC_PLAN) {sql}
 ```
 
-`api_sql_explain._run_explain` line 1387
+`api_sql_explain._run_explain` line 1397
 
 ```sql
 PREPARE {pname} ({ptypes}) AS {sql}
 ```
 
-`api_sql_explain._run_explain` line 1389
+`api_sql_explain._run_explain` line 1399
 
 ```sql
 EXPLAIN (FORMAT JSON) EXECUTE {pname}({nulls})
 ```
 
-`api_sql_explain._run_explain` line 1400
+`api_sql_explain._run_explain` line 1410
 
 ```sql
 EXPLAIN (ANALYZE, BUFFERS, WAL{io_opt}, VERBOSE, FORMAT JSON) {sql}
 ```
 
-`api_sql_explain._run_explain` line 1404
+`api_sql_explain._run_explain` line 1414
 
 ```sql
 EXPLAIN (ANALYZE, BUFFERS, FORMAT JSON) {sql}
 ```
 
-`api_sql_explain._run_explain` line 1406
+`api_sql_explain._run_explain` line 1416
 
 ```sql
 EXPLAIN (FORMAT JSON) {sql}
 ```
 
-**extra** - `api_sql_explain` line 1479
+**extra** - `api_sql_explain` line 1489
 
 ```sql
 ANALYZE write stmt: executed in tx + ROLLBACK (changes discarded).
 ```
 
-`api_sql_live_queries` line 1651
+`api_sql_live_queries` line 1661
 
 ```sql
 SELECT pid,
@@ -210,19 +216,19 @@ ORDER BY (state = 'active') DESC, query_start NULLS LAST
 LIMIT 50
 ```
 
-`api_sql_stat_queries` line 1686
+`api_sql_stat_queries` line 1696
 
 ```sql
 SELECT 1 FROM pg_extension WHERE extname='pg_stat_statements'
 ```
 
-**remedy** - `api_sql_stat_queries` line 1700
+**remedy** - `api_sql_stat_queries` line 1710
 
 ```sql
 CREATE EXTENSION pg_stat_statements;  -- also add it to shared_preload_libraries and restart
 ```
 
-`api_sql_stat_queries` line 1720
+`api_sql_stat_queries` line 1730
 
 ```sql
 SELECT s.queryid::text AS qid,
@@ -236,19 +242,19 @@ SELECT s.queryid::text AS qid,
 FROM
 ```
 
-**remedy** - `api_sql_stat_queries` line 1752
+**remedy** - `api_sql_stat_queries` line 1762
 
 ```sql
 ALTER SYSTEM SET shared_preload_libraries = 'pg_stat_statements';  -- then restart the cluster
 ```
 
-`api_sql_hints` line 1919
+`api_sql_hints` line 1929
 
 ```sql
 SELECT current_schemas(false) AS sp
 ```
 
-`api_sql_hints` line 1922
+`api_sql_hints` line 1932
 
 ```sql
 SELECT n.nspname AS schema
@@ -262,7 +268,7 @@ ORDER BY
   n.nspname
 ```
 
-`api_sql_hints` line 1935
+`api_sql_hints` line 1945
 
 ```sql
 SELECT n.nspname AS schema,
@@ -279,7 +285,7 @@ WHERE c.relkind IN ('r','v','m','p','f')
 ORDER BY n.nspname, c.relname
 ```
 
-`api_sql_hints` line 1954
+`api_sql_hints` line 1964
 
 ```sql
 SELECT a.attrelid::bigint AS oid,
@@ -292,7 +298,7 @@ WHERE a.attrelid = ANY(%s)
 ORDER BY a.attrelid, a.attnum
 ```
 
-`api_sql_hints` line 1979
+`api_sql_hints` line 1989
 
 ```sql
 SELECT DISTINCT n.nspname AS schema, p.proname AS name
@@ -303,49 +309,49 @@ WHERE n.nspname NOT IN ('pg_catalog','information_schema')
 ORDER BY n.nspname, p.proname
 ```
 
-`api_sql_index_tryout` line 2055
+`api_sql_index_tryout` line 2065
 
 ```sql
 SELECT 1 FROM pg_extension WHERE extname = 'hypopg'
 ```
 
-`api_sql_index_tryout` line 2057
+`api_sql_index_tryout` line 2067
 
 ```sql
 SELECT 1 FROM pg_available_extensions WHERE name = 'hypopg'
 ```
 
-`api_sql_index_tryout.plan` line 2072
+`api_sql_index_tryout.plan` line 2082
 
 ```sql
 EXPLAIN (FORMAT JSON) {inner}
 ```
 
-`api_sql_index_tryout` line 2086
+`api_sql_index_tryout` line 2096
 
 ```sql
 SELECT indexname FROM {_hypo_create}(%s)
 ```
 
-`api_sql_index_tryout` line 2095
+`api_sql_index_tryout` line 2105
 
 ```sql
 SELECT pg_size_pretty({_hypo_size}(indexrelid)) FROM {_hypo_list}() WHERE indexname = %s
 ```
 
-`api_sql_index_tryout` line 2102
+`api_sql_index_tryout` line 2112
 
 ```sql
 SELECT {_hypo_reset}()
 ```
 
-`(module)` line 2153
+`(module)` line 2163
 
 ```sql
 CREATE INDEX
 ```
 
-`api_sql_running` line 2193
+`api_sql_running` line 2203
 
 ```sql
 SELECT pid, state, wait_event_type, wait_event,
@@ -359,33 +365,33 @@ SELECT pid, state, wait_event_type, wait_event,
  LIMIT 1
 ```
 
-`api_sql_running` line 2233
+`api_sql_running` line 2249
 
 ```sql
 SELECT row_to_json(p)::text AS j FROM {view} p WHERE pid = %s
 ```
 
-`api_sql_ddl_preflight` line 2343
+`api_sql_ddl_preflight` line 2359
 
 ```sql
 SELECT c.oid FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace
  WHERE n.nspname = %s AND c.relkind IN ('r','p','m','i')
 ```
 
-`api_sql_ddl_preflight` line 2348
+`api_sql_ddl_preflight` line 2364
 
 ```sql
 SELECT c.oid FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace
  WHERE n.nspname = %s AND c.relname = %s
 ```
 
-`api_sql_ddl_preflight` line 2353
+`api_sql_ddl_preflight` line 2369
 
 ```sql
 SELECT c.oid FROM pg_class c WHERE c.relname = %s AND pg_table_is_visible(c.oid)
 ```
 
-`api_sql_cancel` line 2442
+`api_sql_cancel` line 2458
 
 ```sql
 SELECT pid, {fn}(pid) AS signalled
@@ -393,49 +399,49 @@ SELECT pid, {fn}(pid) AS signalled
  WHERE application_name = %s AND pid <> pg_backend_pid()
 ```
 
-`api_sql_cancel` line 2455
+`api_sql_cancel` line 2471
 
 ```sql
 SELECT %s(%s)
 ```
 
-`_page_count` line 2737
+`_page_count` line 2812
 
 ```sql
 SET LOCAL statement_timeout = %d
 ```
 
-`_page_count` line 2742
+`_page_count` line 2817
 
 ```sql
 ROLLBACK TO SAVEPOINT dbapguin_pc
 ```
 
-`_page_count` line 2743
+`_page_count` line 2818
 
 ```sql
 SET LOCAL statement_timeout = 0
 ```
 
-`_page_count` line 2747
+`_page_count` line 2822
 
 ```sql
 SET LOCAL statement_timeout = 0
 ```
 
-`api_sql_page_open` line 2800
+`api_sql_page_open` line 2875
 
 ```sql
 SET LOCAL search_path = {_quote_search_path(sp_parts)}
 ```
 
-`api_sql_page_open` line 2801
+`api_sql_page_open` line 2876
 
 ```sql
 SET LOCAL statement_timeout = %d
 ```
 
-`api_sql_page_open` line 2809
+`api_sql_page_open` line 2884
 
 ```sql
 SET LOCAL application_name = %s

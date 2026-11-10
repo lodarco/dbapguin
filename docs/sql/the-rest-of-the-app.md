@@ -1,10 +1,10 @@
 # The rest of the app
 
-[All parts](README.md) · 780 statements
+[All parts](README.md) · 785 statements
 
 ## app.py
 
-**a** - `_downgrade_check_sql` line 1974
+**a** - `_downgrade_check_sql` line 1982
 
 ```sql
 SELECT unnest(pg_blocking_pids(waiting.pid))
@@ -12,7 +12,7 @@ FROM pg_locks waiting
 WHERE NOT waiting.granted
 ```
 
-`_downgrade_check_sql` line 1979
+`_downgrade_check_sql` line 1987
 
 ```sql
 SELECT blocking.pid
@@ -23,7 +23,7 @@ JOIN pg_locks waiting ON blocking.relation = waiting.relation
     AND blocking.pid <> waiting.pid
 ```
 
-**sql** - `_replication_sql_94` line 2027
+**sql** - `_replication_sql_94` line 2035
 
 ```sql
 SELECT r.pid,
@@ -44,7 +44,7 @@ SELECT r.pid,
           DESC NULLS LAST, r.application_name
 ```
 
-**sql** - `_connections_sql_pre96` line 2053
+**sql** - `_connections_sql_pre96` line 2061
 
 ```sql
 SELECT state,
@@ -57,7 +57,7 @@ GROUP BY state, waiting
 ORDER BY connections DESC
 ```
 
-**sql** - `_long_queries_sql` line 2072
+**sql** - `_long_queries_sql` line 2080
 
 ```sql
 SELECT pid,
@@ -73,7 +73,7 @@ WHERE state = 'active'
 ORDER BY duration DESC
 ```
 
-**sql** - `_sizes_sql_pre10` line 2096
+**sql** - `_sizes_sql_pre10` line 2104
 
 ```sql
 SELECT d.datname                                          AS database,
@@ -93,7 +93,7 @@ WHERE d.datistemplate = false
 ORDER BY pg_database_size(d.datname) DESC
 ```
 
-`_lock_stats_section` line 2137
+`_lock_stats_section` line 2145
 
 ```sql
 SELECT locktype, waits, round(wait_time::numeric, 1) AS wait_time_ms,
@@ -102,31 +102,37 @@ SELECT locktype, waits, round(wait_time::numeric, 1) AS wait_time_ms,
  ORDER BY wait_time DESC, waits DESC, fastpath_exceeded DESC
 ```
 
-`run_db_check` line 2368
+`run_db_check` line 2376
 
 ```sql
 SET application_name = %s
 ```
 
-`run_db_check` line 2369
+`run_db_check` line 2377
 
 ```sql
 SELECT pg_backend_pid() AS pid
 ```
 
-`run_db_check` line 2516
+`run_db_check` line 2433
+
+```sql
+SELECT count(*) AS n FROM pg_stat_activity WHERE pid <> pg_backend_pid() AND query = '<insufficient privilege>'
+```
+
+`run_db_check` line 2541
 
 ```sql
 SELECT 1 FROM pg_roles WHERE rolname = %s
 ```
 
-`run_db_check` line 2544
+`run_db_check` line 2569
 
 ```sql
 SELECT 1 FROM pg_namespace WHERE nspname = %s
 ```
 
-`_move_summary` line 2876
+`_move_summary` line 2901
 
 ```sql
 SELECT
@@ -140,7 +146,7 @@ FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace
 WHERE n.nspname = %s AND c.relname = %s
 ```
 
-`_search_path_levels` line 2951
+`_search_path_levels` line 2976
 
 ```sql
 SELECT COALESCE(d.datname, '') AS datname, s.setconfig
@@ -150,7 +156,7 @@ SELECT COALESCE(d.datname, '') AS datname, s.setconfig
  WHERE r.rolname = %s
 ```
 
-`_search_path_levels` line 2976
+`_search_path_levels` line 3001
 
 ```sql
 SELECT s.setconfig
@@ -159,43 +165,43 @@ SELECT s.setconfig
  WHERE d.datname = %s AND s.setrole = 0
 ```
 
-`_search_path_levels` line 2996
+`_search_path_levels` line 3021
 
 ```sql
 SELECT boot_val FROM pg_settings WHERE name = 'search_path'
 ```
 
-`_apply_search_path` line 3075
+`_apply_search_path` line 3100
 
 ```sql
 ALTER ROLE {role} SET search_path TO
 ```
 
-`api_db_check_cancel` line 3340
+`api_db_check_cancel` line 3365
 
 ```sql
 SET statement_timeout = 5000
 ```
 
-`api_db_check_cancel` line 3342
+`api_db_check_cancel` line 3367
 
 ```sql
 SELECT {fn}(%s)
 ```
 
-`api_db_check_cancel` line 3347
+`api_db_check_cancel` line 3372
 
 ```sql
 SELECT pid, {fn}(pid) FROM pg_stat_activity WHERE application_name = %s AND pid <> pg_backend_pid()
 ```
 
-`api_db_check_cancel` line 3357
+`api_db_check_cancel` line 3382
 
 ```sql
 SELECT {fn}({', '.join((str(p) for p in signalled))})
 ```
 
-`_schema_extensions` line 3661
+`_schema_extensions` line 3694
 
 ```sql
 WITH owned AS (
@@ -227,13 +233,13 @@ SELECT e.extname AS name, e.extversion AS version,
  ORDER BY owned.n DESC, e.extname
 ```
 
-`_schema_extensions` line 3692
+`_schema_extensions` line 3725
 
 ```sql
 CREATE EXTENSION IF NOT EXISTS %s SCHEMA %s;
 ```
 
-`_schema_extensions` line 3709
+`_schema_extensions` line 3742
 
 ```sql
 SELECT DISTINCT e.extname AS name, e.extversion AS version,
@@ -261,13 +267,13 @@ SELECT DISTINCT e.extname AS name, e.extversion AS version,
  ORDER BY 1
 ```
 
-`_schema_extensions` line 3740
+`_schema_extensions` line 3773
 
 ```sql
 CREATE EXTENSION IF NOT EXISTS %s SCHEMA %s;
 ```
 
-`_schema_extension_config_tables` line 3772
+`_schema_extension_config_tables` line 3805
 
 ```sql
 SELECT e.extname                        AS extension,
@@ -284,25 +290,25 @@ SELECT e.extname                        AS extension,
  ORDER BY e.extname, n.nspname, c.relname
 ```
 
-`_schema_extension_config_tables` line 3805
+`_schema_extension_config_tables` line 3838
 
 ```sql
 SELECT count(*) AS n FROM %s %s
 ```
 
-`_schema_extension_config_tables` line 3817
+`_schema_extension_config_tables` line 3850
 
 ```sql
 SELECT * FROM %s %s;
 ```
 
-`_schema_extension_config_tables` line 3817
+`_schema_extension_config_tables` line 3850
 
 ```sql
 SELECT * FROM %s;
 ```
 
-`_schema_superuser_objects` line 3844
+`_schema_superuser_objects` line 3877
 
 ```sql
 SELECT p.proname AS name,
@@ -322,13 +328,13 @@ SELECT p.proname AS name,
  ORDER BY p.proname
 ```
 
-`_fetch_pg_files` line 3952
+`_fetch_pg_files` line 3985
 
 ```sql
 SELECT name, setting FROM pg_settings WHERE name = ANY(%s)
 ```
 
-`_detect_provider` line 4271
+`_detect_provider` line 4304
 
 ```sql
 SELECT
@@ -362,37 +368,37 @@ SELECT
                                                                             AS session_superuser
 ```
 
-`_hba_write_copy` line 4394
+`_hba_write_copy` line 4427
 
 ```sql
 COPY (SELECT nullif(l, '') FROM unnest(%s::text[])         WITH ORDINALITY t(l, n) ORDER BY n) TO %s (FORMAT csv, DELIMITER E'\x01', QUOTE E'\x02', ESCAPE E'\x02')
 ```
 
-`_hba_write_file_lines` line 4433
+`_hba_write_file_lines` line 4466
 
 ```sql
 SELECT lo_export(%s, %s)
 ```
 
-`_hba_write_file_lines` line 4434
+`_hba_write_file_lines` line 4467
 
 ```sql
 SELECT lo_unlink(%s)
 ```
 
-`_hba_write_file_lines` line 4442
+`_hba_write_file_lines` line 4475
 
 ```sql
 SELECT lo_unlink(%s)
 ```
 
-`_hba_peers` line 4483
+`_hba_peers` line 4516
 
 ```sql
 SELECT pg_is_in_recovery() AS rec
 ```
 
-`_hba_peers` line 4489
+`_hba_peers` line 4522
 
 ```sql
 SELECT COALESCE(host(client_addr), 'local') AS client,
@@ -401,7 +407,7 @@ SELECT COALESCE(host(client_addr), 'local') AS client,
   FROM pg_stat_replication
 ```
 
-`_hba_peers` line 4500
+`_hba_peers` line 4533
 
 ```sql
 SELECT slot_name, slot_type, active
@@ -409,13 +415,13 @@ SELECT slot_name, slot_type, active
  WHERE slot_type = 'physical'
 ```
 
-`_hba_list_backups` line 4521
+`_hba_list_backups` line 4554
 
 ```sql
 SELECT n.name AS name, (pg_stat_file(%s || '/' || n.name)).size AS size FROM pg_ls_dir(%s) AS n(name)
 ```
 
-`_hba_list_backups` line 4532
+`_hba_list_backups` line 4565
 
 ```sql
 SELECT pg_ls_dir(%s) AS name
@@ -1881,55 +1887,79 @@ SET ROLE {_qi(role)}
 SHOW server_version_num
 ```
 
-**_TEMPLATE_PROBE_SQL** - `(module)` line 446
+`_existing_catalog_views` line 310
+
+```sql
+SELECT v FROM unnest(%s::text[]) v WHERE to_regclass('pg_catalog.' || v) IS NOT NULL
+```
+
+`_has_table_priv` line 336
+
+```sql
+SELECT COALESCE(has_table_privilege(to_regclass(%s), %s), false)
+```
+
+`_has_func_priv` line 341
+
+```sql
+SELECT COALESCE(has_function_privilege(to_regprocedure(%s), 'EXECUTE'), false)
+```
+
+`_has_role` line 348
+
+```sql
+SELECT current_setting('is_superuser') = 'on' OR COALESCE((SELECT pg_has_role(current_user, oid, 'USAGE') FROM pg_roles WHERE rolname = %s), false)
+```
+
+**_TEMPLATE_PROBE_SQL** - `(module)` line 495
 
 ```sql
 SELECT d.datistemplate FROM pg_catalog.pg_database d WHERE d.datname = pg_catalog.current_database()
 ```
 
-`_conn_in_recovery` line 574
+`_conn_in_recovery` line 623
 
 ```sql
 SELECT pg_is_in_recovery()
 ```
 
-`_connect` line 684
+`_connect` line 733
 
 ```sql
 SET lock_timeout = '{int(lock_timeout_ms)}ms'
 ```
 
-`_connect` line 685
+`_connect` line 734
 
 ```sql
 SET statement_timeout = '{_stmt_to}'
 ```
 
-`_connect` line 686
+`_connect` line 735
 
 ```sql
 SET application_name = 'DBApguin'
 ```
 
-`_connect` line 706
+`_connect` line 755
 
 ```sql
 RESET search_path
 ```
 
-`_connect` line 718
+`_connect` line 767
 
 ```sql
 SET ROLE {_qi(ctx_role)}
 ```
 
-`_connect` line 720
+`_connect` line 769
 
 ```sql
 SET ROLE {_qi(conn_role)}
 ```
 
-`_connect` line 742
+`_connect` line 791
 
 ```sql
 SELECT pg_catalog.set_config('search_path', {_literal_str(quoted)} || ', ' || pg_catalog.current_setting('search_path'), false)

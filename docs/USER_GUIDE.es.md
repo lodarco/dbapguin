@@ -1,6 +1,6 @@
 # DBApguin - Guía de usuario
 
-**Para DBApguin 1.0.0**
+**Para DBApguin 1.0.1**
 
 *Esta guía se ha traducido del inglés con ayuda de IA. Si algo no está claro o difiere, prevalece el original en inglés (Ayuda → Guía de usuario, con la interfaz en inglés).*
 

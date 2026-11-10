@@ -1,6 +1,6 @@
 # Database tools
 
-[All parts](README.md) · 526 statements
+[All parts](README.md) · 527 statements
 
 ## api/autovacuum.py
 
@@ -268,7 +268,14 @@ WHERE pid <> pg_backend_pid()
 GROUP BY state
 ```
 
-`api_dashboard_overview` line 79
+`api_dashboard_overview` line 82
+
+```sql
+SELECT count(*) AS n FROM pg_stat_activity
+ WHERE pid <> pg_backend_pid() AND query = '<insufficient privilege>'
+```
+
+`api_dashboard_overview` line 89
 
 ```sql
 SELECT count(*) AS n,
@@ -277,7 +284,7 @@ SELECT count(*) AS n,
  WHERE backend_type <> 'client backend'
 ```
 
-`api_dashboard_overview` line 89
+`api_dashboard_overview` line 99
 
 ```sql
 SELECT count(*) AS n,
@@ -287,7 +294,7 @@ SELECT count(*) AS n,
    AND pid <> pg_backend_pid()
 ```
 
-`api_dashboard_overview` line 107
+`api_dashboard_overview` line 117
 
 ```sql
 SELECT coalesce(wait_event_type,'CPU') AS wtype,
@@ -301,7 +308,7 @@ GROUP BY wtype, wevent
 ORDER BY n DESC LIMIT 10
 ```
 
-`api_dashboard_overview` line 126
+`api_dashboard_overview` line 136
 
 ```sql
 SELECT datname,
@@ -316,7 +323,7 @@ FROM pg_stat_database
 WHERE datname = current_database()
 ```
 
-`api_dashboard_overview` line 148
+`api_dashboard_overview` line 158
 
 ```sql
 SELECT schemaname, relname,
@@ -331,7 +338,7 @@ ORDER BY dml_total DESC NULLS LAST
 LIMIT 40
 ```
 
-`api_dashboard_overview` line 166
+`api_dashboard_overview` line 176
 
 ```sql
 SELECT num_timed AS ckpt_timed, num_requested AS ckpt_req,
@@ -340,7 +347,7 @@ SELECT num_timed AS ckpt_timed, num_requested AS ckpt_req,
 FROM pg_stat_checkpointer
 ```
 
-`api_dashboard_overview` line 173
+`api_dashboard_overview` line 183
 
 ```sql
 SELECT checkpoints_timed AS ckpt_timed, checkpoints_req AS ckpt_req,
@@ -349,13 +356,13 @@ SELECT checkpoints_timed AS ckpt_timed, checkpoints_req AS ckpt_req,
 FROM pg_stat_bgwriter
 ```
 
-`api_dashboard_overview` line 188
+`api_dashboard_overview` line 198
 
 ```sql
 SELECT EXTRACT(EPOCH FROM now() - checkpoint_time)::bigint AS s FROM pg_control_checkpoint()
 ```
 
-`api_dashboard_overview` line 195
+`api_dashboard_overview` line 205
 
 ```sql
 SELECT count(*) AS blocking_count
@@ -363,13 +370,13 @@ FROM pg_stat_activity a
 WHERE cardinality(pg_blocking_pids(a.pid)) > 0
 ```
 
-`api_dashboard_overview` line 211
+`api_dashboard_overview` line 221
 
 ```sql
 SELECT pg_is_in_recovery() AS r
 ```
 
-**rep_sql** - `api_dashboard_overview` line 215
+**rep_sql** - `api_dashboard_overview` line 225
 
 ```sql
 SELECT count(*) AS n,
@@ -379,7 +386,7 @@ SELECT count(*) AS n,
 FROM pg_stat_replication
 ```
 
-**rep_sql** - `api_dashboard_overview` line 223
+**rep_sql** - `api_dashboard_overview` line 233
 
 ```sql
 SELECT count(*) AS n,
@@ -389,7 +396,7 @@ SELECT count(*) AS n,
 FROM pg_stat_replication
 ```
 
-`api_dashboard_overview` line 247
+`api_dashboard_overview` line 257
 
 ```sql
 SELECT pg_wal_lsn_diff(CASE WHEN pg_is_in_recovery()
@@ -397,7 +404,7 @@ SELECT pg_wal_lsn_diff(CASE WHEN pg_is_in_recovery()
                             ELSE pg_current_wal_lsn() END, '0/0')::bigint AS wal_bytes
 ```
 
-`api_dashboard_overview` line 258
+`api_dashboard_overview` line 268
 
 ```sql
 SELECT count(*) AS n,
@@ -409,7 +416,7 @@ SELECT count(*) AS n,
   FROM pg_replication_slots
 ```
 
-`api_dashboard_overview` line 270
+`api_dashboard_overview` line 280
 
 ```sql
 SELECT max(age(datfrozenxid)) AS max_age,
@@ -418,13 +425,13 @@ SELECT max(age(datfrozenxid)) AS max_age,
   FROM pg_database
 ```
 
-`api_dashboard_overview` line 290
+`api_dashboard_overview` line 300
 
 ```sql
 SELECT count(*) AS n FROM pg_settings WHERE pending_restart
 ```
 
-`api_dashboard_overview` line 295
+`api_dashboard_overview` line 305
 
 ```sql
 SELECT count(*) AS n
@@ -435,13 +442,13 @@ SELECT count(*) AS n
    AND n.nspname NOT IN ('pg_catalog', 'information_schema')
 ```
 
-`api_dashboard_overview` line 305
+`api_dashboard_overview` line 315
 
 ```sql
 SELECT EXTRACT(EPOCH FROM now() - pg_postmaster_start_time())::bigint AS s
 ```
 
-`api_dashboard_overview` line 343
+`api_dashboard_overview` line 353
 
 ```sql
 SELECT count(*) AS n FROM pg_stat_activity WHERE backend_type = 'autovacuum worker'
@@ -801,40 +808,40 @@ ORDER BY line_number
 `api_db_hba_get` line 1735
 
 ```sql
-SELECT current_setting('hba_file') AS hba, current_setting('is_superuser') AS issu
+SELECT (SELECT setting FROM pg_settings WHERE name = 'hba_file') AS hba, current_setting('is_superuser') AS issu
 ```
 
-`api_db_hba_get` line 1741
+`api_db_hba_get` line 1747
 
 ```sql
 SELECT pg_read_file(%s) AS content
 ```
 
-`_hba_restrict_mode` line 1792
+`_hba_restrict_mode` line 1798
 
 ```sql
 COPY (SELECT 1) TO PROGRAM %s
 ```
 
-`api_db_hba_save` line 1825
+`api_db_hba_save` line 1831
 
 ```sql
-SELECT current_setting('hba_file') AS hba, current_setting('is_superuser') AS issu
+SELECT (SELECT setting FROM pg_settings WHERE name = 'hba_file') AS hba, current_setting('is_superuser') AS issu
 ```
 
-`api_db_hba_save` line 1834
+`api_db_hba_save` line 1844
 
 ```sql
 SELECT pg_read_file(%s) AS content
 ```
 
-`api_db_hba_save` line 1845
+`api_db_hba_save` line 1855
 
 ```sql
 SELECT pg_reload_conf()
 ```
 
-`api_db_hba_save` line 1846
+`api_db_hba_save` line 1856
 
 ```sql
 SELECT line_number AS line, type, database, user_name, address, auth_method, error
@@ -843,38 +850,38 @@ WHERE error IS NOT NULL
 ORDER BY line_number
 ```
 
-`api_db_hba_restore` line 1894
+`api_db_hba_restore` line 1904
 
 ```sql
-SELECT current_setting('hba_file') AS hba, current_setting('is_superuser') AS issu
+SELECT (SELECT setting FROM pg_settings WHERE name = 'hba_file') AS hba, current_setting('is_superuser') AS issu
 ```
 
-`api_db_hba_restore` line 1913
-
-```sql
-SELECT pg_read_file(%s) AS content
-```
-
-`api_db_hba_restore` line 1919
+`api_db_hba_restore` line 1927
 
 ```sql
 SELECT pg_read_file(%s) AS content
 ```
 
-`api_db_hba_restore` line 1924
+`api_db_hba_restore` line 1933
+
+```sql
+SELECT pg_read_file(%s) AS content
+```
+
+`api_db_hba_restore` line 1938
 
 ```sql
 SELECT pg_reload_conf()
 ```
 
-`api_db_hba_restore` line 1925
+`api_db_hba_restore` line 1939
 
 ```sql
 SELECT line_number AS line, error FROM pg_hba_file_rules
 WHERE error IS NOT NULL ORDER BY line_number
 ```
 
-`api_db_settings` line 1958
+`api_db_settings` line 1972
 
 ```sql
 SELECT name, setting, unit, category, short_desc,
@@ -885,31 +892,31 @@ FROM pg_settings
 ORDER BY category, name
 ```
 
-`api_db_settings` line 1968
+`api_db_settings` line 1982
 
 ```sql
 SELECT current_setting('is_superuser') AS issu
 ```
 
-`api_settings_undo` line 2031
+`api_settings_undo` line 2045
 
 ```sql
 SELECT setting, source, sourcefile, sourceline FROM pg_settings WHERE name = %s
 ```
 
-`api_settings_undo` line 2052
+`api_settings_undo` line 2066
 
 ```sql
 SELECT pg_reload_conf()
 ```
 
-`api_settings_undo` line 2061
+`api_settings_undo` line 2075
 
 ```sql
 SELECT setting, source, pending_restart FROM pg_settings WHERE name = %s
 ```
 
-`api_restore_target_check` line 2084
+`api_restore_target_check` line 2098
 
 ```sql
 SELECT count(*) FILTER (WHERE c.relkind IN ('r','p')),
@@ -921,13 +928,13 @@ SELECT count(*) FILTER (WHERE c.relkind IN ('r','p')),
    AND n.nspname NOT LIKE 'pg_temp%%'
 ```
 
-`api_restore_target_check` line 2094
+`api_restore_target_check` line 2108
 
 ```sql
 SELECT pg_database_size(current_database()), pg_size_pretty(pg_database_size(current_database()))
 ```
 
-`api_db_settings_set` line 2117
+`api_db_settings_set` line 2131
 
 ```sql
 ALTER SYSTEM SET / RESET / RESET ALL, optionally followed by pg_reload_conf().
@@ -935,98 +942,98 @@ ALTER SYSTEM SET / RESET / RESET ALL, optionally followed by pg_reload_conf().
     superuser (or a role that has been granted SET on the parameter, PG15+).
 ```
 
-`api_db_settings_set` line 2151
+`api_db_settings_set` line 2165
 
 ```sql
 SELECT pg_reload_conf()
 ```
 
-`api_db_settings_set` line 2160
+`api_db_settings_set` line 2174
 
 ```sql
 SELECT pg_reload_conf()
 ```
 
-`api_db_settings_set` line 2181
+`api_db_settings_set` line 2195
 
 ```sql
 SELECT context, vartype, {pending_col} FROM pg_settings WHERE name = %s
 ```
 
-`api_db_settings_set` line 2191
+`api_db_settings_set` line 2205
 
 ```sql
 SELECT setting, source, sourcefile, sourceline FROM pg_settings WHERE name = %s
 ```
 
-`api_db_settings_set` line 2224
+`api_db_settings_set` line 2240
 
 ```sql
 SELECT setting FROM pg_file_settings WHERE name = %s ORDER BY seqno DESC LIMIT 1
 ```
 
-`api_db_settings_set` line 2231
+`api_db_settings_set` line 2250
 
 ```sql
-SELECT current_setting(%s)
+SELECT setting FROM pg_settings WHERE name = %s
 ```
 
-`api_db_settings_set` line 2268
+`api_db_settings_set` line 2292
 
 ```sql
 SELECT pg_reload_conf()
 ```
 
-`api_db_settings_set` line 2272
+`api_db_settings_set` line 2296
 
 ```sql
 SELECT setting, source, sourcefile, sourceline, pending_restart, context
 FROM pg_settings WHERE name = %s
 ```
 
-`api_db_analysis_prereqs` line 2375
+`api_db_analysis_prereqs` line 2399
 
 ```sql
 SELECT default_version, installed_version FROM pg_available_extensions WHERE name = 'pg_stat_statements'
 ```
 
-`api_db_analysis_prereqs` line 2390
+`api_db_analysis_prereqs` line 2414
 
 ```sql
 SELECT default_version, installed_version FROM pg_available_extensions WHERE name = 'pg_store_plans'
 ```
 
-`api_db_analysis_prereqs` line 2404
+`api_db_analysis_prereqs` line 2431
 
 ```sql
 SELECT setting FROM pg_file_settings WHERE name = 'shared_preload_libraries' ORDER BY seqno DESC LIMIT 1
 ```
 
-**recommended** - `api_db_analysis_prereqs` line 2419
+**recommended** - `api_db_analysis_prereqs` line 2446
 
 ```sql
 CREATE EXTENSION
 ```
 
-**sql** - `api_db_analysis_prereqs` line 2424
+**sql** - `api_db_analysis_prereqs` line 2451
 
 ```sql
 CREATE EXTENSION IF NOT EXISTS pg_stat_statements;
 ```
 
-`api_db_plan_log_grant` line 2463
+`api_db_plan_log_grant` line 2490
 
 ```sql
 SELECT 1 FROM pg_roles WHERE rolname = %s
 ```
 
-`api_db_capabilities` line 2522
+`api_db_capabilities` line 2549
 
 ```sql
 SELECT current_database(), current_user, version()
 ```
 
-`api_db_capabilities` line 2533
+`api_db_capabilities` line 2560
 
 ```sql
 SELECT rolsuper,
@@ -1035,62 +1042,62 @@ SELECT rolsuper,
 FROM pg_roles WHERE rolname = current_user
 ```
 
-`api_db_capabilities` line 2540
+`api_db_capabilities` line 2567
 
 ```sql
 SELECT rolsuper, false AS is_monitor, false AS reads_stats
 FROM pg_roles WHERE rolname = current_user
 ```
 
-`api_db_capabilities` line 2548
+`api_db_capabilities` line 2575
 
 ```sql
 SELECT extname FROM pg_extension
 ```
 
-`api_db_capabilities` line 2550
+`api_db_capabilities` line 2577
 
 ```sql
 SELECT name FROM pg_available_extensions
 ```
 
-`api_db_capabilities` line 2560
+`api_db_capabilities` line 2590
 
 ```sql
-SHOW shared_preload_libraries
+SELECT setting FROM pg_settings WHERE name = 'shared_preload_libraries'
 ```
 
-`api_db_capabilities` line 2571
+`api_db_capabilities` line 2605
 
 ```sql
 SELECT setting FROM pg_settings WHERE name = %s
 ```
 
-`api_db_capabilities` line 2624
+`api_db_capabilities` line 2658
 
 ```sql
 ALTER SYSTEM SET shared_preload_libraries = '{preload_raw + ', ' if preload_raw else ''}{n}';  -- then restart the server
 ```
 
-`api_db_capabilities` line 2633
+`api_db_capabilities` line 2667
 
 ```sql
 CREATE EXTENSION {n};{'  -- also add to shared_preload_libraries and restart' if e['needs_preload'] else ''}
 ```
 
-`api_db_capabilities` line 2658
+`api_db_capabilities` line 2692
 
 ```sql
 ALTER SYSTEM SET {s['name']} = '{want_txt}'; SELECT pg_reload_conf();
 ```
 
-`api_db_capabilities` line 2674
+`api_db_capabilities` line 2708
 
 ```sql
 GRANT pg_monitor TO {user};
 ```
 
-`_db_compare_props` line 2763
+`_db_compare_props` line 2797
 
 ```sql
 SELECT pg_catalog.pg_get_userbyid(d.datdba) AS owner,
@@ -1104,7 +1111,7 @@ LEFT JOIN pg_catalog.pg_tablespace t ON t.oid = d.dattablespace
 WHERE d.datname = %s
 ```
 
-`_db_compare_props` line 2826
+`_db_compare_props` line 2860
 
 ```sql
 SELECT COALESCE(array_to_string(setconfig, E'\n'), '')
@@ -1113,7 +1120,7 @@ JOIN pg_catalog.pg_database d ON d.oid = s.setdatabase
 WHERE d.datname = %s AND s.setrole = 0
 ```
 
-`_db_compare_extensions` line 2847
+`_db_compare_extensions` line 2881
 
 ```sql
 SELECT e.extname, e.extversion, n.nspname
@@ -1122,7 +1129,7 @@ LEFT JOIN pg_catalog.pg_namespace n ON n.oid = e.extnamespace
 ORDER BY e.extname
 ```
 
-`_db_compare_roles` line 2926
+`_db_compare_roles` line 2960
 
 ```sql
 SELECT r.rolname, r.rolsuper, r.rolinherit, r.rolcreatedb,
@@ -1138,31 +1145,31 @@ WHERE r.rolname NOT LIKE 'pg\_%'
 ORDER BY r.rolname
 ```
 
-`_role_sync_sql` line 2978
+`_role_sync_sql` line 3012
 
 ```sql
 CREATE ROLE {q} {attrs(ra)};
 ```
 
-`_role_sync_sql` line 2985
+`_role_sync_sql` line 3019
 
 ```sql
 ALTER ROLE {q} {attrs(ra)};
 ```
 
-`_role_sync_sql` line 2997
+`_role_sync_sql` line 3031
 
 ```sql
 GRANT "{grp.replace('"', '""')}" TO {q};
 ```
 
-`_role_sync_sql` line 2999
+`_role_sync_sql` line 3033
 
 ```sql
 REVOKE "{grp.replace('"', '""')}" FROM {q};
 ```
 
-`_db_compare_publications` line 3025
+`_db_compare_publications` line 3059
 
 ```sql
 SELECT p.pubname, pg_catalog.pg_get_userbyid(p.pubowner) AS owner,
@@ -1175,7 +1182,7 @@ SELECT p.pubname, pg_catalog.pg_get_userbyid(p.pubowner) AS owner,
  ORDER BY p.pubname
 ```
 
-`_db_compare_subscriptions` line 3049
+`_db_compare_subscriptions` line 3083
 
 ```sql
 SELECT s.subname, pg_catalog.pg_get_userbyid(s.subowner) AS owner,
@@ -1186,7 +1193,7 @@ SELECT s.subname, pg_catalog.pg_get_userbyid(s.subowner) AS owner,
  ORDER BY s.subname
 ```
 
-`_db_compare_servers` line 3065
+`_db_compare_servers` line 3099
 
 ```sql
 SELECT s.srvname, w.fdwname, pg_catalog.pg_get_userbyid(s.srvowner) AS owner,
@@ -1197,7 +1204,7 @@ SELECT s.srvname, w.fdwname, pg_catalog.pg_get_userbyid(s.srvowner) AS owner,
  ORDER BY s.srvname
 ```
 
-`_db_compare_event_triggers` line 3088
+`_db_compare_event_triggers` line 3122
 
 ```sql
 SELECT e.evtname, e.evtevent, e.evtfoid::regproc::text AS fn,
@@ -1207,7 +1214,7 @@ SELECT e.evtname, e.evtevent, e.evtfoid::regproc::text AS fn,
  ORDER BY e.evtname
 ```
 
-`_db_compare_casts` line 3115
+`_db_compare_casts` line 3149
 
 ```sql
 SELECT pg_catalog.format_type(c.castsource, NULL) AS source,
@@ -1222,55 +1229,55 @@ SELECT pg_catalog.format_type(c.castsource, NULL) AS source,
  ORDER BY 1, 2
 ```
 
-`_cast_sync_sql.create` line 3149
+`_cast_sync_sql.create` line 3183
 
 ```sql
 CREATE CAST ({v['source']} AS {v['target']}) {how}{ctx};
 ```
 
-**drop** - `_cast_sync_sql` line 3151
+**drop** - `_cast_sync_sql` line 3185
 
 ```sql
 DROP CAST IF EXISTS ({v['source']} AS {v['target']});
 ```
 
-`api_db_compare.collect` line 3247
+`api_db_compare.collect` line 3281
 
 ```sql
 SELECT current_setting('server_version'), current_setting('server_version_num')::int
 ```
 
-`api_db_compare_sync` line 3522
+`api_db_compare_sync` line 3556
 
 ```sql
 SELECT rolname FROM pg_catalog.pg_roles
 ```
 
-`api_db_compare_sync` line 3524
+`api_db_compare_sync` line 3558
 
 ```sql
 SELECT current_setting('server_version_num')::int
 ```
 
-`api_db_compare_sync` line 3597
+`api_db_compare_sync` line 3631
 
 ```sql
 CREATE SCHEMA IF NOT EXISTS "{name.replace('"', '""')}";
 ```
 
-**sql** - `api_db_compare_sync` line 3599
+**sql** - `api_db_compare_sync` line 3633
 
 ```sql
 CREATE SCHEMA IF NOT EXISTS "{name.replace('"', '""')}"
 ```
 
-`_role_object_grants` line 3724
+`_role_object_grants` line 3758
 
 ```sql
 SELECT oid FROM pg_catalog.pg_roles WHERE rolname = %s
 ```
 
-`_role_object_grants` line 3762
+`_role_object_grants` line 3796
 
 ```sql
 SELECT r.rolname, CASE WHEN am.admin_option THEN 'ADMIN' ELSE 'MEMBER' END
@@ -1279,103 +1286,103 @@ SELECT r.rolname, CASE WHEN am.admin_option THEN 'ADMIN' ELSE 'MEMBER' END
                       WHERE am.member = %s
 ```
 
-`_role_object_grants` line 3769
+`_role_object_grants` line 3803
 
 ```sql
 SELECT datdba FROM pg_catalog.pg_database WHERE datname = current_database()
 ```
 
-`_grant_stmt` line 3867
+`_grant_stmt` line 3901
 
 ```sql
 ALTER {target} OWNER TO {who};
 ```
 
-`_grant_stmt` line 3880
+`_grant_stmt` line 3914
 
 ```sql
 REVOKE {priv} ({q(col)}) ON {target} FROM {who};
 ```
 
-`_grant_stmt` line 3882
+`_grant_stmt` line 3916
 
 ```sql
 GRANT {priv} ({q(col)}) ON {target} TO {who};
 ```
 
-**head** - `_grant_stmt` line 3890
+**head** - `_grant_stmt` line 3924
 
 ```sql
 ALTER DEFAULT PRIVILEGES FOR ROLE {q(owner)}{where}
 ```
 
-`_grant_stmt` line 3891
+`_grant_stmt` line 3925
 
 ```sql
 REVOKE {priv} ON {objtype} FROM
 ```
 
-`_grant_stmt` line 3892
+`_grant_stmt` line 3926
 
 ```sql
 GRANT {priv} ON {objtype} TO
 ```
 
-`_grant_stmt` line 3910
+`_grant_stmt` line 3944
 
 ```sql
 GRANT {q(name)} TO {who}{' WITH ADMIN OPTION' if priv == 'ADMIN' else ''};
 ```
 
-`_grant_stmt` line 3930
+`_grant_stmt` line 3964
 
 ```sql
 REVOKE {priv} ON {target} FROM {who};
 ```
 
-`_grant_stmt` line 3931
+`_grant_stmt` line 3965
 
 ```sql
 GRANT {priv} ON {target} TO {who};
 ```
 
-`api_role_privileges_compare._exists` line 4000
+`api_role_privileges_compare._exists` line 4034
 
 ```sql
 SELECT 1 FROM pg_roles WHERE rolname = %s
 ```
 
-`api_role_privileges_compare_sync` line 4105
+`api_role_privileges_compare_sync` line 4139
 
 ```sql
 SELECT 1 FROM pg_roles WHERE rolname = %s
 ```
 
-`api_db_compare_role_privs_apply` line 4247
+`api_db_compare_role_privs_apply` line 4281
 
 ```sql
 SELECT 1 FROM pg_catalog.pg_roles WHERE rolname = %s
 ```
 
-`api_db_compare_role_privs_apply._exists_on_target` line 4268
+`api_db_compare_role_privs_apply._exists_on_target` line 4302
 
 ```sql
 SELECT 1 FROM pg_catalog.pg_namespace WHERE nspname = %s
 ```
 
-`api_db_compare_role_privs_apply._exists_on_target` line 4273
+`api_db_compare_role_privs_apply._exists_on_target` line 4307
 
 ```sql
 SELECT to_regprocedure(%s) IS NOT NULL
 ```
 
-`api_db_compare_role_privs_apply._exists_on_target` line 4276
+`api_db_compare_role_privs_apply._exists_on_target` line 4310
 
 ```sql
 SELECT to_regtype(%s) IS NOT NULL
 ```
 
-`api_db_compare_role_privs_apply._exists_on_target` line 4280
+`api_db_compare_role_privs_apply._exists_on_target` line 4314
 
 ```sql
 SELECT 1 FROM pg_catalog.pg_attribute
@@ -1383,31 +1390,31 @@ SELECT 1 FROM pg_catalog.pg_attribute
                                         AND attnum > 0 AND NOT attisdropped
 ```
 
-`api_db_compare_role_privs_apply._exists_on_target` line 4285
+`api_db_compare_role_privs_apply._exists_on_target` line 4319
 
 ```sql
 SELECT 1 FROM pg_catalog.pg_language WHERE lanname = %s
 ```
 
-`api_db_compare_role_privs_apply._exists_on_target` line 4287
+`api_db_compare_role_privs_apply._exists_on_target` line 4321
 
 ```sql
 SELECT 1 FROM pg_catalog.pg_foreign_data_wrapper WHERE fdwname = %s
 ```
 
-`api_db_compare_role_privs_apply._exists_on_target` line 4289
+`api_db_compare_role_privs_apply._exists_on_target` line 4323
 
 ```sql
 SELECT 1 FROM pg_catalog.pg_foreign_server WHERE srvname = %s
 ```
 
-`api_db_compare_role_privs_apply._exists_on_target` line 4291
+`api_db_compare_role_privs_apply._exists_on_target` line 4325
 
 ```sql
 SELECT 1 FROM pg_catalog.pg_largeobject_metadata WHERE oid = %s::oid
 ```
 
-`api_db_compare_role_privs_apply._exists_on_target` line 4294
+`api_db_compare_role_privs_apply._exists_on_target` line 4328
 
 ```sql
 SELECT to_regclass(%s) IS NOT NULL
@@ -1629,31 +1636,31 @@ SELECT count(*) FROM pg_class c
 
 ## api/maint.py
 
-`api_maint_progress` line 124
+`api_maint_progress` line 127
 
 ```sql
 CREATE INDEX
 ```
 
-`api_maint_progress` line 129
+`api_maint_progress` line 136
 
 ```sql
 SELECT row_to_json(p)::text AS j FROM {view} p WHERE pid = %s
 ```
 
-`api_maint_table_ops` line 167
+`api_maint_table_ops` line 174
 
 ```sql
 SELECT c.oid::int AS oid FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname=%s AND c.relname=%s
 ```
 
-`api_maint_table_ops` line 179
+`api_maint_table_ops` line 187
 
 ```sql
 CREATE INDEX
 ```
 
-`api_pg_repack_info` line 238
+`api_pg_repack_info` line 250
 
 ```sql
 SELECT extversion FROM pg_extension WHERE extname = 'pg_repack'
@@ -3447,33 +3454,33 @@ SELECT COALESCE(d.datname, '') AS datname,
   LEFT JOIN pg_roles    r ON r.oid = s.setrole
 ```
 
-`api_role_timeouts` line 2131
+`api_role_timeouts` line 2134
 
 ```sql
 SELECT name, setting FROM pg_file_settings
                             WHERE applied AND name = ANY(%s) ORDER BY seqno
 ```
 
-`api_role_timeouts` line 2141
+`api_role_timeouts` line 2144
 
 ```sql
 SELECT name, reset_val, boot_val, source, unit
                          FROM pg_settings WHERE name = ANY(%s)
 ```
 
-`api_role_timeouts` line 2156
+`api_role_timeouts` line 2159
 
 ```sql
 SELECT rolconnlimit FROM pg_roles WHERE rolname = %s
 ```
 
-`api_role_timeouts_apply` line 2233
+`api_role_timeouts_apply` line 2236
 
 ```sql
 ALTER ROLE {r}
 ```
 
-`api_role_ddl` line 2309
+`api_role_ddl` line 2312
 
 ```sql
 WITH RECURSIVE up(oid) AS (
@@ -3486,13 +3493,13 @@ SELECT r.rolname FROM pg_roles r JOIN up ON up.oid = r.oid
  ORDER BY 1
 ```
 
-`api_role_ddl` line 2334
+`api_role_ddl` line 2337
 
 ```sql
 SELECT rolpassword FROM pg_authid LIMIT 1
 ```
 
-`api_role_ddl` line 2352
+`api_role_ddl` line 2355
 
 ```sql
 SELECT r.rolname, r.rolsuper, r.rolinherit, r.rolcreaterole,
@@ -3504,19 +3511,19 @@ SELECT r.rolname, r.rolsuper, r.rolinherit, r.rolcreaterole,
  ORDER BY r.rolname
 ```
 
-`api_role_ddl` line 2411
+`api_role_ddl` line 2414
 
 ```sql
 CREATE ROLE {name} {' '.join(opts)};
 ```
 
-`api_role_ddl` line 2415
+`api_role_ddl` line 2418
 
 ```sql
 COMMENT ON ROLE {name} IS {_literal_str(r['comment'])};
 ```
 
-`api_role_ddl` line 2432
+`api_role_ddl` line 2435
 
 ```sql
 SELECT g.rolname AS grp, m.rolname AS member, am.admin_option, {opt16}
@@ -3528,13 +3535,13 @@ SELECT g.rolname AS grp, m.rolname AS member, am.admin_option, {opt16}
  ORDER BY g.rolname, m.rolname
 ```
 
-**stmt** - `api_role_ddl` line 2459
+**stmt** - `api_role_ddl` line 2462
 
 ```sql
 GRANT {_ident_str(grp)} TO {_ident_str(member)}{' WITH ' + ', '.join(opts) if opts else ''};
 ```
 
-`api_role_ddl` line 2492
+`api_role_ddl` line 2495
 
 ```sql
 SELECT r.rolname, COALESCE(d.datname, '') AS dbname, s.setconfig
@@ -3546,7 +3553,7 @@ SELECT r.rolname, COALESCE(d.datname, '') AS dbname, s.setconfig
  ORDER BY r.rolname, 2
 ```
 
-`api_role_ddl` line 2511
+`api_role_ddl` line 2514
 
 ```sql
 ALTER ROLE %s%s SET %s = %s;
@@ -3801,9 +3808,10 @@ SELECT t.spcname AS name,
        -- took the whole inventory down rather than one column of
        -- one row. Gate it per row: the listing is the point, the
        -- size is a bonus, and NULL says "not visible to you".
-       CASE WHEN has_tablespace_privilege(t.oid, 'CREATE')
+       -- pg_read_all_stats and the database's own default count too.
+       CASE WHEN (has_tablespace_privilege(t.oid, 'CREATE') OR pg_has_role(current_user, 'pg_read_all_stats', 'USAGE') OR t.oid = (SELECT dattablespace FROM pg_database WHERE datname = current_database()))
             THEN pg_size_pretty(pg_tablespace_size(t.oid)) END AS size,
-       CASE WHEN has_tablespace_privilege(t.oid, 'CREATE')
+       CASE WHEN (has_tablespace_privilege(t.oid, 'CREATE') OR pg_has_role(current_user, 'pg_read_all_stats', 'USAGE') OR t.oid = (SELECT dattablespace FROM pg_database WHERE datname = current_database()))
             THEN pg_tablespace_size(t.oid) END AS size_bytes,
        COALESCE(t.spcoptions, ARRAY[]::text[]) AS options,
        COALESCE(t.spcacl::text[], ARRAY[]::text[]) AS acl
@@ -3811,7 +3819,7 @@ SELECT t.spcname AS name,
  ORDER BY t.spcname
 ```
 
-`api_tablespaces_create` line 53
+`api_tablespaces_create` line 54
 
 ```sql
 CREATE TABLESPACE name [OWNER role] LOCATION '/path' [WITH (opt=val,...)]
@@ -3819,43 +3827,43 @@ CREATE TABLESPACE name [OWNER role] LOCATION '/path' [WITH (opt=val,...)]
     by the postgres OS user.
 ```
 
-**sql** - `api_tablespaces_create` line 76
+**sql** - `api_tablespaces_create` line 77
 
 ```sql
 CREATE TABLESPACE {_ident(name)}
 ```
 
-`api_tablespaces_create` line 86
+`api_tablespaces_create` line 87
 
 ```sql
 WITH ({', '.join(opt_pairs)})
 ```
 
-`api_tablespaces_alter` line 130
+`api_tablespaces_alter` line 131
 
 ```sql
 ALTER TABLESPACE {_ident(name)} RENAME TO {_ident(nn)}
 ```
 
-`api_tablespaces_alter` line 135
+`api_tablespaces_alter` line 136
 
 ```sql
 ALTER TABLESPACE {_ident(name)} OWNER TO {_ident(no)}
 ```
 
-`api_tablespaces_alter` line 144
+`api_tablespaces_alter` line 145
 
 ```sql
 ALTER TABLESPACE {_ident(name)} SET ({', '.join(pairs)})
 ```
 
-`api_tablespaces_alter` line 153
+`api_tablespaces_alter` line 154
 
 ```sql
 ALTER TABLESPACE {_ident(name)} RESET ({', '.join(ks)})
 ```
 
-**sql** - `api_tablespaces_drop` line 177
+**sql** - `api_tablespaces_drop` line 178
 
 ```sql
 DROP TABLESPACE {_ident(name)}

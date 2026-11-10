@@ -1,6 +1,6 @@
 # DBApguin User Guide
 
-**For DBApguin 1.0.0**
+**For DBApguin 1.0.1**
 
 DBApguin is a desktop PostgreSQL DBA console. This guide covers every feature
 from a user's point of view, and ships with the application, so it always
