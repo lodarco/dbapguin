@@ -1,6 +1,6 @@
 # DBApguin User Guide
 
-**For DBApguin 1.0.1**
+**For DBApguin 1.0.2**
 
 DBApguin is a desktop PostgreSQL DBA console. This guide covers every feature
 from a user's point of view, and ships with the application, so it always
@@ -2990,7 +2990,10 @@ Before a dry run or an apply a review shows, read from B itself:
   something;
 - the statements that cannot run inside a transaction block (anything
   CONCURRENTLY, ALTER TYPE ... ADD VALUE before PostgreSQL 12, ALTER SYSTEM):
-  they are skipped and listed, to be run on their own;
+  they are skipped and listed, to be run on their own. `CREATE INDEX
+  CONCURRENTLY` and `DROP INDEX CONCURRENTLY` are the exception: an apply runs
+  them after the COMMIT, one by one in the script's order, and the first that
+  fails stops the rest; a dry run checks them as the plain statement;
 - the copy: before an apply, the definitions of every object on B the
   statements change or drop are saved as SQL that puts them back; the report
   links to it and Background jobs keeps it. What it has no way to write - a
@@ -3065,6 +3068,16 @@ produce a script that touches them.
 - **Move tables to A's tablespace and access method** is off by default:
   moving a table rewrites all of it under an ACCESS EXCLUSIVE lock. Off, the
   difference is still reported and the script says why it leaves it.
+- **Build and drop indexes CONCURRENTLY** is off by default. Ticked, the index
+  changes of tables B already has are written as `CREATE INDEX CONCURRENTLY`
+  and `DROP INDEX CONCURRENTLY`, in a section of their own after the
+  transaction: reads and writes on the table go on while an index is built.
+  They are not undone with the transaction, and a build that fails (a unique
+  index over duplicate rows, say) leaves an INVALID index behind, which `IF NOT
+  EXISTS` then passes over: the report says so; drop it with `DROP INDEX
+  CONCURRENTLY`, remove the cause and apply again (*index validity and usage*
+  under the current state shows it). A partitioned table, an index behind a constraint and
+  the index REPLICA IDENTITY uses stay inside the transaction.
 - **Count a different column order as a difference** is off by default.
   PostgreSQL cannot move a column, so no statement can make B's columns stand
   in A's order. Off, a table whose columns are the same in another order

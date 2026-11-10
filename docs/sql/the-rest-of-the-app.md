@@ -613,43 +613,43 @@ SELECT pg_catalog.format_type(a.atttypid, a.atttypmod) FROM pg_catalog.pg_attrib
 SELECT DISTINCT proname::text FROM pg_catalog.pg_proc WHERE proname = ANY(%s) AND provolatile = 'v'
 ```
 
-`copy_targets` line 1099
+`copy_targets` line 1103
 
 ```sql
 SELECT pg_catalog.current_setting('search_path')
 ```
 
-`copy_targets` line 1101
+`copy_targets` line 1105
 
 ```sql
 SELECT pg_catalog.set_config('search_path', '', false)
 ```
 
-`copy_targets` line 1119
+`copy_targets` line 1123
 
 ```sql
 SELECT c.relkind FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace WHERE n.nspname = %s AND c.relname = %s
 ```
 
-`copy_targets` line 1128
+`copy_targets` line 1132
 
 ```sql
 SELECT 1 FROM pg_namespace WHERE nspname = %s
 ```
 
-`copy_targets` line 1136
+`copy_targets` line 1140
 
 ```sql
 SELECT c.relname FROM pg_trigger t JOIN pg_class c ON c.oid = t.tgrelid JOIN pg_namespace n ON n.oid = c.relnamespace WHERE n.nspname = %s AND c.relname || '.' || t.tgname = %s
 ```
 
-`copy_targets` line 1140
+`copy_targets` line 1144
 
 ```sql
 SELECT c.relname FROM pg_rewrite r JOIN pg_class c ON c.oid = r.ev_class JOIN pg_namespace n ON n.oid = c.relnamespace WHERE n.nspname = %s AND c.relname || '.' || r.rulename = %s
 ```
 
-`copy_targets` line 1162
+`copy_targets` line 1166
 
 ```sql
 SELECT p.proname, pg_catalog.pg_get_function_identity_arguments(p.oid)
@@ -659,79 +659,79 @@ SELECT p.proname, pg_catalog.pg_get_function_identity_arguments(p.oid)
  LIMIT 1
 ```
 
-`copy_targets` line 1176
+`copy_targets` line 1180
 
 ```sql
 SELECT 1 FROM pg_type t JOIN pg_namespace n ON n.oid = t.typnamespace WHERE n.nspname = %s AND t.typname = %s
 ```
 
-`copy_targets` line 1179
+`copy_targets` line 1183
 
 ```sql
 SELECT 1 FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace WHERE n.nspname = %s AND c.relname = %s
 ```
 
-`copy_targets` line 1187
+`copy_targets` line 1191
 
 ```sql
 SELECT pg_catalog.set_config('search_path', %s, false)
 ```
 
-`permission_problems` line 1200
+`permission_problems` line 1204
 
 ```sql
 SELECT current_setting('server_version_num')::int
 ```
 
-`permission_problems` line 1210
+`permission_problems` line 1214
 
 ```sql
 SELECT pg_catalog.pg_get_userbyid(c.relowner), pg_catalog.pg_has_role(c.relowner, 'USAGE') FROM pg_catalog.pg_class c JOIN pg_catalog.pg_namespace n ON n.oid = c.relnamespace WHERE n.nspname = %s AND c.relname = %s
 ```
 
-`permission_problems` line 1215
+`permission_problems` line 1219
 
 ```sql
 SELECT pg_catalog.pg_get_userbyid(t.typowner), pg_catalog.pg_has_role(t.typowner, 'USAGE') FROM pg_catalog.pg_type t JOIN pg_catalog.pg_namespace n ON n.oid = t.typnamespace WHERE n.nspname = %s AND t.typname = %s
 ```
 
-`permission_problems` line 1220
+`permission_problems` line 1224
 
 ```sql
 SELECT pg_catalog.pg_get_userbyid(p.proowner), pg_catalog.pg_has_role(p.proowner, 'USAGE') FROM pg_catalog.pg_proc p JOIN pg_catalog.pg_namespace n ON n.oid = p.pronamespace WHERE n.nspname = %s AND p.proname || '(' || pg_catalog.pg_get_function_identity_arguments(p.oid) || ')' = %s
 ```
 
-`permission_problems` line 1227
+`permission_problems` line 1231
 
 ```sql
 SELECT pg_catalog.pg_get_userbyid(c.relowner), pg_catalog.pg_has_role(c.relowner, 'USAGE') FROM pg_catalog.pg_class c JOIN pg_catalog.pg_namespace n ON n.oid = c.relnamespace WHERE n.nspname = %s AND c.relname = %s
 ```
 
-`permission_problems` line 1232
+`permission_problems` line 1236
 
 ```sql
 SELECT pg_catalog.pg_get_userbyid(nspowner), pg_catalog.pg_has_role(nspowner, 'USAGE') FROM pg_catalog.pg_namespace WHERE nspname = %s
 ```
 
-`permission_problems` line 1239
+`permission_problems` line 1243
 
 ```sql
 SELECT pg_catalog.has_schema_privilege(n.oid, 'CREATE') FROM pg_catalog.pg_namespace n WHERE n.nspname = %s
 ```
 
-`permission_problems` line 1255
+`permission_problems` line 1259
 
 ```sql
 SELECT pg_catalog.pg_has_role(r.oid, %s) FROM pg_catalog.pg_roles r WHERE r.rolname = %s
 ```
 
-`permission_problems` line 1264
+`permission_problems` line 1268
 
 ```sql
 SELECT rolcreaterole OR rolsuper FROM pg_catalog.pg_roles WHERE rolname = current_user
 ```
 
-`execute` line 1309
+`execute` line 1340
 
 ```sql
 ROLLBACK TO SAVEPOINT dbap_cmp_dry
@@ -4963,7 +4963,7 @@ COMMENT ON COLUMN {re.escape(ref)}\.{_QID}
 GRANT [A-Z ]+ \({_QID}\) ON TABLE {re.escape(ref)}
 ```
 
-`_build_object_ddl` line 4282
+`_build_object_ddl` line 4288
 
 ```sql
 CREATE TABLE {qi(schema)}.{qi(name)} (
@@ -4971,129 +4971,129 @@ CREATE TABLE {qi(schema)}.{qi(name)} (
 );
 ```
 
-`_build_object_ddl` line 4284
+`_build_object_ddl` line 4290
 
 ```sql
 ALTER TABLE {qi(schema)}.{qi(name)} ADD CONSTRAINT {qi(cn)} {sub(m['cons'][cn])};
 ```
 
-`_build_object_ddl` line 4292
+`_build_object_ddl` line 4298
 
 ```sql
 CREATE {kw} {qi(schema)}.{qi(name)} AS
 {sub(m.get('viewdef') or '').rstrip().rstrip(';')};
 ```
 
-`_build_object_ddl` line 4295
+`_build_object_ddl` line 4301
 
 ```sql
 CREATE {'UNLOGGED ' if m.get('persistence') == 'u' else ''}SEQUENCE {qi(schema)}.{qi(name)}{' AS ' + (m.get('data_type') or '') if _typed_seq else ''} START {str(m.get('start'))} INCREMENT {str(m.get('inc'))} MINVALUE {str(m.get('min'))} MAXVALUE {str(m.get('max'))}{' CACHE ' + str(m.get('cache')) if m.get('cache') else ''}{' CYCLE' if m.get('cycle') else ''};
 ```
 
-`_rls_sql` line 4330
+`_rls_sql` line 4336
 
 ```sql
 ALTER TABLE {t} ENABLE ROW LEVEL SECURITY;
 ```
 
-`_rls_sql` line 4332
+`_rls_sql` line 4338
 
 ```sql
 ALTER TABLE {t} FORCE ROW LEVEL SECURITY;
 ```
 
-`_rls_sql` line 4337
+`_rls_sql` line 4343
 
 ```sql
 DROP POLICY IF EXISTS {qi(nm)} ON {t};
 ```
 
-`_rls_sql` line 4343
+`_rls_sql` line 4349
 
 ```sql
 CREATE POLICY {qi(nm)} ON {t}{'' if p.get('permissive', True) else ' AS RESTRICTIVE'}{' FOR ' + cmd if cmd else ''}{' TO ' + ', '.join((qi(rr) for rr in p['roles'])) if p.get('roles') else ''}{' USING (' + sub(p['using']) + ')' if p.get('using') else ''}{' WITH CHECK (' + sub(p['check']) + ')' if p.get('check') else ''};
 ```
 
-**st** - `_build_sync_sql._detach` line 4427
+**st** - `_build_sync_sql._detach` line 4435
 
 ```sql
 ALTER TABLE {qi(sb)}.{qi(parent)} DETACH PARTITION {t}
 ```
 
-**st** - `_build_sync_sql._attach` line 4450
+**st** - `_build_sync_sql._attach` line 4458
 
 ```sql
 ALTER TABLE {qi(sb)}.{qi(parent)} ATTACH PARTITION {qi(sb)}.{qi(name)} {bound or 'DEFAULT'};
 ```
 
-`_build_sync_sql._hypertable_note` line 4481
+`_build_sync_sql._hypertable_note` line 4489
 
 ```sql
 SELECT set_chunk_time_interval({lit}, {iv_sql});
 ```
 
-`_build_sync_sql._hypertable_note` line 4483
+`_build_sync_sql._hypertable_note` line 4491
 
 ```sql
  SET (timescaledb.compress ...)
 -- after decompressing its compressed chunks.
 ```
 
-`_build_sync_sql._storage_sql` line 4551
+`_build_sync_sql._storage_sql` line 4559
 
 ```sql
 ALTER TABLE {t} SET TABLESPACE {qi(ts_a)};
 ```
 
-`_build_sync_sql._storage_sql` line 4555
+`_build_sync_sql._storage_sql` line 4563
 
 ```sql
 DO $$BEGIN EXECUTE format('ALTER TABLE %s SET TABLESPACE %I', {_literal_str(t)}, (SELECT ts.spcname FROM pg_catalog.pg_tablespace ts JOIN pg_catalog.pg_database d ON d.dattablespace = ts.oid WHERE d.datname = current_database())); END$$;
 ```
 
-`_build_sync_sql._storage_sql` line 4564
+`_build_sync_sql._storage_sql` line 4572
 
 ```sql
 ALTER TABLE {t} SET ACCESS METHOD {qi(am_a or 'heap')};
 ```
 
-`_build_sync_sql._nn_not_valid_sql` line 4620
+`_build_sync_sql._nn_not_valid_sql` line 4628
 
 ```sql
 ALTER TABLE {t} ADD CONSTRAINT {qi(c['notnull_invalid'])} NOT NULL {qi(c['name'])} NOT VALID;
 ```
 
-**head** - `_build_sync_sql._identity_alter` line 4630
+**head** - `_build_sync_sql._identity_alter` line 4638
 
 ```sql
 ALTER TABLE {t} ALTER COLUMN {qi(c['name'])}
 ```
 
-`_build_sync_sql._identity_alter` line 4636
+`_build_sync_sql._identity_alter` line 4644
 
 ```sql
 DROP IDENTITY IF EXISTS;
 ```
 
-`_build_sync_sql._identity_alter` line 4646
+`_build_sync_sql._identity_alter` line 4654
 
 ```sql
 SET {kw} {str(sa[k])}
 ```
 
-**head** - `_build_sync_sql._col_props_alter` line 4661
+**head** - `_build_sync_sql._col_props_alter` line 4669
 
 ```sql
 ALTER TABLE {t} ALTER COLUMN {qi(c['name'])}
 ```
 
-`_build_sync_sql._add_constraint_idempotent` line 4732
+`_build_sync_sql._add_constraint_idempotent` line 4741
 
 ```sql
 ALTER TABLE {t} ADD CONSTRAINT {qi(cn)} {sub(cdef)};
 ```
 
-`_build_sync_sql._add_constraint_idempotent` line 4734
+`_build_sync_sql._add_constraint_idempotent` line 4743
 
 ```sql
 DO $$
@@ -5103,7 +5103,7 @@ EXCEPTION WHEN duplicate_object OR duplicate_table OR invalid_table_definition T
 END $$;
 ```
 
-`_build_sync_sql._idempotent_type` line 4752
+`_build_sync_sql._idempotent_type` line 4761
 
 ```sql
 DO $$
@@ -5113,37 +5113,37 @@ EXCEPTION WHEN duplicate_object THEN NULL;
 END $$;
 ```
 
-`_build_sync_sql.create_one` line 4760
+`_build_sync_sql.create_one` line 4769
 
 ```sql
 CREATE TYPE {n} AS ENUM ({', '.join((_literal_str(l) for l in m.get('labels') or []))})
 ```
 
-`_build_sync_sql.create_one` line 4769
+`_build_sync_sql.create_one` line 4778
 
 ```sql
 CREATE DOMAIN {n} AS {sub(m.get('base') or 'text')}{' DEFAULT ' + m['typdefault'] if m.get('typdefault') else ''}{' NOT NULL' if m.get('notnull') else ''}{''.join((' CONSTRAINT ' + qi(c) + ' ' + sub(m['checks'][c]) for c in sorted(m.get('checks') or {}) if c not in nv))}
 ```
 
-`_build_sync_sql.create_one` line 4776
+`_build_sync_sql.create_one` line 4785
 
 ```sql
 ALTER DOMAIN {n} ADD CONSTRAINT {qi(c)} {sub(m['checks'][c])}
 ```
 
-`_build_sync_sql.create_one` line 4797
+`_build_sync_sql.create_one` line 4806
 
 ```sql
 CREATE TYPE {n} AS RANGE ({', '.join(opts)})
 ```
 
-`_build_sync_sql.create_one` line 4800
+`_build_sync_sql.create_one` line 4809
 
 ```sql
 CREATE TYPE {n} AS ({', '.join((qi(f['name']) + ' ' + sub(f['type']) for f in m.get('fields') or []))})
 ```
 
-`_build_sync_sql.create_one` line 4810
+`_build_sync_sql.create_one` line 4819
 
 ```sql
 CREATE FOREIGN TABLE IF NOT EXISTS {qi(sb)}.{qi(name)} (
@@ -5151,26 +5151,26 @@ CREATE FOREIGN TABLE IF NOT EXISTS {qi(sb)}.{qi(name)} (
 ) SERVER {qi(m.get('server') or '')}{' OPTIONS (' + m['options'] + ')' if m.get('options') else ''};
 ```
 
-`_build_sync_sql.create_one` line 4829
+`_build_sync_sql.create_one` line 4838
 
 ```sql
 CREATE COLLATION {qi(sb)}.{qi(name)} (provider = {prov}, locale = {_literal_str(m.get('lc_collate') or '')}{'' if m.get('deterministic', True) else ', deterministic = false'})
 ```
 
-`_build_sync_sql.create_one` line 4851
+`_build_sync_sql.create_one` line 4860
 
 ```sql
 DROP TRIGGER IF EXISTS {qi(m.get('trigger') or name)} ON {qi(sb)}.{qi(m.get('table') or '')};
 {sub(m.get('trigdef') or '').rstrip().rstrip(';')};{'\n' + fire if fire else ''}
 ```
 
-`_build_sync_sql.create_one` line 4866
+`_build_sync_sql.create_one` line 4875
 
 ```sql
 CREATE {_unlogged(m)}TABLE IF NOT EXISTS {t} PARTITION OF {qi(sb)}.{qi(m['parent'])} {m.get('partbound') or 'DEFAULT'}{' PARTITION BY ' + sub(m['partkey']) if m.get('partkey') else ''}{storage};
 ```
 
-`_build_sync_sql.create_one` line 4878
+`_build_sync_sql.create_one` line 4887
 
 ```sql
 CREATE {_unlogged(m)}TABLE IF NOT EXISTS {t} (
@@ -5178,143 +5178,143 @@ CREATE {_unlogged(m)}TABLE IF NOT EXISTS {t} (
 ){' INHERITS (' + ', '.join((sub(p) for p in m['inherits'])) + ')' if m.get('inherits') else ''}{' PARTITION BY ' + sub(m['partkey']) if m.get('partkey') else ''}{storage};
 ```
 
-`_build_sync_sql.create_one` line 4909
+`_build_sync_sql.create_one` line 4918
 
 ```sql
 ALTER TABLE {t} ADD CONSTRAINT {qi(c['notnull_name'])} NOT NULL {qi(c['name'])};
 ```
 
-`_build_sync_sql.create_one` line 4912
+`_build_sync_sql.create_one` line 4921
 
 ```sql
 ALTER TABLE {t} ALTER COLUMN {qi(c['name'])} SET NOT NULL;
 ```
 
-`_build_sync_sql.create_one` line 4918
+`_build_sync_sql.create_one` line 4927
 
 ```sql
 ALTER TABLE {t} SET ({', '.join(m['reloptions'])});
 ```
 
-`_build_sync_sql.create_one` line 4933
+`_build_sync_sql.create_one` line 4942
 
 ```sql
 ALTER TABLE {t} REPLICA IDENTITY {_replident_sql(m)};
 ```
 
-`_build_sync_sql.create_one` line 4942
+`_build_sync_sql.create_one` line 4951
 
 ```sql
 CREATE OR REPLACE VIEW {qi(sb)}.{qi(name)} AS
 {sub(m['viewdef']).rstrip().rstrip(';')};
 ```
 
-`_build_sync_sql.create_one` line 4945
+`_build_sync_sql.create_one` line 4954
 
 ```sql
 CREATE MATERIALIZED VIEW IF NOT EXISTS {qi(sb)}.{qi(name)} AS
 {sub(m['viewdef']).rstrip().rstrip(';')}{'' if m.get('populated', True) else '\n  WITH NO DATA'};
 ```
 
-`_build_sync_sql.create_one` line 4949
+`_build_sync_sql.create_one` line 4958
 
 ```sql
 CREATE {'UNLOGGED ' if m.get('persistence') == 'u' else ''}SEQUENCE {'IF NOT EXISTS ' if _seq_ine else ''}{qi(sb)}.{qi(name)}{' AS ' + m['data_type'] if _typed_seq else ''} START {str(m['start'])} INCREMENT {str(m['inc'])} MINVALUE {str(m['min'])} MAXVALUE {str(m['max'])}{' CACHE ' + str(m['cache']) if m.get('cache') else ''}{' CYCLE' if m['cycle'] else ''};
 ```
 
-`_build_sync_sql.create_one` line 4962
+`_build_sync_sql.create_one` line 4971
 
 ```sql
 CREATE AGGREGATE {_routine_ref(m)} {sub(m['aggbody'])}
 ```
 
-`_build_sync_sql.drop_one` line 4969
+`_build_sync_sql.drop_one` line 4978
 
 ```sql
 DROP {_routine_kw(m or {})} IF EXISTS {_routine_ref(m or {})};
 ```
 
-`_build_sync_sql.drop_one` line 4973
+`_build_sync_sql.drop_one` line 4982
 
 ```sql
 DROP TRIGGER IF EXISTS {qi(m.get('trigger') or name)} ON {qi(sb)}.{qi(m.get('table') or '')};
 ```
 
-`_build_sync_sql.drop_one` line 4977
+`_build_sync_sql.drop_one` line 4986
 
 ```sql
 DROP {kw} IF EXISTS {qi(sb)}.{qi(name)};
 ```
 
-`_build_sync_sql.drop_one` line 4980
+`_build_sync_sql.drop_one` line 4989
 
 ```sql
 DROP RULE IF EXISTS {qi(rl)} ON {qi(sb)}.{qi(tbl)};
 ```
 
-`_build_sync_sql.drop_one` line 4983
+`_build_sync_sql.drop_one` line 4992
 
 ```sql
 DROP FOREIGN TABLE IF EXISTS {qi(sb)}.{qi(name)};
 ```
 
-`_build_sync_sql.drop_one` line 4985
+`_build_sync_sql.drop_one` line 4994
 
 ```sql
 DROP {{'statistics': 'STATISTICS', 'collation': 'COLLATION', 'conversion': 'CONVERSION'}[otype]} IF EXISTS {qi(sb)}.{qi(name)};
 ```
 
-`_build_sync_sql.drop_one` line 4998
+`_build_sync_sql.drop_one` line 5007
 
 ```sql
 DROP {kw} IF EXISTS {qi(sb)}.{qi(name)};
 ```
 
-`_build_sync_sql._drop_column_sql` line 5107
+`_build_sync_sql._drop_column_sql` line 5116
 
 ```sql
 ALTER TABLE {t} DROP COLUMN {qi(c)};  -- DESTRUCTIVE
 ```
 
-`_build_sync_sql.alter_one` line 5169
+`_build_sync_sql.alter_one` line 5178
 
 ```sql
 ALTER TYPE {qi(sb)}.{qi(name)} ADD VALUE IF NOT EXISTS {_literal_str(l)}{' AFTER ' + _literal_str(prev) if prev else ''};
 ```
 
-`_build_sync_sql.alter_one` line 5182
+`_build_sync_sql.alter_one` line 5191
 
 ```sql
 ALTER DOMAIN {qi(sb)}.{qi(name)} DROP CONSTRAINT IF EXISTS {qi(c)};
 ```
 
-`_build_sync_sql.alter_one` line 5186
+`_build_sync_sql.alter_one` line 5195
 
 ```sql
 ALTER DOMAIN {qi(sb)}.{qi(name)} DROP CONSTRAINT IF EXISTS {qi(c)};
 ```
 
-`_build_sync_sql.alter_one` line 5188
+`_build_sync_sql.alter_one` line 5197
 
 ```sql
 ALTER DOMAIN {qi(sb)}.{qi(name)} ADD CONSTRAINT {qi(c)} {sub(ma['checks'][c])};
 ```
 
-`_build_sync_sql.alter_one` line 5200
+`_build_sync_sql.alter_one` line 5209
 
 ```sql
 CREATE OR REPLACE VIEW {qi(sb)}.{qi(name)} AS
 {sub(ma['viewdef']).rstrip().rstrip(';')};
 ```
 
-`_build_sync_sql.alter_one` line 5207
+`_build_sync_sql.alter_one` line 5216
 
 ```sql
 DROP AGGREGATE IF EXISTS {_routine_ref(ma)};
 {create_one('function', name, ma)}
 ```
 
-`_build_sync_sql.alter_one` line 5211
+`_build_sync_sql.alter_one` line 5220
 
 ```sql
 DROP MATERIALIZED VIEW IF EXISTS {qi(sb)}.{qi(name)};
@@ -5322,205 +5322,205 @@ CREATE MATERIALIZED VIEW {qi(sb)}.{qi(name)} AS
 {sub(ma['viewdef']).rstrip().rstrip(';')};
 ```
 
-`_build_sync_sql.alter_one` line 5215
+`_build_sync_sql.alter_one` line 5224
 
 ```sql
 ALTER SEQUENCE {qi(sb)}.{qi(name)}{' AS ' + ma['data_type'] if _typed_seq and ma.get('data_type') != mb.get('data_type') else ''} INCREMENT {str(ma['inc'])} MINVALUE {str(ma['min'])} MAXVALUE {str(ma['max'])}{' CACHE ' + str(ma['cache']) if ma.get('cache') else ''}{' CYCLE' if ma['cycle'] else ' NO CYCLE'};
 ```
 
-`_build_sync_sql.alter_one` line 5227
+`_build_sync_sql.alter_one` line 5236
 
 ```sql
 ALTER SEQUENCE {qi(sb)}.{qi(name)} OWNED BY {qi(sb)}.{qi(tab)}.{qi(col)};
 ```
 
-`_build_sync_sql.alter_one` line 5230
+`_build_sync_sql.alter_one` line 5239
 
 ```sql
 ALTER SEQUENCE {qi(sb)}.{qi(name)} OWNED BY NONE;
 ```
 
-`_build_sync_sql.alter_one` line 5259
+`_build_sync_sql.alter_one` line 5268
 
 ```sql
 ALTER TABLE {t} NO INHERIT {sub(p)};
 ```
 
-`_build_sync_sql.alter_one` line 5260
+`_build_sync_sql.alter_one` line 5269
 
 ```sql
 ALTER TABLE {t} INHERIT {sub(p)};
 ```
 
-`_build_sync_sql.alter_one` line 5285
+`_build_sync_sql.alter_one` line 5294
 
 ```sql
 ALTER TABLE {t} ADD COLUMN IF NOT EXISTS {col_line(c).strip()};
 ```
 
-`_build_sync_sql.alter_one` line 5299
+`_build_sync_sql.alter_one` line 5308
 
 ```sql
 ALTER TABLE {t} ALTER COLUMN {qi(n)} TYPE {c['type']};
 ```
 
-`_build_sync_sql.alter_one` line 5302
+`_build_sync_sql.alter_one` line 5311
 
 ```sql
 ALTER TABLE {t} ALTER COLUMN {qi(n)}{' SET DEFAULT ' + sub(c['default']) if c['default'] else ' DROP DEFAULT'};
 ```
 
-`_build_sync_sql.alter_one` line 5309
+`_build_sync_sql.alter_one` line 5318
 
 ```sql
 ALTER TABLE {t} ALTER COLUMN {qi(n)}{' SET' if c['notnull'] else ' DROP'} NOT NULL;
 ```
 
-`_build_sync_sql.alter_one` line 5357
+`_build_sync_sql.alter_one` line 5366
 
 ```sql
 ALTER TABLE {t} DROP CONSTRAINT IF EXISTS {qi(cn)};
 ```
 
-`_build_sync_sql.alter_one` line 5364
+`_build_sync_sql.alter_one` line 5373
 
 ```sql
 ALTER TABLE {t} DROP CONSTRAINT IF EXISTS {qi(cn)};
 ```
 
-`_build_sync_sql.alter_one` line 5369
+`_build_sync_sql.alter_one._drop_ix` line 5392
 
 ```sql
 DROP INDEX IF EXISTS {qi(sb)}.{qi(ixn)};
 ```
 
-`_build_sync_sql.alter_one` line 5374
+`_build_sync_sql.alter_one._drop_ix` line 5393
 
 ```sql
-DROP INDEX IF EXISTS {qi(sb)}.{qi(ixn)};
+DROP INDEX CONCURRENTLY IF EXISTS {qi(sb)}.{qi(ixn)};
 ```
 
-`_build_sync_sql.alter_one` line 5386
+`_build_sync_sql.alter_one` line 5421
 
 ```sql
 ALTER TABLE {t} RESET ({', '.join(gone)});
 ```
 
-`_build_sync_sql.alter_one` line 5388
+`_build_sync_sql.alter_one` line 5423
 
 ```sql
 ALTER TABLE {t} SET ({', '.join(ma['reloptions'])});
 ```
 
-`_build_sync_sql.alter_one` line 5396
+`_build_sync_sql.alter_one` line 5431
 
 ```sql
 DROP POLICY IF EXISTS {qi(nm)} ON {t};
 ```
 
-`_build_sync_sql.alter_one` line 5398
+`_build_sync_sql.alter_one` line 5433
 
 ```sql
 ALTER TABLE {t} DISABLE ROW LEVEL SECURITY;
 ```
 
-`_build_sync_sql.alter_one` line 5400
+`_build_sync_sql.alter_one` line 5435
 
 ```sql
 ALTER TABLE {t} NO FORCE ROW LEVEL SECURITY;
 ```
 
-`_build_sync_sql.alter_one` line 5405
+`_build_sync_sql.alter_one` line 5440
 
 ```sql
 ALTER TABLE {t} REPLICA IDENTITY {_replident_sql(ma)};
 ```
 
-`_build_sync_sql._emit_creates` line 5638
+`_build_sync_sql._emit_creates` line 5673
 
 ```sql
 ALTER SEQUENCE {qi(sb)}.{qi(n)} OWNED BY {qi(sb)}.{qi(tab)}.{qi(col)};
 ```
 
-`_build_sync_sql._emit_comments` line 5741
+`_build_sync_sql._emit_comments` line 5776
 
 ```sql
 COMMENT ON {target} IS {_literal_str(m['comment'])};
 ```
 
-`_build_sync_sql._emit_comments` line 5744
+`_build_sync_sql._emit_comments` line 5779
 
 ```sql
 COMMENT ON COLUMN {qi(sb)}.{qi(name)}.{qi(col)} IS {_literal_str(txt)};
 ```
 
-`_build_sync_sql._emit_comments` line 5751
+`_build_sync_sql._emit_comments` line 5786
 
 ```sql
 COMMENT ON POLICY {qi(pn)} ON {qi(sb)}.{qi(name)} IS {_literal_str(pc)};
 ```
 
-`_build_sync_sql._acl_sync` line 5866
+`_build_sync_sql._acl_sync` line 5901
 
 ```sql
 REVOKE {', '.join(_words(revoke, col))} ON {t} FROM {who};
 ```
 
-`_build_sync_sql._acl_sync` line 5869
+`_build_sync_sql._acl_sync` line 5904
 
 ```sql
 REVOKE GRANT OPTION FOR {', '.join(_words(revoke_go, col))} ON {t} FROM {who};
 ```
 
-`_build_sync_sql._acl_sync` line 5872
+`_build_sync_sql._acl_sync` line 5907
 
 ```sql
 GRANT {', '.join(_words(grant, col))} ON {t} TO {who};
 ```
 
-`_build_sync_sql._acl_sync` line 5875
+`_build_sync_sql._acl_sync` line 5910
 
 ```sql
 GRANT {', '.join(_words(grant_go, col))} ON {t} TO {who} WITH GRANT OPTION;
 ```
 
-**head** - `_build_sync_sql._defacl_sync` line 5903
+**head** - `_build_sync_sql._defacl_sync` line 5938
 
 ```sql
 ALTER DEFAULT PRIVILEGES FOR ROLE {qi(role)} IN SCHEMA {qi(sb)}
 ```
 
-`_build_sync_sql._defacl_sync` line 5924
+`_build_sync_sql._defacl_sync` line 5959
 
 ```sql
 WITH GRANT OPTION;
 ```
 
-`_build_sync_sql._grants_one` line 5950
+`_build_sync_sql._grants_one` line 5985
 
 ```sql
 ALTER {t} OWNER TO {qi(ma['owner'])};
 ```
 
-`_build_sync_sql._setval` line 6040
+`_build_sync_sql._setval` line 6075
 
 ```sql
 SELECT setval({seq_expr}, COALESCE({agg}, {start}), {agg} IS NOT NULL) FROM {qi(sb)}.{qi(tab)};
 ```
 
-`_build_sync_sql._setval` line 6071
+`_build_sync_sql._setval` line 6106
 
 ```sql
 SELECT setval({seq_expr}, {str(int(val[0]))}, {'true' if val[1] else 'false'});
 ```
 
-`_build_sync_sql._state_one` line 6100
+`_build_sync_sql._state_one` line 6135
 
 ```sql
 REFRESH MATERIALIZED VIEW {qi(sb)}.{qi(name)}{'' if d['a'] else ' WITH NO DATA'};
 ```
 
-`_compare_collect` line 6269
+`_compare_collect` line 6319
 
 ```sql
 SELECT c.relname, c.relkind::text,
@@ -5534,7 +5534,7 @@ SELECT c.relname, c.relkind::text,
  WHERE n.nspname = %s AND c.relkind IN ('r','p','m')
 ```
 
-`_compare_collect` line 6289
+`_compare_collect` line 6339
 
 ```sql
 SELECT e.extname, e.extversion,
@@ -5543,25 +5543,25 @@ SELECT e.extname, e.extversion,
   LEFT JOIN pg_namespace n ON n.oid = e.extnamespace
 ```
 
-`_compare_diff` line 6367
+`_compare_diff` line 6417
 
 ```sql
 SELECT setval({_lit(tgt)}, (SELECT last_value FROM {src}), (SELECT is_called FROM {src}));
 ```
 
-`_copy_table_cross` line 6557
+`_copy_table_cross` line 6607
 
 ```sql
 SELECT to_regclass(%s) IS NOT NULL
 ```
 
-`_copy_table_cross` line 6562
+`_copy_table_cross` line 6612
 
 ```sql
 SELECT current_setting('server_version_num')::int
 ```
 
-`_copy_table_cross` line 6574
+`_copy_table_cross` line 6624
 
 ```sql
 SELECT a.attname, format_type(a.atttypid, a.atttypmod),
@@ -5575,61 +5575,61 @@ SELECT a.attname, format_type(a.atttypid, a.atttypmod),
  ORDER BY a.attnum
 ```
 
-`_copy_table_cross` line 6592
+`_copy_table_cross` line 6642
 
 ```sql
 SELECT to_regclass(%s) IS NOT NULL
 ```
 
-`_copy_table_cross` line 6598
+`_copy_table_cross` line 6648
 
 ```sql
 SELECT current_setting('server_version_num')::int
 ```
 
-`_copy_table_cross` line 6614
+`_copy_table_cross` line 6664
 
 ```sql
 ALTER TABLE {dst_q} ADD CONSTRAINT {_qi(nn_nv)} NOT NULL "{name}" NOT VALID
 ```
 
-**ddl** - `_copy_table_cross` line 6618
+**ddl** - `_copy_table_cross` line 6668
 
 ```sql
 CREATE TABLE {dst_q} ({', '.join(col_defs)})
 ```
 
-`_copy_table_cross` line 6633
+`_copy_table_cross` line 6683
 
 ```sql
 SELECT set_config('dbapguin.anon_salt', %s, false)
 ```
 
-**select_sql** - `_copy_table_cross` line 6652
+**select_sql** - `_copy_table_cross` line 6702
 
 ```sql
 SELECT {', '.join(select_parts)} FROM {from_sql}
 ```
 
-`_copy_table_cross` line 6677
+`_copy_table_cross` line 6727
 
 ```sql
 SET LOCAL row_security = off
 ```
 
-`_copy_table_cross` line 6680
+`_copy_table_cross` line 6730
 
 ```sql
 COPY ({select_sql}) TO STDOUT WITH (FORMAT csv, HEADER false)
 ```
 
-`_copy_table_cross` line 6684
+`_copy_table_cross` line 6734
 
 ```sql
 COPY {dst_q} ({dst_cols_sql}) FROM STDIN WITH (FORMAT csv, HEADER false)
 ```
 
-`_copy_table_cross` line 6686
+`_copy_table_cross` line 6736
 
 ```sql
 COPY {dst_q} FROM {src_q}

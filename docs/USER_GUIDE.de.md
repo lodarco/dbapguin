@@ -1,6 +1,6 @@
 # DBApguin - Benutzerhandbuch
 
-**Für DBApguin 1.0.1**
+**Für DBApguin 1.0.2**
 
 *Dieses Handbuch wurde mit Hilfe von KI aus dem Englischen übersetzt. Wo etwas unklar ist oder abweicht, gilt das englische Original (Hilfe → Benutzerhandbuch mit Englisch als Oberflächensprache).*
 
@@ -3100,7 +3100,11 @@ Vor einem Probelauf oder dem Anwenden zeigt eine Prüfung, von B selbst gelesen:
   löst oder neu schreibt;
 - die Anweisungen, die nicht in einem Transaktionsblock laufen können (alles
   mit CONCURRENTLY, ALTER TYPE ... ADD VALUE vor PostgreSQL 12, ALTER SYSTEM):
-  sie werden übersprungen und aufgeführt, um sie einzeln auszuführen;
+  sie werden übersprungen und aufgeführt, um sie einzeln auszuführen. Die
+  Ausnahme sind `CREATE INDEX CONCURRENTLY` und `DROP INDEX CONCURRENTLY`: das
+  Anwenden führt sie nach dem COMMIT aus, eine nach der anderen in der
+  Reihenfolge des Skripts, und die erste, die fehlschlägt, hält den Rest an;
+  ein Probelauf prüft sie als einfache Anweisung;
 - die Kopie: vor dem Anwenden werden die Definitionen jedes Objekts auf B, das
   die Anweisungen ändern oder löschen, als SQL gespeichert, das sie
   wiederherstellt; der Bericht verweist darauf, Hintergrundaufgaben bewahrt sie.
@@ -3181,6 +3185,19 @@ darf kein Skript erzeugen, das sie anfasst.
   ausgeschaltet, bis Sie es einschalten: eine Tabelle zu verschieben schreibt
   sie ganz neu, unter einer ACCESS-EXCLUSIVE-Sperre. Ausgeschaltet wird der
   Unterschied trotzdem gemeldet, und das Skript sagt, warum es ihn lässt.
+- **Indizes CONCURRENTLY anlegen und löschen** ist ausgeschaltet, bis Sie es
+  einschalten. Eingeschaltet werden die Index-Änderungen von Tabellen, die B
+  schon hat, als `CREATE INDEX CONCURRENTLY` und `DROP INDEX CONCURRENTLY`
+  geschrieben, in einem eigenen Abschnitt nach der Transaktion: Lesen und
+  Schreiben auf der Tabelle laufen weiter, während ein Index entsteht. Sie
+  werden nicht mit der Transaktion zurückgenommen, und ein Aufbau, der
+  scheitert (etwa ein eindeutiger Index über doppelte Zeilen), hinterlässt einen
+  INVALID-Index, den `IF NOT EXISTS` danach übergeht: der Bericht sagt es;
+  löschen Sie ihn mit `DROP INDEX CONCURRENTLY`, beheben Sie die Ursache und
+  wenden Sie erneut an (*Gültigkeit und Nutzung der Indizes* im aktuellen
+  Zustand zeigt ihn). Eine partitionierte
+  Tabelle, ein Index hinter einem Constraint und der Index, den REPLICA
+  IDENTITY nutzt, bleiben in der Transaktion.
 - **Eine andere Spaltenreihenfolge als Unterschied zählen** ist ausgeschaltet.
   PostgreSQL kann keine Spalte verschieben, also kann keine Anweisung die
   Spalten von B in die Reihenfolge von A bringen. Ausgeschaltet vergleicht eine

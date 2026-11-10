@@ -2001,31 +2001,31 @@ REFRESH MATERIALIZED VIEW {qi(tgt)}.{qi(n)};
 SELECT rolname FROM pg_catalog.pg_roles
 ```
 
-`api_schema_apply_sync` line 2655
+`api_schema_apply_sync` line 2656
 
 ```sql
 SELECT current_setting('server_version_num')::int, split_part(current_setting('server_version'), ' ', 1)
 ```
 
-`api_schema_apply_sync` line 2666
+`api_schema_apply_sync` line 2667
 
 ```sql
 SELECT pg_catalog.current_setting('search_path')
 ```
 
-`api_schema_apply_sync` line 2668
+`api_schema_apply_sync` line 2669
 
 ```sql
 SELECT pg_catalog.set_config('search_path', '', false)
 ```
 
-`api_schema_apply_sync` line 2679
+`api_schema_apply_sync` line 2680
 
 ```sql
 SELECT to_regclass(%s) IS NOT NULL
 ```
 
-`api_schema_apply_sync` line 2688
+`api_schema_apply_sync` line 2689
 
 ```sql
 SELECT pg_catalog.set_config('search_path', %s, false)

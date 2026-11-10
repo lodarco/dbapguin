@@ -1,6 +1,6 @@
 # DBApguin - korisničke upute
 
-**Za DBApguin 1.0.1**
+**Za DBApguin 1.0.2**
 
 *Ove su upute prevedene s engleskog uz pomoć AI-a. Ako je nešto nejasno ili se razlikuje, mjerodavan je engleski izvornik (Pomoć → Korisničke upute, uz engleski jezik sučelja).*
 
@@ -2914,7 +2914,10 @@ Prije probnog rada ili primjene pregled pokazuje, pročitano sa samog B:
   transakcije, SHARE pušta čitanja - i briše li, odvaja ili prepisuje nešto;
 - naredbe koje se ne mogu izvršiti unutar bloka transakcije (sve s
   CONCURRENTLY, ALTER TYPE ... ADD VALUE prije PostgreSQL 12, ALTER SYSTEM):
-  preskaču se i navode, da ih izvršiš zasebno;
+  preskaču se i navode, da ih izvršiš zasebno. Iznimka su `CREATE INDEX
+  CONCURRENTLY` i `DROP INDEX CONCURRENTLY`: primjena ih izvršava nakon
+  COMMIT-a, jednu po jednu redom iz skripte, a prva koja ne uspije zaustavlja
+  ostale; probni rad ih provjerava kao obične naredbe;
 - kopiju: prije primjene definicije svakog objekta na B koji naredbe mijenjaju
   ili brišu spremaju se kao SQL koji ih vraća; izvještaj vodi do nje, a
   Poslovi u pozadini je čuvaju. Ono što ne zna zapisati - ulogu, cast, objekt
@@ -2990,6 +2993,17 @@ skriptu koja ih dira.
   ne uključite: premještanje tablice prepisuje cijelu tablicu pod ACCESS
   EXCLUSIVE zaključavanjem. Isključeno, razlika se i dalje prikazuje, a skripta
   kaže zašto je ostavlja.
+- **Gradi i briši indekse CONCURRENTLY** je isključeno dok ga ne uključite.
+  Uključeno, promjene indeksa na tablicama koje B već ima pišu se kao `CREATE
+  INDEX CONCURRENTLY` i `DROP INDEX CONCURRENTLY`, u zasebnom odjeljku nakon
+  transakcije: čitanje i pisanje u tablicu idu dalje dok se indeks gradi. Ne
+  poništavaju se s transakcijom, a gradnja koja ne uspije (npr. jedinstveni
+  indeks nad dupliciranim redovima) ostavlja INVALID indeks, koji `IF NOT
+  EXISTS` zatim preskače: izvještaj to kaže; obrišite ga s `DROP INDEX
+  CONCURRENTLY`, uklonite uzrok i primijenite ponovno (*valjanost i korištenje
+  indeksa* u trenutnom stanju ga pokazuje). Particionirana
+  tablica, indeks iza constrainta i indeks koji koristi REPLICA IDENTITY
+  ostaju unutar transakcije.
 - **Računaj drugačiji redoslijed stupaca kao razliku** je isključeno.
   PostgreSQL ne može premjestiti stupac pa nijedna naredba ne može poredati
   stupce u B kao u A. Isključeno, tablica s istim stupcima drugim redom

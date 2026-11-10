@@ -1,6 +1,6 @@
 # DBApguin - Guía de usuario
 
-**Para DBApguin 1.0.1**
+**Para DBApguin 1.0.2**
 
 *Esta guía se ha traducido del inglés con ayuda de IA. Si algo no está claro o difiere, prevalece el original en inglés (Ayuda → Guía de usuario, con la interfaz en inglés).*
 
@@ -3026,7 +3026,10 @@ Antes de una prueba o de aplicar, una revisión muestra, leído del propio B:
   SHARE deja seguir las lecturas - y si elimina, separa o reescribe algo;
 - las sentencias que no pueden ejecutarse dentro de un bloque de transacción
   (cualquier CONCURRENTLY, ALTER TYPE ... ADD VALUE antes de PostgreSQL 12,
-  ALTER SYSTEM): se omiten y se listan, para ejecutarlas por separado;
+  ALTER SYSTEM): se omiten y se listan, para ejecutarlas por separado. La
+  excepción son `CREATE INDEX CONCURRENTLY` y `DROP INDEX CONCURRENTLY`: aplicar
+  las ejecuta tras el COMMIT, una a una en el orden del script, y la primera
+  que falla detiene el resto; la prueba las comprueba como sentencia normal;
 - la copia: antes de aplicar, las definiciones de cada objeto de B que las
   sentencias cambian o eliminan se guardan como SQL que las restaura; el
   informe enlaza con ella y Trabajos en segundo plano la conserva. Lo que no
@@ -3105,6 +3108,18 @@ script que los toque.
   hasta que lo marques: mover una tabla la reescribe entera bajo un bloqueo
   ACCESS EXCLUSIVE. Apagado, la diferencia se sigue mostrando y el script dice
   por qué la deja.
+- **Crear y eliminar índices CONCURRENTLY** está apagado hasta que lo marques.
+  Marcado, los cambios de índices de las tablas que B ya tiene se escriben como
+  `CREATE INDEX CONCURRENTLY` y `DROP INDEX CONCURRENTLY`, en una sección
+  propia tras la transacción: las lecturas y escrituras en la tabla siguen
+  mientras se crea un índice. No se deshacen con la transacción, y una creación
+  que falla (un índice único sobre filas duplicadas, por ejemplo) deja un
+  índice INVALID, que `IF NOT EXISTS` luego pasa por alto: el informe lo dice;
+  elimínalo con `DROP INDEX CONCURRENTLY`, quita la causa y aplica de nuevo
+  (*validez y uso de los índices* en el estado actual lo muestra). Una tabla
+  particionada, un índice
+  detrás de una restricción y el índice que usa REPLICA IDENTITY se quedan
+  dentro de la transacción.
 - **Contar un orden de columnas distinto como diferencia** está apagado.
   PostgreSQL no puede mover una columna, así que ninguna sentencia puede poner
   las columnas de B en el orden de A. Apagado, una tabla con las mismas columnas

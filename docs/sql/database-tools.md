@@ -1271,13 +1271,13 @@ CREATE SCHEMA IF NOT EXISTS "{name.replace('"', '""')}";
 CREATE SCHEMA IF NOT EXISTS "{name.replace('"', '""')}"
 ```
 
-`_role_object_grants` line 3758
+`_role_object_grants` line 3760
 
 ```sql
 SELECT oid FROM pg_catalog.pg_roles WHERE rolname = %s
 ```
 
-`_role_object_grants` line 3796
+`_role_object_grants` line 3798
 
 ```sql
 SELECT r.rolname, CASE WHEN am.admin_option THEN 'ADMIN' ELSE 'MEMBER' END
@@ -1286,103 +1286,103 @@ SELECT r.rolname, CASE WHEN am.admin_option THEN 'ADMIN' ELSE 'MEMBER' END
                       WHERE am.member = %s
 ```
 
-`_role_object_grants` line 3803
+`_role_object_grants` line 3805
 
 ```sql
 SELECT datdba FROM pg_catalog.pg_database WHERE datname = current_database()
 ```
 
-`_grant_stmt` line 3901
+`_grant_stmt` line 3903
 
 ```sql
 ALTER {target} OWNER TO {who};
 ```
 
-`_grant_stmt` line 3914
+`_grant_stmt` line 3916
 
 ```sql
 REVOKE {priv} ({q(col)}) ON {target} FROM {who};
 ```
 
-`_grant_stmt` line 3916
+`_grant_stmt` line 3918
 
 ```sql
 GRANT {priv} ({q(col)}) ON {target} TO {who};
 ```
 
-**head** - `_grant_stmt` line 3924
+**head** - `_grant_stmt` line 3926
 
 ```sql
 ALTER DEFAULT PRIVILEGES FOR ROLE {q(owner)}{where}
 ```
 
-`_grant_stmt` line 3925
+`_grant_stmt` line 3927
 
 ```sql
 REVOKE {priv} ON {objtype} FROM
 ```
 
-`_grant_stmt` line 3926
+`_grant_stmt` line 3928
 
 ```sql
 GRANT {priv} ON {objtype} TO
 ```
 
-`_grant_stmt` line 3944
+`_grant_stmt` line 3946
 
 ```sql
 GRANT {q(name)} TO {who}{' WITH ADMIN OPTION' if priv == 'ADMIN' else ''};
 ```
 
-`_grant_stmt` line 3964
+`_grant_stmt` line 3966
 
 ```sql
 REVOKE {priv} ON {target} FROM {who};
 ```
 
-`_grant_stmt` line 3965
+`_grant_stmt` line 3967
 
 ```sql
 GRANT {priv} ON {target} TO {who};
 ```
 
-`api_role_privileges_compare._exists` line 4034
+`api_role_privileges_compare._exists` line 4036
 
 ```sql
 SELECT 1 FROM pg_roles WHERE rolname = %s
 ```
 
-`api_role_privileges_compare_sync` line 4139
+`api_role_privileges_compare_sync` line 4141
 
 ```sql
 SELECT 1 FROM pg_roles WHERE rolname = %s
 ```
 
-`api_db_compare_role_privs_apply` line 4281
+`api_db_compare_role_privs_apply` line 4283
 
 ```sql
 SELECT 1 FROM pg_catalog.pg_roles WHERE rolname = %s
 ```
 
-`api_db_compare_role_privs_apply._exists_on_target` line 4302
+`api_db_compare_role_privs_apply._exists_on_target` line 4304
 
 ```sql
 SELECT 1 FROM pg_catalog.pg_namespace WHERE nspname = %s
 ```
 
-`api_db_compare_role_privs_apply._exists_on_target` line 4307
+`api_db_compare_role_privs_apply._exists_on_target` line 4309
 
 ```sql
 SELECT to_regprocedure(%s) IS NOT NULL
 ```
 
-`api_db_compare_role_privs_apply._exists_on_target` line 4310
+`api_db_compare_role_privs_apply._exists_on_target` line 4312
 
 ```sql
 SELECT to_regtype(%s) IS NOT NULL
 ```
 
-`api_db_compare_role_privs_apply._exists_on_target` line 4314
+`api_db_compare_role_privs_apply._exists_on_target` line 4316
 
 ```sql
 SELECT 1 FROM pg_catalog.pg_attribute
@@ -1390,31 +1390,31 @@ SELECT 1 FROM pg_catalog.pg_attribute
                                         AND attnum > 0 AND NOT attisdropped
 ```
 
-`api_db_compare_role_privs_apply._exists_on_target` line 4319
+`api_db_compare_role_privs_apply._exists_on_target` line 4321
 
 ```sql
 SELECT 1 FROM pg_catalog.pg_language WHERE lanname = %s
 ```
 
-`api_db_compare_role_privs_apply._exists_on_target` line 4321
+`api_db_compare_role_privs_apply._exists_on_target` line 4323
 
 ```sql
 SELECT 1 FROM pg_catalog.pg_foreign_data_wrapper WHERE fdwname = %s
 ```
 
-`api_db_compare_role_privs_apply._exists_on_target` line 4323
+`api_db_compare_role_privs_apply._exists_on_target` line 4325
 
 ```sql
 SELECT 1 FROM pg_catalog.pg_foreign_server WHERE srvname = %s
 ```
 
-`api_db_compare_role_privs_apply._exists_on_target` line 4325
+`api_db_compare_role_privs_apply._exists_on_target` line 4327
 
 ```sql
 SELECT 1 FROM pg_catalog.pg_largeobject_metadata WHERE oid = %s::oid
 ```
 
-`api_db_compare_role_privs_apply._exists_on_target` line 4328
+`api_db_compare_role_privs_apply._exists_on_target` line 4330
 
 ```sql
 SELECT to_regclass(%s) IS NOT NULL
