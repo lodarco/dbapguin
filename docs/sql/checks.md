@@ -1,6 +1,6 @@
 # Checks
 
-[All parts](README.md) · 408 statements
+[All parts](README.md) · 409 statements
 
 ## checks/actual_plans.py
 
@@ -1360,13 +1360,19 @@ SELECT application_name, client_addr::text AS client, state, sync_state, sync_pr
 
 ## checks/index_advisor.py
 
-`_create_index_sql` line 28
+`_create_index_sql` line 30
 
 ```sql
-CREATE INDEX CONCURRENTLY IF NOT EXISTS {_qi(name)} ON {_qq(schema, table)}{using} ({body});
+CREATE INDEX CONCURRENTLY{ine} {_qi(name)} ON {_qq(schema, table)}{using} ({body});
 ```
 
-`run_index_advisor_check` line 87
+`run_index_advisor_check` line 36
+
+```sql
+SELECT current_setting('server_version_num')::int AS v
+```
+
+`run_index_advisor_check` line 97
 
 ```sql
 WITH fk_keys AS (
@@ -1388,10 +1394,12 @@ WITH fk_keys AS (
        AND n.nspname NOT IN ('pg_catalog','information_schema')
 ),
 fk_covered AS (
-    -- An FK is "covered" when SOME index's leading-column
-    -- prefix equals the FK's column order. Partial indexes
-    -- (WHERE clause) DO NOT count: they don't help FK
-    -- validation across the whole table.
+    -- An FK is "covered" when SOME index's leading columns are
+    -- the FK's columns, in any order: the lookup is an equality
+    -- on all of them, so (code, region) serves a key on
+    -- (region, code) as well as (region, code) does. Partial
+    -- indexes (WHERE clause) and invalid ones DO NOT count: they
+    -- don't help FK validation across the whole table.
     -- indkey is an int2vector, and casting it straight to int[]
     -- keeps its 0-based bounds, so [1:n] of it dropped the leading
     -- column and no index ever covered an FK. string_to_array gives
@@ -1400,9 +1408,11 @@ fk_covered AS (
       FROM fk_keys fk
       JOIN pg_index i ON i.indrelid = fk.rel_oid
                      AND i.indpred IS NULL
+                     AND i.indisvalid
                      AND array_length(i.indkey::int[], 1) >= array_length(fk.cols::int[], 1)
-                     AND (string_to_array(i.indkey::text, ' ')::int[])[1:array_length(fk.cols::int[], 1)]
-                         = fk.cols::int[]
+                     AND (SELECT array_agg(x ORDER BY x)
+                            FROM unnest((string_to_array(i.indkey::text, ' ')::int[])[1:array_length(fk.cols::int[], 1)]) x)
+                         = (SELECT array_agg(x ORDER BY x) FROM unnest(fk.cols::int[]) x)
 ),
 fk_candidates AS (
     SELECT fk.schema                                            AS shema,
@@ -1467,13 +1477,13 @@ SELECT * FROM no_index_tables
 ORDER BY shema, tablica, kolona
 ```
 
-`run_index_advisor_check` line 206
+`run_index_advisor_check` line 220
 
 ```sql
 SELECT 1 FROM {_pss} LIMIT 1
 ```
 
-`run_index_advisor_check` line 216
+`run_index_advisor_check` line 230
 
 ```sql
 -- COALESCE on idx_scan, and it is the difference between this
@@ -1500,7 +1510,7 @@ ORDER BY t.seq_scan DESC
 LIMIT 50
 ```
 
-`run_index_advisor_check` line 249
+`run_index_advisor_check` line 263
 
 ```sql
 SELECT s.queryid::text AS qid, s.calls,
@@ -1509,7 +1519,7 @@ SELECT s.queryid::text AS qid, s.calls,
 FROM
 ```
 
-`run_index_advisor_check` line 262
+`run_index_advisor_check` line 276
 
 ```sql
 SELECT n.nspname AS schema, t.relname AS table, a.attname AS col
@@ -1521,7 +1531,7 @@ JOIN pg_attribute a  ON a.attrelid = t.oid
 WHERE t.relkind = 'r'
 ```
 
-`run_index_advisor_check` line 297
+`run_index_advisor_check` line 311
 
 ```sql
 SELECT a.attname AS col, ty.typname AS typname, a.atttypmod AS typmod,
@@ -1541,7 +1551,7 @@ WHERE a.attrelid = (SELECT c.oid FROM pg_class c JOIN pg_namespace n ON n.oid = 
   AND a.attnum > 0 AND NOT a.attisdropped
 ```
 
-`run_index_advisor_check` line 327
+`run_index_advisor_check` line 341
 
 ```sql
 SELECT lower(pg_get_indexdef(i.indexrelid)) AS def
@@ -1550,7 +1560,7 @@ SELECT lower(pg_get_indexdef(i.indexrelid)) AS def
                       WHERE n.nspname = %s AND c.relname = %s)
 ```
 
-`run_index_advisor_check` line 497
+`run_index_advisor_check` line 511
 
 ```sql
 WITH idxinfo AS (
@@ -1631,7 +1641,7 @@ SELECT a.schema, a."table",
  LIMIT 50
 ```
 
-**drop_sql** - `run_index_advisor_check` line 585
+**drop_sql** - `run_index_advisor_check` line 599
 
 ```sql
 DROP INDEX CONCURRENTLY IF EXISTS {_qq(r['schema'], r['dup_index'])};
@@ -4144,18 +4154,20 @@ SELECT
               CASE WHEN t.spcname='pg_global' THEN '/global)' ELSE '/base)' END
          ELSE COALESCE(NULLIF(pg_tablespace_location(t.oid), ''), '(unknown)')
     END                                                        AS location,
+    -- (pg_read_all_stats is looked up, not named: before PostgreSQL 10 there
+    -- is no such role and naming it raised "role does not exist")
     -- The size needs CREATE on the tablespace, pg_read_all_stats, or
     -- being this database's default; without it the whole section
     -- was lost to "permission denied for tablespace pg_global".
-    CASE WHEN (has_tablespace_privilege(t.oid, 'CREATE') OR pg_has_role(current_user, 'pg_read_all_stats', 'USAGE') OR t.oid = (SELECT dattablespace FROM pg_database WHERE datname = current_database())) THEN pg_size_pretty(pg_tablespace_size(t.oid)) END AS size,
-    CASE WHEN (has_tablespace_privilege(t.oid, 'CREATE') OR pg_has_role(current_user, 'pg_read_all_stats', 'USAGE') OR t.oid = (SELECT dattablespace FROM pg_database WHERE datname = current_database())) THEN pg_tablespace_size(t.oid) END        AS size_bytes,
+    CASE WHEN (has_tablespace_privilege(t.oid, 'CREATE') OR EXISTS (SELECT 1 FROM pg_roles pr WHERE pr.rolname = 'pg_read_all_stats' AND pg_has_role(current_user, pr.oid, 'USAGE')) OR t.oid = (SELECT dattablespace FROM pg_database WHERE datname = current_database())) THEN pg_size_pretty(pg_tablespace_size(t.oid)) END AS size,
+    CASE WHEN (has_tablespace_privilege(t.oid, 'CREATE') OR EXISTS (SELECT 1 FROM pg_roles pr WHERE pr.rolname = 'pg_read_all_stats' AND pg_has_role(current_user, pr.oid, 'USAGE')) OR t.oid = (SELECT dattablespace FROM pg_database WHERE datname = current_database())) THEN pg_tablespace_size(t.oid) END        AS size_bytes,
     t.spcoptions                                               AS options,
     t.spcacl::text                                             AS acl
 FROM pg_tablespace t
-ORDER BY CASE WHEN (has_tablespace_privilege(t.oid, 'CREATE') OR pg_has_role(current_user, 'pg_read_all_stats', 'USAGE') OR t.oid = (SELECT dattablespace FROM pg_database WHERE datname = current_database())) THEN pg_tablespace_size(t.oid) END DESC NULLS LAST
+ORDER BY CASE WHEN (has_tablespace_privilege(t.oid, 'CREATE') OR EXISTS (SELECT 1 FROM pg_roles pr WHERE pr.rolname = 'pg_read_all_stats' AND pg_has_role(current_user, pr.oid, 'USAGE')) OR t.oid = (SELECT dattablespace FROM pg_database WHERE datname = current_database())) THEN pg_tablespace_size(t.oid) END DESC NULLS LAST
 ```
 
-`run_tablespaces_check` line 58
+`run_tablespaces_check` line 60
 
 ```sql
 SELECT
@@ -4167,7 +4179,7 @@ JOIN pg_database d ON d.oid = db_oid.oid
 ORDER BY t.spcname, d.datname
 ```
 
-`run_tablespaces_check` line 85
+`run_tablespaces_check` line 87
 
 ```sql
 WITH this_db AS (
@@ -4726,13 +4738,13 @@ SELECT schemaname AS schema, relname AS "table",
 SELECT 1 FROM {_pss} LIMIT 1
 ```
 
-**counts_sql** - `run_workload_report_check` line 100
+**counts_sql** - `run_workload_report_check` line 116
 
 ```sql
 SELECT queryid::text AS queryid, dbid::bigint AS dbid, userid::bigint AS userid, {_tl}, calls, rows AS rows_total FROM {_pss} WHERE query IS NOT NULL
 ```
 
-`run_workload_report_check` line 124
+`run_workload_report_check` line 140
 
 ```sql
 SELECT pid, usename, application_name AS app,

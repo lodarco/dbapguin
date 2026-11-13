@@ -503,25 +503,25 @@ LEFT JOIN LATERAL (
 ) g ON u.relation IS NULL
 ```
 
-`api_sessions_kill_many` line 1805
+`api_sessions_kill_many` line 1809
 
 ```sql
 SELECT {fn}({int(x)})
 ```
 
-`api_sessions_kill_many` line 1812
+`api_sessions_kill_many` line 1816
 
 ```sql
 SELECT {fn}(%s)
 ```
 
-`api_sessions_kill` line 1836
+`api_sessions_kill` line 1846
 
 ```sql
 SELECT {fn}({int(pid)})
 ```
 
-`api_sessions_kill` line 1840
+`api_sessions_kill` line 1850
 
 ```sql
 SELECT {fn}(%s)

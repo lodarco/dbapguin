@@ -1,6 +1,6 @@
 # Database tools
 
-[All parts](README.md) · 527 statements
+[All parts](README.md) · 544 statements
 
 ## api/autovacuum.py
 
@@ -49,7 +49,25 @@ SET LOCAL search_path TO %s
 SET lock_timeout = '3s';
 ```
 
-`api_constraints_list` line 284
+`_add_not_valid` line 265
+
+```sql
+ALTER TABLE %s ADD CONSTRAINT %s %s;
+```
+
+`_add_not_valid` line 267
+
+```sql
+ALTER TABLE %s ADD CONSTRAINT %s %s NOT VALID;
+```
+
+`_add_not_valid` line 268
+
+```sql
+ALTER TABLE %s VALIDATE CONSTRAINT %s;
+```
+
+`api_constraints_list` line 299
 
 ```sql
 SELECT n.nspname                       AS schema,
@@ -59,7 +77,7 @@ SELECT n.nspname                       AS schema,
        con.convalidated                AS validated,
        pg_get_constraintdef(con.oid)   AS def,
        i.relname                       AS index_name,
-       pg_get_indexdef(con.conindid)   AS index_def,
+       CASE WHEN con.conindid <> 0 THEN pg_get_indexdef(con.conindid) END   AS index_def,
        pg_relation_size(con.conindid)  AS index_bytes,
        c.reltuples::bigint             AS approx_rows,
        c.relkind                       AS relkind,
@@ -81,7 +99,7 @@ SELECT n.nspname                       AS schema,
           con.conname
 ```
 
-`api_constraints_list` line 320
+`api_constraints_list` line 335
 
 ```sql
 SELECT cn.nspname                      AS schema,
@@ -103,7 +121,7 @@ SELECT cn.nspname                      AS schema,
  ORDER BY cn.nspname, cc.relname, con.conname
 ```
 
-`api_constraints_script` line 433
+`api_constraints_script` line 448
 
 ```sql
 SELECT n.nspname AS schema, c.relname AS table, con.conname AS name,
@@ -114,7 +132,7 @@ SELECT n.nspname AS schema, c.relname AS table, con.conname AS name,
        -- surgery, which loses everything that text does not carry
        -- and is a syntax error for everything it carries in the
        -- wrong place.
-       pg_get_indexdef(con.conindid) AS index_def,
+       CASE WHEN con.conindid <> 0 THEN pg_get_indexdef(con.conindid) END AS index_def,
        con.condeferrable AS deferrable, con.condeferred AS deferred,
        (con.coninhcount > 0 AND NOT con.conislocal) AS inherited
   FROM pg_constraint con
@@ -125,7 +143,7 @@ SELECT n.nspname AS schema, c.relname AS table, con.conname AS name,
  ORDER BY n.nspname, c.relname, con.conname
 ```
 
-`api_constraints_script` line 457
+`api_constraints_script` line 472
 
 ```sql
 SELECT cn.nspname AS schema, cc.relname AS table, con.conname AS name,
@@ -142,103 +160,67 @@ SELECT cn.nspname AS schema, cc.relname AS table, con.conname AS name,
  ORDER BY cn.nspname, cc.relname, con.conname
 ```
 
-`api_constraints_script` line 479
+`api_constraints_script` line 494
 
 ```sql
 SELECT current_setting('server_version_num')::int AS v
 ```
 
-`api_constraints_script` line 512
+`api_constraints_script` line 527
 
 ```sql
 SET search_path TO %s;
 ```
 
-`api_constraints_script` line 519
-
-```sql
-ALTER TABLE %s ADD CONSTRAINT %s %s NOT VALID;
-```
-
-`api_constraints_script` line 521
-
-```sql
-ALTER TABLE %s VALIDATE CONSTRAINT %s;
-```
-
-`api_constraints_script` line 524
+`api_constraints_script` line 536
 
 ```sql
 ALTER TABLE %s ADD CONSTRAINT %s %s;
 ```
 
-`api_constraints_script` line 574
+`api_constraints_script` line 586
 
 ```sql
 ALTER TABLE %s ALTER CONSTRAINT %s NOT ENFORCED;
 ```
 
-`api_constraints_script` line 583
+`api_constraints_script` line 595
 
 ```sql
 ALTER TABLE %s DROP CONSTRAINT %s;
 ```
 
-`api_constraints_script` line 592
+`api_constraints_script` line 604
 
 ```sql
 ALTER TABLE %s DROP CONSTRAINT %s;
 ```
 
-`api_constraints_script` line 635
+`api_constraints_script` line 647
 
 ```sql
 ALTER TABLE %s ADD CONSTRAINT %s %s USING INDEX %s%s;
 ```
 
-`api_constraints_script` line 638
-
-```sql
-ALTER TABLE %s ADD CONSTRAINT %s %s NOT VALID;
-```
-
-`api_constraints_script` line 640
-
-```sql
-ALTER TABLE %s VALIDATE CONSTRAINT %s;
-```
-
-`api_constraints_script` line 642
+`api_constraints_script` line 652
 
 ```sql
 ALTER TABLE %s ADD CONSTRAINT %s %s;
-```
-
-`api_constraints_script` line 651
-
-```sql
-ALTER TABLE %s ALTER CONSTRAINT %s ENFORCED;
-```
-
-`api_constraints_script` line 659
-
-```sql
-ALTER TABLE %s ADD CONSTRAINT %s %s NOT VALID;
 ```
 
 `api_constraints_script` line 661
 
 ```sql
-ALTER TABLE %s VALIDATE CONSTRAINT %s;
+ALTER TABLE %s ALTER CONSTRAINT %s ENFORCED;
 ```
 
-`api_constraints_script` line 663
+`api_constraints_script` line 671
 
 ```sql
 ALTER TABLE %s ADD CONSTRAINT %s %s;
 ```
 
-`api_constraints_script` line 696
+`api_constraints_script` line 704
 
 ```sql
 CREATE INDEX CONCURRENTLY cannot run inside a transaction block, so the restore script must not be wrapped in BEGIN/COMMIT. It is also the one statement here that can fail and leave an invalid index behind. The script drops such an index itself before rebuilding, so running it again after a failure is enough - but only an index PostgreSQL has marked invalid is removed, never one in use.
@@ -1620,13 +1602,13 @@ SELECT 1 FROM pg_user_mappings um
 IMPORT FOREIGN SCHEMA %s
 ```
 
-**sql** - `api_fdw_import_schema` line 637
+**sql** - `api_fdw_import_schema` line 642
 
 ```sql
 IMPORT FOREIGN SCHEMA {_ident(remote_sch)}
 ```
 
-`api_fdw_import_schema` line 649
+`api_fdw_import_schema` line 654
 
 ```sql
 SELECT count(*) FROM pg_class c
@@ -1825,7 +1807,7 @@ SELECT n.nspname || '.' || c.relname AS fq,
  WHERE c.oid = %s
 ```
 
-`api_object_privileges` line 945
+`api_object_privileges` line 950
 
 ```sql
 SELECT p.oid, pg_get_userbyid(p.proowner) AS owner, p.proacl::text AS acl_text
@@ -1835,7 +1817,7 @@ WHERE n.nspname = %s AND p.proname = %s
   AND pg_get_function_identity_arguments(p.oid) = %s
 ```
 
-`api_object_privileges` line 955
+`api_object_privileges` line 960
 
 ```sql
 SELECT CASE WHEN a.grantee = 0 THEN 'PUBLIC'
@@ -1848,7 +1830,7 @@ FROM aclexplode((SELECT proacl FROM pg_proc WHERE oid = %s)) a
 ORDER BY grantee, privilege
 ```
 
-`api_object_privileges` line 984
+`api_object_privileges` line 989
 
 ```sql
 SELECT x.oid::oid AS oid,
@@ -1859,7 +1841,7 @@ JOIN pg_namespace n ON n.oid = x.{spec['nsp']}
 WHERE n.nspname = %s AND x.{spec['name']} = %s
 ```
 
-`api_object_privileges` line 993
+`api_object_privileges` line 998
 
 ```sql
 SELECT x.oid::oid AS oid,
@@ -1869,7 +1851,7 @@ FROM {spec['catalog']} x
 WHERE x.{spec['name']} = %s
 ```
 
-`api_object_privileges` line 1005
+`api_object_privileges` line 1010
 
 ```sql
 SELECT CASE WHEN a.grantee = 0 THEN 'PUBLIC'
@@ -1882,7 +1864,7 @@ FROM aclexplode((SELECT {spec['acl']} FROM {spec['catalog']} WHERE oid = %s)) a
 ORDER BY grantee, privilege
 ```
 
-`api_object_privileges` line 1023
+`api_object_privileges` line 1028
 
 ```sql
 SELECT rolname,
@@ -1894,19 +1876,19 @@ SELECT rolname,
  WHERE rolname IN %s
 ```
 
-**stmt** - `api_object_privileges_apply` line 1112
+**stmt** - `api_object_privileges_apply` line 1120
 
 ```sql
 GRANT {priv_list} ON {target_str} TO {grantee_sql}{tail}
 ```
 
-**stmt** - `api_object_privileges_apply` line 1114
+**stmt** - `api_object_privileges_apply` line 1122
 
 ```sql
 REVOKE {priv_list} ON {target_str} FROM {grantee_sql}
 ```
 
-`api_object_column_privileges` line 1159
+`api_object_column_privileges` line 1167
 
 ```sql
 SELECT a.attname AS col, a.attacl::text AS acl_text, a.attacl AS acl_raw
@@ -1918,7 +1900,7 @@ SELECT a.attname AS col, a.attacl::text AS acl_text, a.attacl AS acl_raw
  ORDER BY a.attnum
 ```
 
-`api_object_column_privileges` line 1173
+`api_object_column_privileges` line 1181
 
 ```sql
 SELECT CASE WHEN a.grantee = 0 THEN 'PUBLIC'
@@ -1929,25 +1911,25 @@ SELECT CASE WHEN a.grantee = 0 THEN 'PUBLIC'
  ORDER BY grantee, privilege
 ```
 
-**stmt** - `api_object_column_privileges_apply` line 1233
+**stmt** - `api_object_column_privileges_apply` line 1241
 
 ```sql
 GRANT {priv} ({col_q}) ON TABLE {sch_q} TO {role_q}{' WITH GRANT OPTION' if wgo else ''}
 ```
 
-**stmt** - `api_object_column_privileges_apply` line 1235
+**stmt** - `api_object_column_privileges_apply` line 1243
 
 ```sql
 REVOKE {'GRANT OPTION FOR ' if wgo else ''}{priv} ({col_q}) ON TABLE {sch_q} FROM {role_q}
 ```
 
-`api_object_privileges_copy` line 1335
+`api_object_privileges_copy` line 1343
 
 ```sql
 SELECT attname FROM pg_catalog.pg_attribute WHERE attrelid = %s AND attnum > 0 AND NOT attisdropped
 ```
 
-`api_object_function_overloads` line 1376
+`api_object_function_overloads` line 1384
 
 ```sql
 SELECT pg_get_function_identity_arguments(p.oid) AS args,
@@ -1963,13 +1945,13 @@ SELECT pg_get_function_identity_arguments(p.oid) AS args,
  ORDER BY p.pronargs, args
 ```
 
-**stmt** - `api_object_privileges_bulk_apply` line 1446
+**stmt** - `api_object_privileges_bulk_apply` line 1454
 
 ```sql
 GRANT {priv_list} ON {target_sql} TO {ge_q}{' WITH GRANT OPTION' if wgo else ''}
 ```
 
-**stmt** - `api_object_privileges_bulk_apply` line 1448
+**stmt** - `api_object_privileges_bulk_apply` line 1456
 
 ```sql
 REVOKE {'GRANT OPTION FOR ' if wgo else ''}{priv_list} ON {target_sql} FROM {ge_q}
@@ -2010,13 +1992,13 @@ SELECT cn.nspname                              AS schema,
  ORDER BY cn.nspname, cc.relname
 ```
 
-`api_partitions_recipe` line 236
+`api_partitions_recipe` line 244
 
 ```sql
 SET search_path = pg_catalog
 ```
 
-`api_partitions_recipe` line 238
+`api_partitions_recipe` line 246
 
 ```sql
 SELECT c.oid, c.relkind, c.relpersistence, c.relispartition,
@@ -2033,7 +2015,7 @@ SELECT c.oid, c.relkind, c.relpersistence, c.relispartition,
  WHERE n.nspname = %s AND c.relname = %s
 ```
 
-`api_partitions_recipe` line 281
+`api_partitions_recipe` line 289
 
 ```sql
 SELECT a.attname, a.attnum,
@@ -2047,7 +2029,7 @@ SELECT a.attname, a.attnum,
  ORDER BY a.attnum
 ```
 
-`api_partitions_recipe` line 294
+`api_partitions_recipe` line 302
 
 ```sql
 SELECT CASE WHEN x.grantee = 0 THEN 'PUBLIC'
@@ -2058,7 +2040,7 @@ SELECT CASE WHEN x.grantee = 0 THEN 'PUBLIC'
  ORDER BY 1, 2
 ```
 
-`api_partitions_recipe` line 303
+`api_partitions_recipe` line 311
 
 ```sql
 SELECT a.attname,
@@ -2071,7 +2053,7 @@ SELECT a.attname,
  ORDER BY a.attnum, 2, 3
 ```
 
-`api_partitions_recipe` line 317
+`api_partitions_recipe` line 325
 
 ```sql
 SELECT c.conname, pg_get_constraintdef(c.oid) AS def, c.contype,
@@ -2081,7 +2063,7 @@ SELECT c.conname, pg_get_constraintdef(c.oid) AS def, c.contype,
  ORDER BY (c.contype = 'p') DESC, c.conname
 ```
 
-`api_partitions_recipe` line 326
+`api_partitions_recipe` line 334
 
 ```sql
 SELECT conname, pg_get_constraintdef(oid) AS def, convalidated
@@ -2089,7 +2071,7 @@ SELECT conname, pg_get_constraintdef(oid) AS def, convalidated
  ORDER BY conname
 ```
 
-`api_partitions_recipe` line 337
+`api_partitions_recipe` line 345
 
 ```sql
 SELECT conname, pg_get_constraintdef(oid) AS def, convalidated, connoinherit,
@@ -2098,7 +2080,7 @@ SELECT conname, pg_get_constraintdef(oid) AS def, convalidated, connoinherit,
  ORDER BY conname
 ```
 
-`api_partitions_recipe` line 349
+`api_partitions_recipe` line 357
 
 ```sql
 SELECT quote_ident(n.nspname) || '.' || quote_ident(cl.relname) AS qtable,
@@ -2110,7 +2092,7 @@ SELECT quote_ident(n.nspname) || '.' || quote_ident(cl.relname) AS qtable,
  ORDER BY n.nspname, cl.relname, c.conname
 ```
 
-`api_partitions_recipe` line 362
+`api_partitions_recipe` line 370
 
 ```sql
 SELECT i.indexrelid, ic.relname AS name,
@@ -2127,13 +2109,24 @@ SELECT i.indexrelid, ic.relname AS name,
  ORDER BY ic.relname
 ```
 
-`api_partitions_recipe` line 379
+`api_partitions_recipe` line 389
+
+```sql
+SELECT s.stxname AS name,
+       quote_ident(n.nspname) || '.' || quote_ident(s.stxname) AS qname,
+       pg_get_statisticsobjdef(s.oid) AS def,
+       pg_get_userbyid(s.stxowner) AS owner
+  FROM pg_statistic_ext s JOIN pg_namespace n ON n.oid = s.stxnamespace
+ WHERE s.stxrelid = %s ORDER BY s.stxname
+```
+
+`api_partitions_recipe` line 400
 
 ```sql
 SELECT ic.relname FROM pg_index i JOIN pg_class ic ON ic.oid = i.indexrelid WHERE i.indrelid = %s AND i.indisreplident
 ```
 
-`api_partitions_recipe` line 387
+`api_partitions_recipe` line 408
 
 ```sql
 SELECT tgname, pg_get_triggerdef(oid) AS def,
@@ -2142,7 +2135,7 @@ SELECT tgname, pg_get_triggerdef(oid) AS def,
  ORDER BY tgname
 ```
 
-`api_partitions_recipe` line 395
+`api_partitions_recipe` line 416
 
 ```sql
 SELECT p.polname,
@@ -2157,7 +2150,7 @@ SELECT p.polname,
   FROM pg_policy p WHERE p.polrelid = %s ORDER BY p.polname
 ```
 
-`api_partitions_recipe` line 412
+`api_partitions_recipe` line 433
 
 ```sql
 WITH RECURSIVE tree AS (
@@ -2170,25 +2163,25 @@ SELECT t.oid, quote_ident(n.nspname) || '.' || quote_ident(c.relname) AS qname
  ORDER BY 2
 ```
 
-`api_partitions_recipe` line 428
+`api_partitions_recipe` line 449
 
 ```sql
 SELECT count(*) AS n FROM pg_index i WHERE i.indrelid = ANY(%s) {parent_idx}
 ```
 
-`api_partitions_recipe` line 432
+`api_partitions_recipe` line 453
 
 ```sql
 SELECT count(*) AS n FROM pg_constraint WHERE conrelid = ANY(%s) AND contype IN ('p','u','x','f') {con_own}
 ```
 
-`api_partitions_recipe` line 435
+`api_partitions_recipe` line 456
 
 ```sql
 SELECT count(*) AS n FROM pg_trigger WHERE tgrelid = ANY(%s) AND NOT tgisinternal {clone_filter}
 ```
 
-`api_partitions_recipe` line 443
+`api_partitions_recipe` line 464
 
 ```sql
 SELECT DISTINCT v.oid, v.relkind, v.reloptions,
@@ -2206,7 +2199,7 @@ SELECT DISTINCT v.oid, v.relkind, v.reloptions,
  ORDER BY 4
 ```
 
-`api_partitions_recipe` line 459
+`api_partitions_recipe` line 480
 
 ```sql
 SELECT DISTINCT p.oid::regprocedure::text AS fn
@@ -2215,7 +2208,7 @@ SELECT DISTINCT p.oid::regprocedure::text AS fn
  ORDER BY 1
 ```
 
-`api_partitions_recipe` line 469
+`api_partitions_recipe` line 490
 
 ```sql
 SELECT DISTINCT CASE WHEN d.classid = 'pg_proc'::regclass THEN d.objid::regprocedure::text
@@ -2226,13 +2219,13 @@ SELECT DISTINCT CASE WHEN d.classid = 'pg_proc'::regclass THEN d.objid::regproce
  ORDER BY 1
 ```
 
-`api_partitions_recipe` line 478
+`api_partitions_recipe` line 499
 
 ```sql
 SELECT count(*) AS n FROM pg_rewrite WHERE ev_class = %s AND rulename <> '_RETURN'
 ```
 
-`api_partitions_recipe` line 481
+`api_partitions_recipe` line 502
 
 ```sql
 SELECT DISTINCT quote_ident(p.pubname) AS pub, pr.prrelid = %s AS on_table
@@ -2240,259 +2233,284 @@ SELECT DISTINCT quote_ident(p.pubname) AS pub, pr.prrelid = %s AS on_table
  WHERE pr.prrelid = ANY(%s) ORDER BY 1
 ```
 
-`api_partitions_recipe` line 565
+`api_partitions_recipe` line 586
 
 ```sql
 LOCK TABLE {q} IN SHARE MODE;
 ```
 
-`api_partitions_recipe` line 583
+`api_partitions_recipe` line 604
 
 ```sql
-CREATE TABLE {tmp} (LIKE {q} INCLUDING ALL EXCLUDING INDEXES EXCLUDING CONSTRAINTS)
+CREATE TABLE {tmp} (LIKE {q} INCLUDING ALL EXCLUDING INDEXES EXCLUDING CONSTRAINTS EXCLUDING STATISTICS)
 ```
 
-`api_partitions_recipe` line 592
+`api_partitions_recipe` line 613
 
 ```sql
 CREATE TABLE {_qq(schema, _fit_name(name, '_pdefault'))} PARTITION OF {tmp} DEFAULT;
 ```
 
-`api_partitions_recipe` line 598
+`api_partitions_recipe` line 619
 
 ```sql
-CREATE TABLE {tmp} (LIKE {q} INCLUDING ALL EXCLUDING INDEXES EXCLUDING CONSTRAINTS);
+CREATE TABLE {tmp} (LIKE {q} INCLUDING ALL EXCLUDING INDEXES EXCLUDING CONSTRAINTS EXCLUDING STATISTICS);
 ```
 
-**stmt** - `api_partitions_recipe` line 606
+**stmt** - `api_partitions_recipe` line 627
 
 ```sql
 ALTER TABLE {tmp} ADD CONSTRAINT {_qi_col(c['conname'])} {c['def']};
 ```
 
-`api_partitions_recipe` line 621
+`api_partitions_recipe` line 642
 
 ```sql
 INSERT INTO {tmp} ({col_list}){' OVERRIDING SYSTEM VALUE' if always_identity else ''}
 ```
 
-`api_partitions_recipe` line 622
+`api_partitions_recipe` line 643
 
 ```sql
 SELECT {col_list} FROM {q};
 ```
 
-`api_partitions_recipe` line 633
+`api_partitions_recipe` line 654
 
 ```sql
 SELECT setval(pg_get_serial_sequence({_lit(tmp)}, {_lit(c['attname'])}), s.last_value, s.is_called) FROM {c['seq']} s;
 ```
 
-`api_partitions_recipe` line 638
+`api_partitions_recipe` line 660
+
+```sql
+DO $recipe$
+DECLARE old_seq regclass := {_lit(c['seq'])}::regclass; nm text;
+BEGIN
+    SELECT relname INTO nm FROM pg_class WHERE oid = old_seq;
+    EXECUTE format('ALTER SEQUENCE %s RENAME TO %I', old_seq, left(nm, 59) || '_old');
+    EXECUTE format('ALTER SEQUENCE %s RENAME TO %I', pg_get_serial_sequence({_lit(tmp)}, {_lit(c['attname'])}), nm);
+END
+$recipe$;
+```
+
+`api_partitions_recipe` line 674
 
 ```sql
 ALTER SEQUENCE {c['seq']} OWNED BY {tmp}.{_qi_col(c['attname'])};
 ```
 
-`api_partitions_recipe` line 650
+`api_partitions_recipe` line 686
 
 ```sql
 ALTER INDEX {i['qname']} RENAME TO {_qi_col(_fit_name(i['name'], '_old'))};
 ```
 
-**stmt** - `api_partitions_recipe` line 657
+`api_partitions_recipe` line 691
+
+```sql
+ALTER STATISTICS {st['qname']} RENAME TO {_qi_col(_fit_name(st['name'], '_old'))};
+```
+
+**stmt** - `api_partitions_recipe` line 698
 
 ```sql
 ALTER TABLE {tmp} ADD CONSTRAINT {_qi_col(c['conname'])} {c['def']};
 ```
 
-`api_partitions_recipe` line 675
+`api_partitions_recipe` line 716
 
 ```sql
 ALTER TABLE {tmp} ADD CONSTRAINT {_qi_col(f['conname'])} {fdef};
 ```
 
-**stmt** - `api_partitions_recipe` line 681
+**stmt** - `api_partitions_recipe` line 722
 
 ```sql
 ALTER TABLE {tmp} ADD CONSTRAINT {_qi_col(c['conname'])} {c['def']};
 ```
 
-`api_partitions_recipe` line 689
+`api_partitions_recipe` line 730
 
 ```sql
 ALTER TABLE {tmp} ALTER COLUMN {_qi_col(c['attname'])} SET STATISTICS {int(c['stattarget'])};
 ```
 
-`api_partitions_recipe` line 692
+`api_partitions_recipe` line 733
 
 ```sql
 COMMENT ON CONSTRAINT {_qi_col(c['conname'])} ON {tmp} IS {_lit(c['comment'])};
 ```
 
-`api_partitions_recipe` line 695
+`api_partitions_recipe` line 736
 
 ```sql
 COMMENT ON INDEX {_qq(schema, i['name'])} IS {_lit(i['comment'])};
 ```
 
-`api_partitions_recipe` line 697
+`api_partitions_recipe` line 740
+
+```sql
+ALTER STATISTICS {st['qname']} OWNER TO {_qi_col(st['owner'])};
+```
+
+`api_partitions_recipe` line 742
 
 ```sql
 ALTER TABLE {tmp} REPLICA IDENTITY USING INDEX {_qi_col(replident_idx)};
 ```
 
-`api_partitions_recipe` line 699
+`api_partitions_recipe` line 744
 
 ```sql
 ALTER TABLE {tmp} REPLICA IDENTITY FULL;
 ```
 
-`api_partitions_recipe` line 701
+`api_partitions_recipe` line 746
 
 ```sql
 ALTER TABLE {tmp} REPLICA IDENTITY NOTHING;
 ```
 
-`api_partitions_recipe` line 709
+`api_partitions_recipe` line 754
 
 ```sql
 COMMENT ON TRIGGER {_qi_col(tg['tgname'])} ON {tmp} IS {_lit(tg['comment'])};
 ```
 
-`api_partitions_recipe` line 713
+`api_partitions_recipe` line 758
 
 ```sql
 ALTER TABLE {tmp} OWNER TO {_qi_col(rel['owner'])};
 ```
 
-`api_partitions_recipe` line 715
+`api_partitions_recipe` line 760
 
 ```sql
 ALTER TABLE {_qq(schema, _fit_name(name, '_pdefault'))} OWNER TO {_qi_col(rel['owner'])};
 ```
 
-`api_partitions_recipe` line 718
+`api_partitions_recipe` line 768
 
 ```sql
 GRANT {g_['privilege_type']} ON {tmp} TO {g_['grantee']}{' WITH GRANT OPTION' if g_['is_grantable'] else ''};
 ```
 
-`api_partitions_recipe` line 721
+`api_partitions_recipe` line 771
 
 ```sql
 GRANT {g_['privilege_type']} ({_qi_col(g_['attname'])}) ON {tmp} TO {g_['grantee']}{' WITH GRANT OPTION' if g_['is_grantable'] else ''};
 ```
 
-`api_partitions_recipe` line 724
+`api_partitions_recipe` line 774
 
 ```sql
 COMMENT ON TABLE {tmp} IS {_lit(rel['comment'])};
 ```
 
-`api_partitions_recipe` line 726
+`api_partitions_recipe` line 776
 
 ```sql
 ALTER TABLE {tmp} ENABLE ROW LEVEL SECURITY;
 ```
 
-`api_partitions_recipe` line 728
+`api_partitions_recipe` line 778
 
 ```sql
 ALTER TABLE {tmp} FORCE ROW LEVEL SECURITY;
 ```
 
-**s_** - `api_partitions_recipe` line 730
+**s_** - `api_partitions_recipe` line 780
 
 ```sql
 CREATE POLICY {_qi_col(p_['polname'])} ON {tmp} AS {'PERMISSIVE' if p_['permissive'] else 'RESTRICTIVE'} FOR {p_['cmd']} TO {p_['roles'] or 'PUBLIC'}
 ```
 
-`api_partitions_recipe` line 736
+`api_partitions_recipe` line 786
 
 ```sql
 WITH CHECK ({p_['withcheck']})
 ```
 
-`api_partitions_recipe` line 744
+`api_partitions_recipe` line 794
 
 ```sql
 ALTER TABLE {f['qtable']} DROP CONSTRAINT {_qi_col(f['conname'])};
 ```
 
-`api_partitions_recipe` line 750
+`api_partitions_recipe` line 800
 
 ```sql
 ALTER TABLE {q} RENAME TO {_qi_col(old_name)};
 ```
 
-`api_partitions_recipe` line 751
+`api_partitions_recipe` line 801
 
 ```sql
 ALTER TABLE {tmp} RENAME TO {_qi_col(name)};
 ```
 
-`api_partitions_recipe` line 757
+`api_partitions_recipe` line 807
 
 ```sql
 ALTER TABLE {f['qtable']} ADD CONSTRAINT {_qi_col(f['conname'])} {f['def']};
 ```
 
-`api_partitions_recipe` line 766
+`api_partitions_recipe` line 816
 
 ```sql
 WITH ({', '.join(v['reloptions'])})
 ```
 
-`api_partitions_recipe` line 767
+`api_partitions_recipe` line 817
 
 ```sql
 CREATE OR REPLACE VIEW {v['qname']}{opts} AS
 ```
 
-`api_partitions_recipe` line 773
+`api_partitions_recipe` line 823
 
 ```sql
 ALTER PUBLICATION {p_['pub']} ADD TABLE {q};
 ```
 
-**sql** - `api_partitions_ddl` line 903
+**sql** - `api_partitions_ddl` line 953
 
 ```sql
 CREATE TABLE {_qq(cs, cn)} PARTITION OF {_qq(ps, pn)} {bounds}{f' TABLESPACE {_qi(tsp)}' if tsp else ''};
 ```
 
-**sql** - `api_partitions_ddl` line 906
+**sql** - `api_partitions_ddl` line 956
 
 ```sql
 ALTER TABLE {_qq(ps, pn)} ATTACH PARTITION {_qq(cs, cn)} {bounds};
 ```
 
-**sql** - `api_partitions_ddl` line 912
+**sql** - `api_partitions_ddl` line 962
 
 ```sql
 ALTER TABLE {_qq(ps, pn)} DETACH PARTITION {_qq(cs, cn)} FINALIZE;
 ```
 
-**sql** - `api_partitions_ddl` line 917
+**sql** - `api_partitions_ddl` line 967
 
 ```sql
 ALTER TABLE {_qq(ps, pn)} DETACH PARTITION {_qq(cs, cn)} CONCURRENTLY;
 ```
 
-**sql** - `api_partitions_ddl` line 920
+**sql** - `api_partitions_ddl` line 970
 
 ```sql
 ALTER TABLE {_qq(ps, pn)} DETACH PARTITION {_qq(cs, cn)};
 ```
 
-**sql** - `api_partitions_ddl` line 922
+**sql** - `api_partitions_ddl` line 972
 
 ```sql
 DROP TABLE {_qq(cs, cn)};
 ```
 
-`api_partitions_ddl` line 935
+`api_partitions_ddl` line 985
 
 ```sql
 SELECT c.reltuples::bigint AS approx_rows,
@@ -2623,20 +2641,20 @@ SELECT EXISTS (SELECT 1 FROM aclexplode(%s::aclitem[]) a WHERE a.grantee = 0 AND
 
 ## api/repl.py
 
-`api_repl_publications` line 69
+`api_repl_publications` line 73
 
 ```sql
 SELECT p.pubname            AS name,
        pg_get_userbyid(p.pubowner) AS owner,
        p.puballtables       AS all_tables,
-       p.pubinsert, p.pubupdate, p.pubdelete, p.pubtruncate,
-       p.pubviaroot         AS via_partition_root,
+       p.pubinsert, p.pubupdate, p.pubdelete, {_trunc},
+       {_root}              AS via_partition_root,
        (SELECT count(*) FROM pg_publication_rel r WHERE r.prpubid = p.oid) AS table_count
   FROM pg_publication p
  ORDER BY p.pubname
 ```
 
-`api_repl_publications` line 82
+`api_repl_publications` line 86
 
 ```sql
 SELECT p.pubname AS pub, n.nspname AS schema
@@ -2646,7 +2664,7 @@ SELECT p.pubname AS pub, n.nspname AS schema
  ORDER BY 1, 2
 ```
 
-`api_repl_publications` line 95
+`api_repl_publications` line 99
 
 ```sql
 SELECT p.pubname AS pub,
@@ -2658,7 +2676,7 @@ SELECT p.pubname AS pub,
  ORDER BY 1, 2
 ```
 
-`api_repl_subscriptions` line 135
+`api_repl_subscriptions` line 141
 
 ```sql
 SELECT s.subname                          AS name,
@@ -2674,7 +2692,21 @@ SELECT s.subname                          AS name,
  ORDER BY s.subname
 ```
 
-`api_repl_subscriptions` line 150
+`api_repl_subscriptions` line 160
+
+```sql
+SELECT s.subname                          AS name,
+       pg_get_userbyid(s.subowner)        AS owner,
+       s.subenabled                       AS enabled,
+       s.subslotname                      AS slot,
+       NULL::text                         AS sync_commit,
+       array_to_string(s.subpublications, ', ') AS publications,
+       NULL::bigint AS rel_count, NULL::bigint AS rel_not_ready
+  FROM pg_subscription s
+ ORDER BY s.subname
+```
+
+`api_repl_subscriptions` line 173
 
 ```sql
 SELECT subname,
@@ -2687,37 +2719,56 @@ SELECT subname,
  ORDER BY subname
 ```
 
-**sql** - `api_repl_create_publication` line 196
+**sql** - `api_repl_create_publication` line 219
 
 ```sql
 CREATE PUBLICATION {_ident(name)}
 ```
 
-`api_repl_create_publication` line 232
+`api_repl_create_publication` line 260
 
 ```sql
 WITH ({', '.join(with_parts)})
 ```
 
-**s** - `api_repl_create_subscription._stmt` line 295
+`api_repl_create_publication` line 284
+
+```sql
+SELECT quote_ident(pt.schemaname) || '.' || quote_ident(pt.tablename)
+  FROM pg_publication_tables pt
+  JOIN pg_class c ON c.oid = (quote_ident(pt.schemaname) || '.' || quote_ident(pt.tablename))::regclass
+ WHERE pt.pubname = %s
+   AND (c.relreplident = 'n'
+        OR (c.relreplident = 'd' AND NOT EXISTS (
+              SELECT 1 FROM pg_index i WHERE i.indrelid = c.oid AND i.indisprimary)))
+ ORDER BY 1 LIMIT 50
+```
+
+**s** - `api_repl_create_subscription._stmt` line 357
 
 ```sql
 CREATE SUBSCRIPTION {_ident(name)} CONNECTION {_quote_pgsl(conn_str)} PUBLICATION {', '.join((_ident(p) for p in pubs))}
 ```
 
-`api_repl_create_subscription._stmt` line 299
+`api_repl_create_subscription._stmt` line 361
 
 ```sql
 WITH ({', '.join(with_parts)})
 ```
 
-`api_repl_alter_subscription` line 370
+`api_repl_alter_subscription` line 432
 
 ```sql
 ALTER SUBSCRIPTION {qn} SET (slot_name = NONE)
 ```
 
-**sql** - `api_repl_drop_publication` line 408
+`api_repl_alter_subscription` line 448
+
+```sql
+ALTER SUBSCRIPTION {qn} SET (slot_name = NONE)
+```
+
+**sql** - `api_repl_drop_publication` line 489
 
 ```sql
 DROP PUBLICATION "{name.replace(chr(34), chr(34) * 2)}"
@@ -3144,13 +3195,15 @@ SELECT spcname AS name,
 FROM pg_tablespace ORDER BY spcname
 ```
 
-`api_role_grantable` line 798
+`api_role_grantable` line 800
 
 ```sql
-SELECT current_user, pg_catalog.pg_has_role(current_user, 'pg_monitor', 'MEMBER') AS is_monitor
+SELECT current_user,
+                              EXISTS (SELECT 1 FROM pg_catalog.pg_roles pr WHERE pr.rolname = 'pg_monitor'
+                                         AND pg_catalog.pg_has_role(current_user, pr.oid, 'MEMBER')) AS is_monitor
 ```
 
-`api_role_grantable` line 815
+`api_role_grantable` line 819
 
 ```sql
 SELECT
@@ -3160,13 +3213,13 @@ SELECT
   has_schema_privilege(%s, %s, 'CREATE WITH GRANT OPTION') AS create_grantable
 ```
 
-`api_role_grantable` line 829
+`api_role_grantable` line 833
 
 ```sql
 SELECT current_setting('server_version_num')::int
 ```
 
-`api_role_grantable` line 843
+`api_role_grantable` line 847
 
 ```sql
 SELECT COUNT(*) = SUM(CASE WHEN has_table_privilege(%s, c.oid, %s) THEN 1 ELSE 0 END)
@@ -3175,7 +3228,7 @@ JOIN pg_catalog.pg_namespace n ON n.oid = c.relnamespace
 WHERE n.nspname = %s AND c.relkind IN ('r','p')
 ```
 
-`api_role_grantable` line 859
+`api_role_grantable` line 863
 
 ```sql
 SELECT COUNT(*) = SUM(CASE WHEN has_sequence_privilege(%s, c.oid, %s) THEN 1 ELSE 0 END)
@@ -3184,7 +3237,7 @@ JOIN pg_catalog.pg_namespace n ON n.oid = c.relnamespace
 WHERE n.nspname = %s AND c.relkind = 'S'
 ```
 
-`api_role_grantable` line 874
+`api_role_grantable` line 878
 
 ```sql
 SELECT COUNT(*) = SUM(CASE WHEN has_function_privilege(%s, p.oid, 'EXECUTE WITH GRANT OPTION') THEN 1 ELSE 0 END)
@@ -3193,7 +3246,7 @@ JOIN pg_catalog.pg_namespace n ON n.oid = p.pronamespace
 WHERE n.nspname = %s
 ```
 
-`api_role_grantable` line 895
+`api_role_grantable` line 899
 
 ```sql
 SELECT g.rolname
@@ -3205,19 +3258,19 @@ WHERE me.rolname = %s
 ORDER BY g.rolname
 ```
 
-`api_role_privileges_apply` line 1064
+`api_role_privileges_apply` line 1068
 
 ```sql
 ALTER DEFAULT PRIVILEGES FOR ROLE {fr} IN SCHEMA {s}
 ```
 
-`api_role_privileges_apply` line 1069
+`api_role_privileges_apply` line 1073
 
 ```sql
 ALTER DEFAULT PRIVILEGES IN SCHEMA {s}
 ```
 
-`api_role_privileges_apply` line 1091
+`api_role_privileges_apply` line 1095
 
 ```sql
 SELECT t.typname
@@ -3232,7 +3285,7 @@ WHERE t.typtype IN ('c','e','d','r','m')
   AND n.nspname = %s
 ```
 
-`api_role_audit_summary` line 1204
+`api_role_audit_summary` line 1208
 
 ```sql
 SELECT r.oid, r.rolname FROM pg_roles r
@@ -3241,50 +3294,29 @@ SELECT r.oid, r.rolname FROM pg_roles r
  ORDER BY r.rolname
 ```
 
-`api_role_audit_summary` line 1212
+`api_role_audit_summary` line 1216
 
 ```sql
 SELECT oid, rolname FROM pg_roles
 ```
 
-**sql** - `api_role_privileges_copy` line 1298
+`api_role_privileges_copy` line 1305
 
 ```sql
-SELECT n.nspname AS schema, c.relname AS name, c.relkind AS relkind,
-       a.privilege_type AS privilege, a.is_grantable AS wgo
-  FROM pg_class c
-  JOIN pg_namespace n ON n.oid = c.relnamespace
-  JOIN aclexplode(c.relacl) a ON true
- WHERE n.nspname NOT IN ('pg_catalog', 'information_schema')
-   AND c.relkind IN ('r','p','v','m','S','f')
-   AND a.grantee = (SELECT oid FROM pg_roles WHERE rolname = %s)
+SELECT 1 FROM pg_roles WHERE rolname = %s
 ```
 
-**stmt** - `api_role_privileges_copy` line 1323
+`api_role_privileges_copy` line 1319
 
 ```sql
-GRANT {r['privilege']} ON {kw} {fq} TO {dst_q}{' WITH GRANT OPTION' if r['wgo'] else ''}
+SELECT DISTINCT d.datname FROM pg_shdepend s
+                         JOIN pg_database d ON d.oid = s.dbid
+                        WHERE s.refclassid = 'pg_authid'::regclass AND s.deptype = 'a'
+                          AND s.refobjid = (SELECT oid FROM pg_roles WHERE rolname = %s)
+                          AND d.datname <> current_database() ORDER BY 1
 ```
 
-`api_role_privileges_copy` line 1328
-
-```sql
-SELECT n.nspname AS schema,
-       a.privilege_type AS priv,
-       a.is_grantable AS wgo
-  FROM pg_namespace n
-  JOIN aclexplode(n.nspacl) a ON true
- WHERE a.grantee = (SELECT oid FROM pg_roles WHERE rolname = %s)
-   AND n.nspname NOT IN ('pg_catalog', 'information_schema')
-```
-
-**stmt** - `api_role_privileges_copy` line 1339
-
-```sql
-GRANT {r['priv']} ON SCHEMA {_ident_str(r['schema'])} TO {dst_q}{' WITH GRANT OPTION' if r['wgo'] else ''}
-```
-
-`api_role_check_drop` line 1433
+`api_role_check_drop` line 1416
 
 ```sql
 SELECT coalesce(d.datname, '(shared)') AS database,
@@ -3297,13 +3329,32 @@ SELECT coalesce(d.datname, '(shared)') AS database,
  ORDER BY 2 DESC
 ```
 
-`api_role_check_drop` line 1453
+`api_role_check_drop` line 1436
 
 ```sql
 SELECT oid FROM pg_roles WHERE rolname = %s
 ```
 
-`api_role_check_drop` line 1484
+`api_role_check_drop` line 1476
+
+```sql
+SELECT n.nspname AS nsp, c.relname AS rel, p.polname AS pol
+                             FROM pg_policy p
+                             JOIN pg_class c ON c.oid = p.polrelid
+                             JOIN pg_namespace n ON n.oid = c.relnamespace
+                            WHERE %s = ANY(p.polroles) ORDER BY 1, 2, 3
+```
+
+`api_role_check_drop` line 1486
+
+```sql
+SELECT pg_get_userbyid(am.roleid) AS grp, pg_get_userbyid(am.member) AS member
+                                 FROM pg_auth_members am
+                                WHERE am.grantor = %s AND am.roleid <> %s AND am.member <> %s
+                                ORDER BY 1, 2
+```
+
+`api_role_check_drop` line 1508
 
 ```sql
 SELECT m.rolname AS member, g.rolname AS granted_role,
@@ -3315,7 +3366,7 @@ SELECT m.rolname AS member, g.rolname AS granted_role,
  ORDER BY m.rolname, g.rolname
 ```
 
-`api_role_check_drop` line 1497
+`api_role_check_drop` line 1521
 
 ```sql
 SELECT rolname FROM pg_roles
@@ -3323,25 +3374,25 @@ SELECT rolname FROM pg_roles
  ORDER BY rolcanlogin DESC, rolname
 ```
 
-`api_role_check_drop` line 1506
+`api_role_check_drop` line 1530
 
 ```sql
 SELECT current_user AS me, current_database() AS db
 ```
 
-`api_role_drop` line 1688
+`api_role_drop` line 1712
 
 ```sql
 DROP ROLE {r}
 ```
 
-`api_role_drop` line 1689
+`api_role_drop` line 1713
 
 ```sql
 DROP ROLE {role}
 ```
 
-`api_role_memberships` line 1735
+`api_role_memberships` line 1759
 
 ```sql
 SELECT g.rolname, am.admin_option, am.inherit_option, am.set_option
@@ -3352,7 +3403,7 @@ SELECT g.rolname, am.admin_option, am.inherit_option, am.set_option
  ORDER BY g.rolname
 ```
 
-`api_role_memberships` line 1744
+`api_role_memberships` line 1768
 
 ```sql
 SELECT g.rolname, am.admin_option, m.rolinherit, TRUE
@@ -3363,7 +3414,7 @@ SELECT g.rolname, am.admin_option, m.rolinherit, TRUE
  ORDER BY g.rolname
 ```
 
-`api_role_template` line 1792
+`api_role_template` line 1816
 
 ```sql
 SELECT rolname, rolsuper, rolinherit, rolcreatedb, rolcreaterole,
@@ -3374,7 +3425,7 @@ SELECT rolname, rolsuper, rolinherit, rolcreatedb, rolcreaterole,
   FROM pg_roles WHERE rolname = %s
 ```
 
-`api_role_template` line 1805
+`api_role_template` line 1829
 
 ```sql
 SELECT g.rolname AS name
@@ -3385,7 +3436,7 @@ SELECT g.rolname AS name
  ORDER BY g.rolname
 ```
 
-`api_role_template` line 1819
+`api_role_template` line 1843
 
 ```sql
 SELECT count(*) AS n
@@ -3397,7 +3448,7 @@ SELECT count(*) AS n
    AND a.grantee = (SELECT oid FROM pg_roles WHERE rolname = %s)
 ```
 
-`api_role_template` line 1829
+`api_role_template` line 1853
 
 ```sql
 SELECT count(*) AS n
@@ -3407,43 +3458,49 @@ SELECT count(*) AS n
    AND a.grantee = (SELECT oid FROM pg_roles WHERE rolname = %s)
 ```
 
-`_grant_membership_sql` line 1883
+`_grant_membership_sql` line 1907
 
 ```sql
 GRANT {parent} TO {member}
 ```
 
-`api_role_membership_apply` line 1964
+`api_role_membership_apply` line 1988
 
 ```sql
 REVOKE {parent} FROM {member}
 ```
 
-`api_role_search_path` line 2021
+`api_role_search_path` line 2045
 
 ```sql
 ALTER ROLE {r}
 ```
 
-`api_role_search_path` line 2021
+`api_role_search_path` line 2045
 
 ```sql
 RESET search_path
 ```
 
-`api_role_search_path` line 2024
+`api_role_search_path` line 2048
 
 ```sql
 ALTER ROLE {r}
 ```
 
-`api_role_search_path` line 2026
+`api_role_search_path` line 2050
 
 ```sql
 SET search_path TO
 ```
 
-`api_role_timeouts` line 2094
+`api_role_timeouts` line 2115
+
+```sql
+SELECT 1 FROM pg_roles WHERE rolname = %s
+```
+
+`api_role_timeouts` line 2122
 
 ```sql
 SELECT COALESCE(d.datname, '') AS datname,
@@ -3454,33 +3511,33 @@ SELECT COALESCE(d.datname, '') AS datname,
   LEFT JOIN pg_roles    r ON r.oid = s.setrole
 ```
 
-`api_role_timeouts` line 2134
+`api_role_timeouts` line 2162
 
 ```sql
 SELECT name, setting FROM pg_file_settings
                             WHERE applied AND name = ANY(%s) ORDER BY seqno
 ```
 
-`api_role_timeouts` line 2144
+`api_role_timeouts` line 2172
 
 ```sql
 SELECT name, reset_val, boot_val, source, unit
                          FROM pg_settings WHERE name = ANY(%s)
 ```
 
-`api_role_timeouts` line 2159
+`api_role_timeouts` line 2187
 
 ```sql
 SELECT rolconnlimit FROM pg_roles WHERE rolname = %s
 ```
 
-`api_role_timeouts_apply` line 2236
+`api_role_timeouts_apply` line 2264
 
 ```sql
 ALTER ROLE {r}
 ```
 
-`api_role_ddl` line 2312
+`api_role_ddl` line 2340
 
 ```sql
 WITH RECURSIVE up(oid) AS (
@@ -3493,13 +3550,13 @@ SELECT r.rolname FROM pg_roles r JOIN up ON up.oid = r.oid
  ORDER BY 1
 ```
 
-`api_role_ddl` line 2337
+`api_role_ddl` line 2365
 
 ```sql
 SELECT rolpassword FROM pg_authid LIMIT 1
 ```
 
-`api_role_ddl` line 2355
+`api_role_ddl` line 2383
 
 ```sql
 SELECT r.rolname, r.rolsuper, r.rolinherit, r.rolcreaterole,
@@ -3511,22 +3568,22 @@ SELECT r.rolname, r.rolsuper, r.rolinherit, r.rolcreaterole,
  ORDER BY r.rolname
 ```
 
-`api_role_ddl` line 2414
+`api_role_ddl` line 2442
 
 ```sql
 CREATE ROLE {name} {' '.join(opts)};
 ```
 
-`api_role_ddl` line 2418
+`api_role_ddl` line 2446
 
 ```sql
 COMMENT ON ROLE {name} IS {_literal_str(r['comment'])};
 ```
 
-`api_role_ddl` line 2435
+`api_role_ddl` line 2468
 
 ```sql
-SELECT g.rolname AS grp, m.rolname AS member, am.admin_option, {opt16}
+SELECT g.rolname AS grp, m.rolname AS member, am.admin_option, {opt16}, {by16}
   FROM pg_auth_members am
   JOIN pg_roles g ON g.oid = am.roleid
   JOIN pg_roles m ON m.oid = am.member
@@ -3535,13 +3592,13 @@ SELECT g.rolname AS grp, m.rolname AS member, am.admin_option, {opt16}
  ORDER BY g.rolname, m.rolname
 ```
 
-**stmt** - `api_role_ddl` line 2462
+**stmt** - `api_role_ddl` line 2516
 
 ```sql
-GRANT {_ident_str(grp)} TO {_ident_str(member)}{' WITH ' + ', '.join(opts) if opts else ''};
+GRANT {_ident_str(grp)} TO {_ident_str(member)}{' WITH ' + ', '.join(opts) if opts else ''}{f' GRANTED BY {_ident_str(m['grantor'])}' if m.get('grantor') else ''};
 ```
 
-`api_role_ddl` line 2495
+`api_role_ddl` line 2550
 
 ```sql
 SELECT r.rolname, COALESCE(d.datname, '') AS dbname, s.setconfig
@@ -3553,7 +3610,7 @@ SELECT r.rolname, COALESCE(d.datname, '') AS dbname, s.setconfig
  ORDER BY r.rolname, 2
 ```
 
-`api_role_ddl` line 2514
+`api_role_ddl` line 2569
 
 ```sql
 ALTER ROLE %s%s SET %s = %s;
@@ -3561,7 +3618,35 @@ ALTER ROLE %s%s SET %s = %s;
 
 ## api/sequences.py
 
-**q** - `api_sequences_health` line 35
+`_standalone_users` line 28
+
+```sql
+WITH free AS (
+    SELECT c.oid, n.nspname, c.relname
+      FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace
+     WHERE c.relkind = 'S'
+       AND n.nspname NOT IN ('pg_catalog', 'information_schema')
+       AND NOT EXISTS (SELECT 1 FROM pg_depend o
+                        WHERE o.classid = 'pg_class'::regclass AND o.objid = c.oid
+                          AND o.deptype IN ('a', 'i')))
+SELECT f.nspname, f.relname, pg_describe_object(d.classid, d.objid, d.objsubid) AS what
+  FROM free f JOIN pg_depend d
+    ON d.refclassid = 'pg_class'::regclass AND d.refobjid = f.oid AND d.deptype = 'n'
+UNION ALL
+SELECT f.nspname, f.relname, pg_describe_object(d.refclassid, d.refobjid, 0)
+  FROM free f JOIN pg_depend d
+    ON d.classid = 'pg_class'::regclass AND d.objid = f.oid AND d.deptype = 'e'
+UNION ALL
+SELECT f.nspname, f.relname,
+       'named in the body of ' || pg_describe_object('pg_proc'::regclass, p.oid, 0)
+  FROM free f JOIN pg_proc p
+    ON p.prosrc ~* ('\m' || regexp_replace(f.relname, '([.^$*+?()\[\]{}|\\-])', '\\\1', 'g') || '\M')
+  JOIN pg_language l ON l.oid = p.prolang AND l.lanname NOT IN ('internal', 'c')
+  JOIN pg_namespace pn ON pn.oid = p.pronamespace
+       AND pn.nspname NOT IN ('pg_catalog', 'information_schema')
+```
+
+**q** - `api_sequences_health` line 82
 
 ```sql
 SELECT s.schemaname AS schema, s.sequencename AS name,
@@ -3573,7 +3658,7 @@ SELECT s.schemaname AS schema, s.sequencename AS name,
    AND s.schemaname NOT LIKE 'pg_temp_%%'
 ```
 
-**q** - `api_sequences_health` line 52
+**q** - `api_sequences_health` line 99
 
 ```sql
 SELECT n.nspname AS schema, c.relname AS name,
@@ -3587,7 +3672,7 @@ SELECT n.nspname AS schema, c.relname AS name,
    AND n.nspname NOT IN ('pg_catalog','information_schema')
 ```
 
-`api_sequences_health` line 86
+`api_sequences_health` line 133
 
 ```sql
 SELECT n.nspname || '.' || c.relname AS sequence,
@@ -3607,25 +3692,57 @@ SELECT n.nspname || '.' || c.relname AS sequence,
    AND tc.relkind IN ('r', 'p')
 ```
 
-`api_sequences_health` line 120
+`api_sequences_health` line 176
 
 ```sql
-SELECT MAX({}) AS mx FROM {}.{}
+SELECT {}({}) AS mx FROM {}.{}
 ```
 
-`api_sequences_health` line 161
+`api_sequences_health` line 219
 
 ```sql
 SELECT setval(format('%I.%I', '{s['schema'].replace("'", "''")}', '{s['name'].replace("'", "''")}')::regclass, {str(mx) if mx is not None else '1'}, true);
 ```
 
-`api_sequences_repair` line 222
+`api_sequences_repair` line 280
 
 ```sql
 SELECT setval({}::regclass, %s, true)
 ```
 
-`api_sequences_find_serial` line 272
+`_identity_plan` line 315
+
+```sql
+SELECT last_value, is_called FROM {seq_ident}
+```
+
+`_identity_plan` line 317
+
+```sql
+SELECT seqincrement, seqmin, seqmax, seqcycle, seqcache, format_type(seqtypid, NULL)
+                     FROM pg_sequence WHERE seqrelid = %s::regclass
+```
+
+`_identity_plan` line 321
+
+```sql
+SELECT %s(%s) FROM %s
+```
+
+`_identity_plan` line 339
+
+```sql
+SELECT a.attnotnull FROM pg_attribute a
+                    WHERE a.attrelid = %s::regclass AND a.attname = %s
+```
+
+`_identity_plan` line 345
+
+```sql
+SELECT EXISTS (SELECT 1 FROM %s WHERE %s IS NULL)
+```
+
+`api_sequences_find_serial` line 380
 
 ```sql
     SELECT n.nspname AS schema, c.relname AS table, a.attname AS column,
@@ -3650,57 +3767,73 @@ SELECT setval({}::regclass, %s, true)
 {' AND n.nspname = %s' if schema_filter else ''}
 ```
 
-`api_sequences_find_serial` line 302
+`api_sequences_find_serial` line 422
+
+```sql
+ALTER TABLE {ts} ALTER COLUMN {col} SET NOT NULL;
+```
+
+`api_sequences_find_serial` line 423
 
 ```sql
 ALTER TABLE {ts} ALTER COLUMN {col} DROP DEFAULT;
-ALTER TABLE {ts} ALTER COLUMN {col} ADD GENERATED BY DEFAULT AS IDENTITY (START WITH {start});
-DROP SEQUENCE "{r['seq_schema']}"."{r['seq_name']}";
 ```
 
-`api_sequences_serial_to_identity` line 357
+`api_sequences_find_serial` line 424
+
+```sql
+ALTER TABLE {ts} ALTER COLUMN {col} ADD GENERATED BY DEFAULT AS IDENTITY ({plan['options']});
+```
+
+`api_sequences_find_serial` line 426
+
+```sql
+DROP SEQUENCE {seq};
+```
+
+`api_sequences_serial_to_identity` line 479
 
 ```sql
 SELECT pg_get_serial_sequence(%s, %s)
 ```
 
-`api_sequences_serial_to_identity` line 362
+`api_sequences_serial_to_identity` line 484
 
 ```sql
-SELECT last_value, is_called FROM {}
+SELECT relname FROM pg_class WHERE oid = %s::regclass
 ```
 
-`api_sequences_serial_to_identity` line 366
+`api_sequences_serial_to_identity` line 495
 
 ```sql
-SELECT max({}) FROM {}.{}
+ALTER TABLE %s ALTER COLUMN %s SET NOT NULL
 ```
 
-`api_sequences_serial_to_identity` line 371
-
-```sql
-ALTER TABLE {}.{} ALTER COLUMN {} DROP DEFAULT
-```
-
-`api_sequences_serial_to_identity` line 374
-
-```sql
-ALTER TABLE {}.{} ALTER COLUMN {} ADD GENERATED {mode} AS IDENTITY (START WITH {str(start_with)})
-```
-
-`api_sequences_serial_to_identity` line 382
+`api_sequences_serial_to_identity` line 496
 
 ```sql
 ALTER TABLE %s ALTER COLUMN %s DROP DEFAULT
 ```
 
-`api_sequences_serial_to_identity` line 383
+`api_sequences_serial_to_identity` line 497
 
 ```sql
-ALTER TABLE %s ALTER COLUMN %s ADD GENERATED %s AS IDENTITY (START WITH %d)
+ALTER TABLE %s ALTER COLUMN %s ADD GENERATED %s AS IDENTITY (%s)
 ```
 
-`api_sequences_drop_orphans` line 420
+`api_sequences_serial_to_identity` line 506
+
+```sql
+SELECT pg_get_serial_sequence(%s, %s)
+```
+
+`api_sequences_serial_to_identity` line 509
+
+```sql
+ALTER SEQUENCE {} RENAME TO {}
+```
+
+`api_sequences_drop_orphans` line 545
 
 ```sql
 SELECT n.nspname, c.relname FROM pg_class c
@@ -3724,7 +3857,7 @@ SELECT c.oid FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace
 
 ```sql
 SELECT k.conname,
-       k.conrelid, k.confrelid, k.confdeltype,
+       k.conrelid, k.confrelid, k.confdeltype, k.condeferrable,
        (SELECT array_agg(a.attname ORDER BY u.ord)
           FROM unnest(k.conkey) WITH ORDINALITY u(attnum, ord)
           JOIN pg_attribute a ON a.attrelid = k.conrelid AND a.attnum = u.attnum) AS cols,
@@ -3757,40 +3890,61 @@ SELECT n.nspname, c.relname,
 SELECT {} FROM {}.{} WHERE {where_sql} LIMIT %s
 ```
 
-`_subset_walk` line 198
+`_subset_walk._step` line 182
 
 ```sql
-SELECT {} FROM {}.{} WHERE ({}) IN ({placeholders}) LIMIT %s
+SELECT DISTINCT {tpk} FROM {ts}.{tn} t JOIN {ss}.{sn} s ON {on} WHERE ({spk}) IN ({ph}) LIMIT %s
 ```
 
-`api_subset_export` line 366
+`api_subset_export` line 396
 
 ```sql
 SET CONSTRAINTS ALL DEFERRED;
 ```
 
-`api_subset_export` line 378
+`api_subset_export` line 409
 
 ```sql
 SELECT attname FROM pg_attribute WHERE attrelid = %s AND attgenerated <> ''
 ```
 
-`api_subset_export` line 393
+`api_subset_export` line 425
 
 ```sql
 SELECT {} FROM {}.{} WHERE ({}) IN ({placeholders})
 ```
 
-`api_subset_export` line 399
+`api_subset_export` line 434
 
 ```sql
 COPY {_qq(sch, nm)} ({col_list}) FROM stdin;
 ```
 
-`api_subset_export` line 413
+`api_subset_export` line 452
 
 ```sql
-INSERT INTO {_qq(sch, nm)} ({col_list}){ovr} VALUES ({vals});
+INSERT INTO {_qq(sch, nm)} ({col_list}){ovr} VALUES
+```
+
+`api_subset_export` line 456
+
+```sql
+INSERT INTO {_qq(sch, nm)} ({col_list}){ovr} VALUES {tup};
+```
+
+`api_subset_export` line 460
+
+```sql
+SELECT a.attname FROM pg_attribute a
+                            WHERE a.attrelid = %s AND a.attnum > 0 AND NOT a.attisdropped
+                              AND pg_get_serial_sequence(%s, a.attname) IS NOT NULL
+                            ORDER BY a.attnum
+```
+
+`api_subset_export` line 469
+
+```sql
+SELECT setval(pg_get_serial_sequence({_literal_str(qtbl)}, {_literal_str(col)}), max({_qi(col)})) FROM {qtbl} HAVING max({_qi(col)}) IS NOT NULL;
 ```
 
 ## api/tablespaces.py
@@ -3809,9 +3963,9 @@ SELECT t.spcname AS name,
        -- one row. Gate it per row: the listing is the point, the
        -- size is a bonus, and NULL says "not visible to you".
        -- pg_read_all_stats and the database's own default count too.
-       CASE WHEN (has_tablespace_privilege(t.oid, 'CREATE') OR pg_has_role(current_user, 'pg_read_all_stats', 'USAGE') OR t.oid = (SELECT dattablespace FROM pg_database WHERE datname = current_database()))
+       CASE WHEN (has_tablespace_privilege(t.oid, 'CREATE') OR EXISTS (SELECT 1 FROM pg_roles pr WHERE pr.rolname = 'pg_read_all_stats' AND pg_has_role(current_user, pr.oid, 'USAGE')) OR t.oid = (SELECT dattablespace FROM pg_database WHERE datname = current_database()))
             THEN pg_size_pretty(pg_tablespace_size(t.oid)) END AS size,
-       CASE WHEN (has_tablespace_privilege(t.oid, 'CREATE') OR pg_has_role(current_user, 'pg_read_all_stats', 'USAGE') OR t.oid = (SELECT dattablespace FROM pg_database WHERE datname = current_database()))
+       CASE WHEN (has_tablespace_privilege(t.oid, 'CREATE') OR EXISTS (SELECT 1 FROM pg_roles pr WHERE pr.rolname = 'pg_read_all_stats' AND pg_has_role(current_user, pr.oid, 'USAGE')) OR t.oid = (SELECT dattablespace FROM pg_database WHERE datname = current_database()))
             THEN pg_tablespace_size(t.oid) END AS size_bytes,
        COALESCE(t.spcoptions, ARRAY[]::text[]) AS options,
        COALESCE(t.spcacl::text[], ARRAY[]::text[]) AS acl
