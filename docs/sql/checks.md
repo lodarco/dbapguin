@@ -1,6 +1,6 @@
 # Checks
 
-[All parts](README.md) · 409 statements
+[All parts](README.md) · 413 statements
 
 ## checks/actual_plans.py
 
@@ -212,35 +212,52 @@ SELECT has_function_privilege('pg_catalog.pg_read_file(text,bigint,bigint,boolea
 
 ## checks/ash.py
 
-`_sample_sql` line 88
+`_sample_sql` line 107
 
 ```sql
-SELECT pid,
-       usename AS user_name,
-       application_name AS app,
-       datname AS db,
-       coalesce(client_addr::text, 'local') AS client,
-       state,
-       wait_event_type,
-       wait_event,
-       EXTRACT(EPOCH FROM (now() - xact_start)) AS xact_age,
-       EXTRACT(EPOCH FROM (now() - query_start)) AS query_age,
+SELECT a.pid,
+       a.usename AS user_name,
+       a.application_name AS app,
+       a.datname AS db,
+       {client_col},
+       a.state,
+       a.wait_event_type,
+       a.wait_event,
+       EXTRACT(EPOCH FROM (now() - a.xact_start)) AS xact_age,
+       EXTRACT(EPOCH FROM (now() - a.query_start)) AS query_age,
        {query_id_col},
-       coalesce(pg_blocking_pids(pid), '{}'::int[]) AS blockers,
-       regexp_replace(query, '[[:space:]]+', ' ', 'g') AS query
-  FROM pg_stat_activity
- WHERE pid <> pg_backend_pid()
-   AND state IS NOT NULL
-   AND state <> 'idle'
+       CASE WHEN a.wait_event_type = 'Lock'
+            THEN coalesce(pg_blocking_pids(a.pid), '{}'::int[])
+            ELSE '{}'::int[] END AS blockers,
+       regexp_replace(a.query, '[[:space:]]+', ' ', 'g') AS query,
+       {leader_col},
+       {type_col}
+  FROM pg_stat_activity a
+  {leader_join}
+ WHERE a.pid <> pg_backend_pid()
+   AND a.state IS NOT NULL
+   AND a.state <> 'idle'
 ```
 
-`_db_timezone` line 816
+`sees_every_session` line 1123
+
+```sql
+SELECT (SELECT rolsuper FROM pg_roles WHERE rolname = current_user) AS ok, current_user AS who
+```
+
+`sees_every_session` line 1125
+
+```sql
+SELECT ((SELECT rolsuper FROM pg_roles WHERE rolname = current_user) OR pg_has_role(current_user, 'pg_read_all_stats', 'MEMBER')) AS ok, current_user AS who
+```
+
+`_db_timezone` line 1200
 
 ```sql
 SELECT current_setting('TimeZone'), EXTRACT(EPOCH FROM (now() - now() AT TIME ZONE 'UTC'))
 ```
 
-`_pgss_for` line 992
+`_pgss_for` line 1399
 
 ```sql
 SELECT queryid::text AS qid, sum(calls) AS calls,
@@ -252,7 +269,7 @@ SELECT queryid::text AS qid, sum(calls) AS calls,
  GROUP BY queryid
 ```
 
-`_query_size_limit` line 1026
+`_query_size_limit` line 1433
 
 ```sql
 SELECT current_setting('track_activity_query_size') AS v
@@ -260,7 +277,13 @@ SELECT current_setting('track_activity_query_size') AS v
 
 ## checks/awr_snapshot.py
 
-`_capture` line 228
+`_server_clock` line 127
+
+```sql
+SELECT current_setting('TimeZone'), EXTRACT(EPOCH FROM (now() - now() AT TIME ZONE 'UTC'))
+```
+
+`_capture` line 285
 
 ```sql
 SELECT datname, datname = current_database() AS here,
@@ -270,33 +293,34 @@ SELECT datname, datname = current_database() AS here,
   FROM pg_stat_database WHERE datname IS NOT NULL
 ```
 
-`_capture` line 253
+`_capture` line 310
 
 ```sql
 SELECT 1 FROM {_pss} LIMIT 1
 ```
 
-`_capture` line 267
+`_capture` line 343
 
 ```sql
 SELECT queryid::text AS queryid, dbid::bigint AS dbid, userid::bigint AS userid,
-       {_toplevel}{', query, calls,\n                       %(total)s AS total_exec_time,\n                       %(mean)s  AS mean_exec_time,\n                       %(max)s   AS max_exec_time,\n                       rows AS rows_total,\n                       shared_blks_hit, shared_blks_read,\n                       temp_blks_read, temp_blks_written\n                  FROM ' % _tc}{_pss}
+       {_toplevel}{', query, calls,\n                       %(total)s AS total_exec_time,\n                       %(mean)s  AS mean_exec_time,\n                       %(max)s   AS max_exec_time,\n                       rows AS rows_total,\n                       shared_blks_hit, shared_blks_read,\n                       temp_blks_read, temp_blks_written,\n                       ' % _tc}{_more}
+  FROM {_pss}
  WHERE query IS NOT NULL
 ```
 
-`_capture` line 282
+`_capture` line 359
 
 ```sql
 SELECT oid::bigint AS oid, datname AS name FROM pg_database
 ```
 
-`_capture` line 284
+`_capture` line 361
 
 ```sql
 SELECT oid::bigint AS oid, rolname AS name FROM pg_roles
 ```
 
-`_capture` line 309
+`_capture` line 386
 
 ```sql
 SELECT s.relid::bigint AS relid, s.schemaname, s.relname,
@@ -313,7 +337,7 @@ SELECT s.relid::bigint AS relid, s.schemaname, s.relname,
   JOIN pg_class c ON c.oid = s.relid
 ```
 
-`_capture` line 327
+`_capture` line 404
 
 ```sql
 SELECT schemaname, relname,
@@ -322,7 +346,7 @@ SELECT schemaname, relname,
   FROM pg_stat_user_tables
 ```
 
-`_capture` line 340
+`_capture` line 417
 
 ```sql
 SELECT indexrelid::bigint AS indexrelid, relid::bigint AS relid,
@@ -330,7 +354,7 @@ SELECT indexrelid::bigint AS indexrelid, relid::bigint AS relid,
   FROM pg_stat_user_indexes
 ```
 
-`_capture` line 355
+`_capture` line 432
 
 ```sql
 SELECT name, setting FROM pg_settings
@@ -340,13 +364,24 @@ SELECT name, setting FROM pg_settings
                 'autovacuum_max_workers', 'autovacuum_worker_slots')
 ```
 
-`_capture` line 372
+`_capture` line 451
+
+```sql
+SELECT name, current_setting(name) AS setting, NULL::text AS unit, source FROM pg_settings
+ WHERE source NOT IN ('default', 'override')
+   AND name NOT IN ('application_name', 'client_encoding', 'DateStyle', 'TimeZone', 'search_path',
+                    'statement_timeout', 'lock_timeout', 'idle_in_transaction_session_timeout',
+                    'role', 'session_authorization', 'default_transaction_read_only', 'extra_float_digits')
+   AND source NOT IN ('session', 'client')
+```
+
+`_capture` line 469
 
 ```sql
 SELECT pg_database_size(current_database()) AS n
 ```
 
-`_capture` line 382
+`_capture` line 479
 
 ```sql
 WITH {heap_otta_cte()}
@@ -356,7 +391,7 @@ SELECT schemaname, tablename, pg_relation_size(reloid) AS bytes,
  WHERE reltuples IS NOT NULL
 ```
 
-`_capture` line 407
+`_capture` line 504
 
 ```sql
 SELECT num_timed AS ckpt_timed, num_requested AS ckpt_req,
@@ -365,14 +400,14 @@ SELECT num_timed AS ckpt_timed, num_requested AS ckpt_req,
   FROM pg_stat_checkpointer
 ```
 
-`_capture` line 414
+`_capture` line 511
 
 ```sql
 SELECT buffers_clean, maxwritten_clean, buffers_alloc
   FROM pg_stat_bgwriter
 ```
 
-`_capture` line 420
+`_capture` line 517
 
 ```sql
 SELECT checkpoints_timed AS ckpt_timed, checkpoints_req AS ckpt_req,
@@ -382,13 +417,13 @@ SELECT checkpoints_timed AS ckpt_timed, checkpoints_req AS ckpt_req,
   FROM pg_stat_bgwriter
 ```
 
-`_capture` line 438
+`_capture` line 535
 
 ```sql
 SELECT wal_records, wal_fpi, wal_bytes::bigint AS wal_bytes, wal_buffers_full FROM pg_stat_wal
 ```
 
-`_capture` line 447
+`_capture` line 544
 
 ```sql
 SELECT backend_type,
@@ -402,7 +437,7 @@ SELECT backend_type,
  GROUP BY backend_type
 ```
 
-`_capture` line 470
+`_capture` line 567
 
 ```sql
 SELECT extract(epoch FROM pg_postmaster_start_time())::bigint AS started,
