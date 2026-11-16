@@ -1,6 +1,6 @@
 # DBApguin - korisničke upute
 
-**Za DBApguin 1.0.5**
+**Za DBApguin 1.0.6**
 
 *Ove su upute prevedene s engleskog uz pomoć AI-a. Ako je nešto nejasno ili se razlikuje, mjerodavan je engleski izvornik (Pomoć → Korisničke upute, uz engleski jezik sučelja).*
 

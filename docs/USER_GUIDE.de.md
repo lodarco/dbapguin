@@ -1,6 +1,6 @@
 # DBApguin - Benutzerhandbuch
 
-**Für DBApguin 1.0.5**
+**Für DBApguin 1.0.6**
 
 *Dieses Handbuch wurde mit Hilfe von KI aus dem Englischen übersetzt. Wo etwas unklar ist oder abweicht, gilt das englische Original (Hilfe → Benutzerhandbuch mit Englisch als Oberflächensprache).*
 
