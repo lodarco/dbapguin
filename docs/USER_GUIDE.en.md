@@ -1,6 +1,6 @@
 # DBApguin User Guide
 
-**For DBApguin 1.0.6**
+**For DBApguin 1.0.9**
 
 DBApguin is a desktop PostgreSQL DBA console. This guide covers every feature
 from a user's point of view, and ships with the application, so it always
@@ -91,7 +91,7 @@ On 19 the application uses what the release added:
 A backup checks first that the pg_dump on this machine is not older than the
 server, which is the usual state of a machine on the day a new major version
 appears; it names the client package to install. Before you upgrade, run
-**Ready for PostgreSQL 19?** (see [the readiness check](#ready-for-postgresql-19)).
+the **Ready for PostgreSQL 19?** plugin (see [the readiness check](#ready-for-postgresql-19)).
 
 ## 1.5 Server-side prerequisites
 
@@ -216,6 +216,15 @@ Tick **Do not show this again** and it stops appearing. To bring it back:
 
 Turning it off hides the reminder. It does not change the terms it points to - 
 those are in Help → Licence agreement.
+
+### Trackpad feedback on a Mac
+
+On a Mac with a Force Touch trackpad DBApguin answers with a light tick when
+you click a button, a menu entry, a tab or a row, with a lighter one for every
+stretch you scroll, and with a firmer one where a list ends; the time wheels
+tick for every row that passes. A scroll the application makes by itself is
+not felt. **Settings → Trackpad feedback** switches all of it off. On Linux
+and Windows nothing changes.
 
 ## 2.5 Terms of use
 
@@ -1046,25 +1055,16 @@ Read the rates first: a steady deadlock rate is an application lock-ordering bug
 
 #### Ready for PostgreSQL 19? {#ready-for-postgresql-19}
 
-**Tuning & diagnostics -> Ready for PostgreSQL 19?** asks this server about
-every item in PostgreSQL 19's list of incompatibilities and answers each one:
-
-- **BLOCKS** - pg_upgrade refuses, or 19 will not start: a database in the
-  removed MULE_INTERNAL encoding, a line break in a database, role or
-  tablespace name, an index using btree_gist's inet/cidr operator classes,
-  RADIUS in pg_hba.conf, escape_string_warning set anywhere.
-- **CHANGES** - the upgrade goes through and something behaves differently:
-  standard_conforming_strings off, MD5 passwords (every login warns on 19),
-  max_locks_per_transaction set by hand (19 needs double for the same
-  capacity), JIT in use (off by default on 19), postgres_fdw (read-only
-  transactions now pass to the remote side).
-- **INFO** - third-party extensions that need a 19 build before pg_upgrade,
-  and monitoring tools that read renamed columns.
-
-Several items need superuser; without it they say "could not look" rather
-than reporting all clear. The index item reads the database you are
-connected to, so run the check in each database. On a server that already
-runs 19 the same rows show what still differs from 19's defaults.
+The upgrade check is a plugin, **Ready for PostgreSQL 19?**, because it is
+about one release: install it from **Plugins** and it appears under **Tuning &
+diagnostics**. It scans the whole cluster you are connected to - the
+cluster-wide items once, the rest in every database that accepts connections,
+as the same login - and sorts what it finds into what to fix before the
+upgrade (pg_upgrade or the 19 server refuses), what to do or check after it
+(for example full-text and trigram indexes that find nothing until they are
+rebuilt), and what is good to know. Every finding comes with a suggested fix
+in SQL, grouped by database; nothing is run. Items that need superuser say
+they could not look instead of reporting all clear.
 
 #### Oracle-style observability stack
 

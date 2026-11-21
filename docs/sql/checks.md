@@ -1,6 +1,6 @@
 # Checks
 
-[All parts](README.md) · 413 statements
+[All parts](README.md) · 396 statements
 
 ## checks/actual_plans.py
 
@@ -239,25 +239,25 @@ SELECT a.pid,
    AND a.state <> 'idle'
 ```
 
-`sees_every_session` line 1123
+`sees_every_session` line 1122
 
 ```sql
 SELECT (SELECT rolsuper FROM pg_roles WHERE rolname = current_user) AS ok, current_user AS who
 ```
 
-`sees_every_session` line 1125
+`sees_every_session` line 1124
 
 ```sql
 SELECT ((SELECT rolsuper FROM pg_roles WHERE rolname = current_user) OR pg_has_role(current_user, 'pg_read_all_stats', 'MEMBER')) AS ok, current_user AS who
 ```
 
-`_db_timezone` line 1200
+`_db_timezone` line 1199
 
 ```sql
 SELECT current_setting('TimeZone'), EXTRACT(EPOCH FROM (now() - now() AT TIME ZONE 'UTC'))
 ```
 
-`_pgss_for` line 1399
+`_pgss_for` line 1398
 
 ```sql
 SELECT queryid::text AS qid, sum(calls) AS calls,
@@ -269,7 +269,7 @@ SELECT queryid::text AS qid, sum(calls) AS calls,
  GROUP BY queryid
 ```
 
-`_query_size_limit` line 1433
+`_query_size_limit` line 1432
 
 ```sql
 SELECT current_setting('track_activity_query_size') AS v
@@ -283,7 +283,7 @@ SELECT current_setting('track_activity_query_size') AS v
 SELECT current_setting('TimeZone'), EXTRACT(EPOCH FROM (now() - now() AT TIME ZONE 'UTC'))
 ```
 
-`_capture` line 285
+`_capture` line 288
 
 ```sql
 SELECT datname, datname = current_database() AS here,
@@ -293,13 +293,13 @@ SELECT datname, datname = current_database() AS here,
   FROM pg_stat_database WHERE datname IS NOT NULL
 ```
 
-`_capture` line 310
+`_capture` line 313
 
 ```sql
 SELECT 1 FROM {_pss} LIMIT 1
 ```
 
-`_capture` line 343
+`_capture` line 346
 
 ```sql
 SELECT queryid::text AS queryid, dbid::bigint AS dbid, userid::bigint AS userid,
@@ -308,19 +308,19 @@ SELECT queryid::text AS queryid, dbid::bigint AS dbid, userid::bigint AS userid,
  WHERE query IS NOT NULL
 ```
 
-`_capture` line 359
+`_capture` line 362
 
 ```sql
 SELECT oid::bigint AS oid, datname AS name FROM pg_database
 ```
 
-`_capture` line 361
+`_capture` line 364
 
 ```sql
 SELECT oid::bigint AS oid, rolname AS name FROM pg_roles
 ```
 
-`_capture` line 386
+`_capture` line 389
 
 ```sql
 SELECT s.relid::bigint AS relid, s.schemaname, s.relname,
@@ -337,7 +337,7 @@ SELECT s.relid::bigint AS relid, s.schemaname, s.relname,
   JOIN pg_class c ON c.oid = s.relid
 ```
 
-`_capture` line 404
+`_capture` line 407
 
 ```sql
 SELECT schemaname, relname,
@@ -346,7 +346,7 @@ SELECT schemaname, relname,
   FROM pg_stat_user_tables
 ```
 
-`_capture` line 417
+`_capture` line 420
 
 ```sql
 SELECT indexrelid::bigint AS indexrelid, relid::bigint AS relid,
@@ -354,7 +354,7 @@ SELECT indexrelid::bigint AS indexrelid, relid::bigint AS relid,
   FROM pg_stat_user_indexes
 ```
 
-`_capture` line 432
+`_capture` line 435
 
 ```sql
 SELECT name, setting FROM pg_settings
@@ -364,7 +364,7 @@ SELECT name, setting FROM pg_settings
                 'autovacuum_max_workers', 'autovacuum_worker_slots')
 ```
 
-`_capture` line 451
+`_capture` line 454
 
 ```sql
 SELECT name, current_setting(name) AS setting, NULL::text AS unit, source FROM pg_settings
@@ -375,13 +375,13 @@ SELECT name, current_setting(name) AS setting, NULL::text AS unit, source FROM p
    AND source NOT IN ('session', 'client')
 ```
 
-`_capture` line 469
+`_capture` line 472
 
 ```sql
 SELECT pg_database_size(current_database()) AS n
 ```
 
-`_capture` line 479
+`_capture` line 482
 
 ```sql
 WITH {heap_otta_cte()}
@@ -391,7 +391,7 @@ SELECT schemaname, tablename, pg_relation_size(reloid) AS bytes,
  WHERE reltuples IS NOT NULL
 ```
 
-`_capture` line 504
+`_capture` line 507
 
 ```sql
 SELECT num_timed AS ckpt_timed, num_requested AS ckpt_req,
@@ -400,14 +400,14 @@ SELECT num_timed AS ckpt_timed, num_requested AS ckpt_req,
   FROM pg_stat_checkpointer
 ```
 
-`_capture` line 511
+`_capture` line 514
 
 ```sql
 SELECT buffers_clean, maxwritten_clean, buffers_alloc
   FROM pg_stat_bgwriter
 ```
 
-`_capture` line 517
+`_capture` line 520
 
 ```sql
 SELECT checkpoints_timed AS ckpt_timed, checkpoints_req AS ckpt_req,
@@ -417,13 +417,13 @@ SELECT checkpoints_timed AS ckpt_timed, checkpoints_req AS ckpt_req,
   FROM pg_stat_bgwriter
 ```
 
-`_capture` line 535
+`_capture` line 538
 
 ```sql
 SELECT wal_records, wal_fpi, wal_bytes::bigint AS wal_bytes, wal_buffers_full FROM pg_stat_wal
 ```
 
-`_capture` line 544
+`_capture` line 547
 
 ```sql
 SELECT backend_type,
@@ -437,7 +437,7 @@ SELECT backend_type,
  GROUP BY backend_type
 ```
 
-`_capture` line 567
+`_capture` line 570
 
 ```sql
 SELECT extract(epoch FROM pg_postmaster_start_time())::bigint AS started,
@@ -4502,128 +4502,6 @@ SELECT buffers_backend FROM pg_stat_bgwriter
 ```sql
 SELECT coalesce(sum(reads), 0)::float8 AS n, coalesce(sum(read_time), 0)::float8 AS ms
                             FROM pg_stat_io WHERE object = 'relation'
-```
-
-## checks/upgrade_readiness.py
-
-`run_upgrade_readiness_check._mule` line 87
-
-```sql
-SELECT datname FROM pg_database WHERE pg_encoding_to_char(encoding) = 'MULE_INTERNAL' ORDER BY 1
-```
-
-`run_upgrade_readiness_check._crlf` line 98
-
-```sql
-SELECT datname AS n FROM pg_database
-```
-
-`run_upgrade_readiness_check._crlf` line 99
-
-```sql
-SELECT rolname AS n FROM pg_roles
-```
-
-`run_upgrade_readiness_check._crlf` line 100
-
-```sql
-SELECT spcname AS n FROM pg_tablespace
-```
-
-`run_upgrade_readiness_check._gist_inet` line 113
-
-```sql
-SELECT n.nspname AS schema, ic.relname AS index, tc.relname AS "table", opc.opcname
-  FROM pg_index i
-  JOIN pg_class ic ON ic.oid = i.indexrelid
-  JOIN pg_class tc ON tc.oid = i.indrelid
-  JOIN pg_namespace n ON n.oid = ic.relnamespace
-  JOIN LATERAL unnest(i.indclass::oid[]) AS u(opc) ON true
-  JOIN pg_opclass opc ON opc.oid = u.opc
- WHERE opc.opcname IN ('gist_inet_ops', 'gist_cidr_ops')
- ORDER BY 1, 2
-```
-
-`run_upgrade_readiness_check._radius` line 139
-
-```sql
-SELECT line_number FROM pg_hba_file_rules WHERE auth_method = 'radius' ORDER BY 1
-```
-
-`run_upgrade_readiness_check._esc` line 155
-
-```sql
-SELECT sourcefile, sourceline FROM pg_file_settings WHERE name = 'escape_string_warning'
-```
-
-`run_upgrade_readiness_check._esc` line 157
-
-```sql
-SELECT coalesce(d.datname, '*') AS db, coalesce(r.rolname, '*') AS role
-  FROM pg_db_role_setting s
-  LEFT JOIN pg_database d ON d.oid = s.setdatabase
-  LEFT JOIN pg_roles r ON r.oid = s.setrole
- WHERE EXISTS (SELECT 1 FROM unnest(s.setconfig) c WHERE c LIKE 'escape_string_warning=%')
-```
-
-`run_upgrade_readiness_check._esc` line 163
-
-```sql
-ALTER ROLE/DATABASE SET (db {x['db']}, role {x['role']})
-```
-
-`run_upgrade_readiness_check._scs` line 174
-
-```sql
-SHOW standard_conforming_strings
-```
-
-`run_upgrade_readiness_check._scs` line 176
-
-```sql
-SELECT coalesce(d.datname, '*') AS db, coalesce(r.rolname, '*') AS role
-  FROM pg_db_role_setting s
-  LEFT JOIN pg_database d ON d.oid = s.setdatabase
-  LEFT JOIN pg_roles r ON r.oid = s.setrole
- WHERE EXISTS (SELECT 1 FROM unnest(s.setconfig) c WHERE c = 'standard_conforming_strings=off')
-```
-
-`run_upgrade_readiness_check._md5` line 192
-
-```sql
-SELECT count(*) AS n FROM pg_authid WHERE rolpassword LIKE 'md5%'
-```
-
-`run_upgrade_readiness_check._locks` line 204
-
-```sql
-SELECT setting, source FROM pg_settings WHERE name = 'max_locks_per_transaction'
-```
-
-`run_upgrade_readiness_check._jit` line 216
-
-```sql
-SELECT setting, source FROM pg_settings WHERE name = 'jit'
-```
-
-`run_upgrade_readiness_check._jit` line 223
-
-```sql
-SELECT 1 FROM pg_attribute
- WHERE attrelid = to_regclass('pg_stat_statements') AND attname = 'jit_functions' AND NOT attisdropped
-   AND EXISTS (SELECT 1 FROM pg_settings WHERE name = 'pg_stat_statements.max')
-```
-
-`run_upgrade_readiness_check._jit` line 229
-
-```sql
-SELECT sum(jit_functions)::bigint AS n FROM pg_stat_statements
-```
-
-`run_upgrade_readiness_check._ext` line 244
-
-```sql
-SELECT extname, extversion FROM pg_extension ORDER BY 1
 ```
 
 ## checks/vacuum.py

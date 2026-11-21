@@ -254,7 +254,7 @@ LIMIT 100
 
 ## db_queries.py
 
-**db-connections** - `(module)` line 252
+**db-connections** - `(module)` line 250
 
 ```sql
 SELECT state,
@@ -268,7 +268,7 @@ GROUP BY state, wait_event_type, wait_event
 ORDER BY connections DESC
 ```
 
-**db-users** - `(module)` line 263
+**db-users** - `(module)` line 261
 
 ```sql
 SELECT usename, application_name, client_addr::text,
@@ -280,7 +280,7 @@ GROUP BY usename, application_name, client_addr, state
 ORDER BY connections DESC
 ```
 
-**db-active-queries** - `(module)` line 272
+**db-active-queries** - `(module)` line 270
 
 ```sql
 SELECT pid,
@@ -300,7 +300,7 @@ WHERE state = 'active'
 ORDER BY duration DESC NULLS LAST
 ```
 
-**db-long-queries** - `(module)` line 289
+**db-long-queries** - `(module)` line 287
 
 ```sql
 SELECT pid,
@@ -329,7 +329,7 @@ WHERE state = 'active'
 ORDER BY duration DESC
 ```
 
-**db-table-sizes** - `(module)` line 318
+**db-table-sizes** - `(module)` line 315
 
 ```sql
 -- Rolled up to the partition root. pg_stat_user_tables lists every
@@ -374,7 +374,7 @@ ORDER BY sum(pg_total_relation_size(r.relid)) DESC
 LIMIT 1000
 ```
 
-**db-vacuum** - `(module)` line 360
+**db-vacuum** - `(module)` line 357
 
 ```sql
 -- Dead tuples on their own do not answer the question the user has,
@@ -436,7 +436,7 @@ ORDER BY (av_enabled <> 'true') DESC,
 LIMIT 1000
 ```
 
-**db-cache-hit** - `(module)` line 419
+**db-cache-hit** - `(module)` line 416
 
 ```sql
 -- Counts index and TOAST blocks, not only heap. A table read entirely
@@ -474,7 +474,7 @@ ORDER BY heap_blks_read + COALESCE(idx_blks_read, 0)
 LIMIT 1000
 ```
 
-**db-schema-sizes** - `(module)` line 454
+**db-schema-sizes** - `(module)` line 451
 
 ```sql
 -- Between "Database sizes" and "Table sizes" there was nothing, so
@@ -572,7 +572,7 @@ SELECT c.schema                                            AS schema,
  ORDER BY COALESCE(a.total, 0) DESC, c.schema
 ```
 
-**db-sizes** - `(module)` line 549
+**db-sizes** - `(module)` line 546
 
 ```sql
 SELECT d.datname                                          AS database,
@@ -595,7 +595,7 @@ WHERE d.datistemplate = false
 ORDER BY pg_database_size(d.datname) DESC
 ```
 
-**db-conn-limits** - `(module)` line 611
+**db-conn-limits** - `(module)` line 608
 
 ```sql
 WITH s AS (
@@ -655,7 +655,7 @@ SELECT s.max_conn,
 FROM s, r, c, bg
 ```
 
-**db-replication** - `(module)` line 668
+**db-replication** - `(module)` line 665
 
 ```sql
 -- The lag columns below were all measured from sent_lsn, which only
@@ -702,7 +702,7 @@ ORDER BY pg_wal_lsn_diff(pg_current_wal_lsn(), r.replay_lsn) DESC NULLS LAST,
          r.application_name
 ```
 
-**db-settings** - `(module)` line 712
+**db-settings** - `(module)` line 709
 
 ```sql
 SELECT name,
@@ -725,7 +725,7 @@ WHERE name IN (
 ORDER BY category, name
 ```
 
-**db-index-sizes** - `(module)` line 741
+**db-index-sizes** - `(module)` line 738
 
 ```sql
 SELECT n.nspname || '.' || c.relname                      AS "table",

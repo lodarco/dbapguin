@@ -1,6 +1,6 @@
 # DBApguin - Guía de usuario
 
-**Para DBApguin 1.0.6**
+**Para DBApguin 1.0.9**
 
 *Esta guía se ha traducido del inglés con ayuda de IA. Si algo no está claro o difiere, prevalece el original en inglés (Ayuda → Guía de usuario, con la interfaz en inglés).*
 
@@ -100,7 +100,7 @@ En 19 la aplicación usa lo que trajo la versión:
 Una copia de seguridad comprueba primero que el pg_dump de este equipo no sea
 más antiguo que el servidor, el estado habitual de un equipo el día en que
 sale una versión mayor nueva, e indica el paquete cliente que hay que
-instalar. Antes de actualizar, ejecuta **¿Listo para PostgreSQL 19?** (ver [la
+instalar. Antes de actualizar, ejecuta el plugin **¿Listo para PostgreSQL 19?** (ver [la
 comprobación de preparación](#ready-for-postgresql-19)).
 
 ## 1.5 Requisitos en el servidor
@@ -226,6 +226,16 @@ Marca **No mostrar de nuevo** y deja de aparecer. Para recuperarlo:
 
 Desactivarlo oculta el recordatorio. No cambia las condiciones a las que apunta:
 esas están en Ayuda → Contrato de licencia.
+
+### Respuesta háptica del trackpad en un Mac
+
+En un Mac con trackpad Force Touch, DBApguin responde con un toque ligero al
+hacer clic en un botón, una entrada de menú, una pestaña o una fila, con uno
+más suave por cada tramo que te desplazas y con uno más firme al llegar al
+final de una lista; las ruedas de tiempo dan un toque por cada fila que pasa.
+Un desplazamiento que hace la propia aplicación no se nota. **Ajustes →
+Respuesta háptica del trackpad** lo desactiva todo. En Linux y Windows no
+cambia nada.
 
 ## 2.5 Condiciones de uso
 
@@ -1080,29 +1090,17 @@ Lee primero las tasas: una tasa constante de deadlocks es un error de orden de b
 
 #### ¿Listo para PostgreSQL 19? {#ready-for-postgresql-19}
 
-**Ajuste y diagnóstico -> ¿Listo para PostgreSQL 19?** pregunta a este
-servidor por cada punto de la lista de incompatibilidades de PostgreSQL 19 y
-responde a cada uno:
-
-- **BLOCKS** - pg_upgrade se niega o 19 no arranca: una base de datos en la
-  codificación eliminada MULE_INTERNAL, un salto de línea en el nombre de una
-  base de datos, rol o tablespace, un índice con las clases de operadores
-  inet/cidr de btree_gist, RADIUS en pg_hba.conf, escape_string_warning
-  configurado en algún sitio.
-- **CHANGES** - la actualización pasa y algo se comporta distinto:
-  standard_conforming_strings desactivado, contraseñas MD5 (en 19 cada inicio
-  de sesión avisa), max_locks_per_transaction fijado a mano (19 necesita el
-  doble para la misma capacidad), JIT en uso (desactivado por defecto en 19),
-  postgres_fdw (las transacciones de solo lectura pasan ahora al lado remoto).
-- **INFO** - extensiones de terceros que necesitan una versión para 19 antes
-  de pg_upgrade, y herramientas de monitorización que leen columnas
-  renombradas.
-
-Varios puntos necesitan superusuario; sin él dicen «no se pudo comprobar» en
-lugar de dar todo por bueno. El punto de índices lee la base de datos a la que
-estás conectado, así que ejecuta la comprobación en cada base de datos. En un
-servidor que ya ejecuta 19, las mismas filas muestran lo que aún difiere de
-los valores por defecto de 19.
+La comprobación para actualizar es un plugin, **¿Listo para PostgreSQL 19?**,
+porque trata de una sola versión: instálalo en **Plugins** y aparece en
+**Ajuste y diagnóstico**. Recorre todo el clúster al que estás conectado - los
+puntos del clúster una vez, el resto en cada base de datos que acepta
+conexiones, con el mismo inicio de sesión - y ordena lo que encuentra en lo
+que hay que corregir antes de actualizar (pg_upgrade o el servidor 19 lo
+rechazan), lo que hay que hacer o revisar después (por ejemplo índices de
+texto completo y de trigramas que no encuentran nada hasta reconstruirlos) y
+lo que conviene saber. Cada hallazgo trae una corrección propuesta en SQL,
+agrupada por base de datos; no se ejecuta nada. Los puntos que necesitan
+superusuario dicen que no pudieron comprobarse en lugar de dar todo por bueno.
 
 #### Observabilidad al estilo Oracle
 

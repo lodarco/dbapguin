@@ -66,10 +66,10 @@ that and says so in a short note, rather than failing. It is exercised against
 real 9.4, 9.6, 10, 11, 12, 13, 14 and 18 servers on every release round. Below
 9.4 the catalogues have diverged too far and the app does not claim to work.
 
-PostgreSQL 19 is measured too - on 19rc1, the release candidate, since 19.0 is
-not out yet: every check runs on it, and
-**Tuning & diagnostics → Ready for PostgreSQL 19?** goes through 19's list of
-incompatibilities against your server before you upgrade.
+PostgreSQL 19 is measured too - on 19rc2, the last release candidate before
+19.0 came out on 19 November 2026: every check runs on it. The check for an
+upgrade to 19, **Ready for PostgreSQL 19?**, is a separate plugin since 1.0.8,
+because it is about one release.
 
 ## Install
 
@@ -77,7 +77,7 @@ incompatibilities against your server before you upgrade.
 |---|---|
 | **Linux** | `DBApguin-x86_64.AppImage` - `chmod +x`, run it. Or `dbapguin_<version>_amd64.deb` for a menu entry. |
 | **Windows** | `DBApguin-<version>-setup.exe`, or the portable zip if you would rather not install. |
-| **macOS** | `DBApguin-<version>-macOS-x86_64.dmg`, drag to Applications. Intel build. |
+| **macOS** | `DBApguin-<version>-macOS-arm64.dmg`, drag to Applications. Apple Silicon (M1 and later). |
 
 Everything is on the [releases page](https://github.com/lodarco/dbapguin/releases/latest),
 with a `SHA256SUMS` beside it:
@@ -146,7 +146,7 @@ experienced DBAs, and just as much people who know less about databases. It is
 free of charge.
 
 It is written with the help of AI coding assistants. Every change is designed,
-reviewed and tested by me - automated tests against PostgreSQL 9.4 to 19 (19rc1),
+reviewed and tested by me - automated tests against PostgreSQL 9.4 to 19 (19rc2),
 and by hand in the app itself. Testing goes on with every release, on a
 best-effort basis: DBApguin is provided as is, without warranty. Bug reports
 are welcome.

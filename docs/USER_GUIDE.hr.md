@@ -1,6 +1,6 @@
 # DBApguin - korisničke upute
 
-**Za DBApguin 1.0.6**
+**Za DBApguin 1.0.9**
 
 *Ove su upute prevedene s engleskog uz pomoć AI-a. Ako je nešto nejasno ili se razlikuje, mjerodavan je engleski izvornik (Pomoć → Korisničke upute, uz engleski jezik sučelja).*
 
@@ -92,7 +92,7 @@ Na 19 aplikacija koristi ono što je izdanje donijelo:
 
 Backup prvo provjerava da pg_dump na ovom računalu nije stariji od servera,
 što je uobičajeno stanje računala na dan kad izađe nova glavna verzija; kaže i
-koji klijentski paket treba instalirati. Prije nadogradnje pokreni **Spremno za
+koji klijentski paket treba instalirati. Prije nadogradnje pokreni plugin **Spremno za
 PostgreSQL 19?** (vidi [provjeru spremnosti](#ready-for-postgresql-19)).
 
 ## 1.5 Preduvjeti na poslužitelju
@@ -218,6 +218,15 @@ Označite **Ne prikazuj više** i napomena prestaje izlaziti. Za povratak:
 
 Isključivanjem skrivate podsjetnik. Uvjeti na koje upućuje time se ne mijenjaju
  - oni su u Pomoć → Licencni ugovor.
+
+### Povratni dodir trackpada na Macu
+
+Na Macu s Force Touch trackpadom DBApguin odgovara laganim tikom kad klikneš
+gumb, stavku izbornika, tab ili redak, još lakšim za svaki dio puta koji
+skrolaš i čvršćim kad dođeš do kraja popisa; kotačići za vrijeme tiknu za
+svaki redak koji prođe. Skrolanje koje aplikacija napravi sama ne osjeti se.
+**Postavke → Povratni dodir trackpada** sve to isključuje. Na Linuxu i
+Windowsima ništa se ne mijenja.
 
 ## 2.5 Uvjeti korištenja
 
@@ -1043,25 +1052,16 @@ Prvo pročitaj stope: stalna stopa deadlockova je bug redoslijeda zaključavanja
 
 #### Spremno za PostgreSQL 19? {#ready-for-postgresql-19}
 
-**Podešavanje i dijagnostika -> Spremno za PostgreSQL 19?** pita ovaj server o
-svakoj stavci s popisa nekompatibilnosti PostgreSQL-a 19 i odgovara na svaku:
-
-- **BLOCKS** - pg_upgrade odbija ili se 19 ne pokreće: baza u uklonjenom
-  kodiranju MULE_INTERNAL, prijelom reda u imenu baze, uloge ili tablespacea,
-  indeks s btree_gist inet/cidr klasama operatora, RADIUS u pg_hba.conf,
-  escape_string_warning postavljen bilo gdje.
-- **CHANGES** - nadogradnja prolazi, ali se nešto ponaša drukčije:
-  standard_conforming_strings isključen, MD5 lozinke (na 19 svaka prijava
-  upozorava), ručno postavljen max_locks_per_transaction (19 treba dvostruko
-  za isti kapacitet), JIT u upotrebi (na 19 po defaultu isključen),
-  postgres_fdw (read-only transakcije sada se prenose na udaljenu stranu).
-- **INFO** - ekstenzije trećih strana koje trebaju build za 19 prije
-  pg_upgrade, i alati za nadzor koji čitaju preimenovane stupce.
-
-Nekoliko stavki treba superusera; bez njega kažu "nije moguće provjeriti"
-umjesto da javljaju da je sve u redu. Stavka o indeksima čita bazu na koju si
-spojen, pa provjeru pokreni u svakoj bazi. Na serveru koji već radi na 19 isti
-redovi pokazuju što se još razlikuje od zadanih vrijednosti verzije 19.
+Provjera za nadogradnju je plugin, **Spremno za PostgreSQL 19?**, jer se tiče
+jedne verzije: instaliraj ga u **Plugins** i pojavi se pod **Podešavanje i
+dijagnostika**. Skenira cijeli klaster na koji si spojen - stavke klastera
+jednom, ostalo u svakoj bazi koja prima konekcije, istom prijavom - i ono što
+nađe dijeli na ono što treba popraviti prije nadogradnje (pg_upgrade ili server
+19 odbija), ono što treba napraviti ili provjeriti nakon nje (na primjer
+full-text i trigram indeksi koji ne nalaze ništa dok se ne izgrade ponovno) i
+ono što je dobro znati. Uz svaki nalaz ide prijedlog popravka u SQL-u,
+složen po bazama; ništa se ne pokreće. Stavke koje trebaju superusera kažu da
+nisu mogle provjeriti, umjesto da javljaju da je sve u redu.
 
 #### Opservabilnost u Oracle stilu
 

@@ -171,8 +171,8 @@
           <td><code>DBApguin-&lt;version&gt;-setup.exe</code>, or the portable zip
               if you would rather not install.</td></tr>
       <tr><td>macOS</td>
-          <td><code>DBApguin-&lt;version&gt;-macOS-x86_64.dmg</code>, drag to
-              Applications. Intel build.</td></tr>
+          <td><code>DBApguin-&lt;version&gt;-macOS-arm64.dmg</code>, drag to
+              Applications. Apple Silicon (M1 and later).</td></tr>
     </tbody>
   </table>
   <p>Each release carries a <code>SHA256SUMS</code>. Check it before installing:</p>
@@ -190,10 +190,10 @@
      release round is exercised against real 9.4, 9.6, 10, 11, 12, 13, 14 and
      18 servers. Below 9.4 the catalogues have diverged too far and the app
      does not claim to work.</p>
-  <p>PostgreSQL 19 is measured too - on 19rc1, the release candidate, since 19.0
-     is not out yet: every check runs on it, and
-     <b>Tuning &amp; diagnostics &rarr; Ready for PostgreSQL 19?</b> goes through
-     19's list of incompatibilities against your server before you upgrade.</p>
+  <p>PostgreSQL 19 is measured too - on 19rc2, the last release candidate before
+     19.0 came out on 19 November 2026: every check runs on it. The check for an
+     upgrade to 19, <b>Ready for PostgreSQL 19?</b>, is a separate plugin since
+     1.0.8, because it is about one release.</p>
 
   <h2>Documentation</h2>
   <p>The full guide ships inside the app - <b>Help &rarr; User guide</b> - so it
@@ -242,7 +242,7 @@
      databases. It is free of charge.</p>
   <p>It is written with the help of AI coding assistants. Every change is
      designed, reviewed and tested by me - automated tests against PostgreSQL 9.4
-     to 19 (19rc1), and by hand in the app itself. Testing goes on with every
+     to 19 (19rc2), and by hand in the app itself. Testing goes on with every
      release, on a best-effort basis: DBApguin is provided as is, without
      warranty. Bug reports are welcome.</p>
 

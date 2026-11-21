@@ -1,6 +1,6 @@
 # DBApguin - Benutzerhandbuch
 
-**Für DBApguin 1.0.6**
+**Für DBApguin 1.0.9**
 
 *Dieses Handbuch wurde mit Hilfe von KI aus dem Englischen übersetzt. Wo etwas unklar ist oder abweicht, gilt das englische Original (Hilfe → Benutzerhandbuch mit Englisch als Oberflächensprache).*
 
@@ -97,7 +97,7 @@ Auf 19 nutzt die Anwendung, was die Version hinzugefügt hat:
 Eine Sicherung prüft zuerst, dass das pg_dump auf diesem Rechner nicht älter
 ist als der Server - der übliche Zustand eines Rechners am Tag, an dem eine
 neue Hauptversion erscheint - und nennt das zu installierende Client-Paket.
-Vor dem Upgrade **Bereit für PostgreSQL 19?** ausführen (siehe
+Vor dem Upgrade das Plugin **Bereit für PostgreSQL 19?** ausführen (siehe
 [die Bereitschaftsprüfung](#ready-for-postgresql-19)).
 
 ## 1.5 Voraussetzungen auf dem Server
@@ -232,6 +232,16 @@ Setzen Sie **Nicht mehr anzeigen** und der Hinweis bleibt weg. Zurückholen:
 
 Ihn abzuschalten verbirgt die Erinnerung. An den Bedingungen, auf die er
 verweist, ändert das nichts - die stehen unter Hilfe → Lizenzvertrag.
+
+### Trackpad-Rückmeldung auf dem Mac
+
+Auf einem Mac mit Force-Touch-Trackpad antwortet DBApguin mit einem leichten
+Tippen, wenn Sie auf eine Schaltfläche, einen Menüeintrag, einen Tab oder eine
+Zeile klicken, mit einem noch leichteren für jedes Stück, das Sie scrollen,
+und mit einem festeren am Ende einer Liste; die Zeiträder tippen bei jeder
+Zeile, die vorbeiläuft. Ein Scrollen, das die Anwendung selbst auslöst, ist
+nicht zu spüren. **Einstellungen → Trackpad-Rückmeldung** schaltet alles ab.
+Unter Linux und Windows ändert sich nichts.
 
 ## 2.5 Nutzungsbedingungen
 
@@ -1109,28 +1119,17 @@ Zuerst die Raten lesen: eine stetige Deadlock-Rate ist ein Fehler in der Sperrre
 
 #### Bereit für PostgreSQL 19? {#ready-for-postgresql-19}
 
-**Optimierung und Diagnose -> Bereit für PostgreSQL 19?** fragt diesen Server nach
-jedem Punkt aus der Inkompatibilitätsliste von PostgreSQL 19 und beantwortet
-jeden:
-
-- **BLOCKS** - pg_upgrade lehnt ab oder 19 startet nicht: eine Datenbank in
-  der entfernten Kodierung MULE_INTERNAL, ein Zeilenumbruch im Namen einer
-  Datenbank, Rolle oder eines Tablespaces, ein Index mit den
-  inet/cidr-Operatorklassen von btree_gist, RADIUS in pg_hba.conf,
-  escape_string_warning irgendwo gesetzt.
-- **CHANGES** - das Upgrade geht durch, aber etwas verhält sich anders:
-  standard_conforming_strings aus, MD5-Passwörter (auf 19 warnt jede
-  Anmeldung), max_locks_per_transaction von Hand gesetzt (19 braucht für
-  dieselbe Kapazität das Doppelte), JIT in Gebrauch (auf 19 standardmäßig
-  aus), postgres_fdw (Nur-Lese-Transaktionen gehen jetzt an die Gegenseite).
-- **INFO** - Erweiterungen von Drittanbietern, die vor pg_upgrade einen Build
-  für 19 brauchen, und Überwachungswerkzeuge, die umbenannte Spalten lesen.
-
-Mehrere Punkte brauchen Superuser; ohne ihn melden sie „nicht prüfbar" statt
-Entwarnung. Der Index-Punkt liest die Datenbank, mit der Sie verbunden sind,
-daher die Prüfung in jeder Datenbank ausführen. Auf einem Server, der bereits
-mit 19 läuft, zeigen dieselben Zeilen, was noch von den Standards von 19
-abweicht.
+Die Upgrade-Prüfung ist ein Plugin, **Bereit für PostgreSQL 19?**, weil sie
+eine einzelne Version betrifft: unter **Plugins** installieren, dann steht sie
+unter **Optimierung und Diagnose**. Sie durchsucht den ganzen Cluster, mit dem
+Sie verbunden sind - die clusterweiten Punkte einmal, den Rest in jeder
+Datenbank, die Verbindungen annimmt, mit derselben Anmeldung - und ordnet die
+Funde danach, was vor dem Upgrade zu beheben ist (pg_upgrade oder der
+19-Server lehnt ab), was danach zu tun oder zu prüfen ist (etwa Volltext- und
+Trigramm-Indizes, die bis zum Neuaufbau nichts finden) und was gut zu wissen
+ist. Zu jedem Fund gibt es einen Lösungsvorschlag in SQL, nach Datenbanken
+geordnet; ausgeführt wird nichts. Punkte, die Superuser brauchen, melden, dass
+sie nicht prüfen konnten, statt Entwarnung zu geben.
 
 #### Observability im Oracle-Stil
 
