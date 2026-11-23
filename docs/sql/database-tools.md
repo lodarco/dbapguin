@@ -2800,118 +2800,109 @@ SELECT proname, max(pronargs)
  GROUP BY proname
 ```
 
-`_privileges` line 107
+`_privileges` line 112
 
 ```sql
-SELECT COALESCE(bool_or(r.rolsuper), false)       AS is_super,
-       COALESCE(bool_or(r.rolreplication), false) AS has_replication
-  FROM pg_roles r
- WHERE pg_has_role(current_user, r.oid, 'USAGE')
+SELECT rolsuper, rolreplication FROM pg_roles WHERE rolname = current_user
 ```
 
-`_caps` line 146
+`_caps` line 148
 
 ```sql
 SHOW wal_level
 ```
 
-`_caps` line 151
+`_caps` line 153
 
 ```sql
 SHOW max_replication_slots
 ```
 
-`_caps` line 161
+`_caps` line 163
 
 ```sql
 SELECT setting FROM pg_settings WHERE name = 'effective_wal_level'
 ```
 
-`_output_plugins` line 185
+`_output_plugins` line 187
 
 ```sql
 SELECT extname FROM pg_extension ORDER BY extname
 ```
 
-`_output_plugins` line 189
+`_output_plugins` line 191
 
 ```sql
 SHOW server_version_num
 ```
 
-`_output_plugins` line 201
+`_output_plugins` line 203
 
 ```sql
 SELECT DISTINCT plugin FROM pg_replication_slots WHERE plugin IS NOT NULL
 ```
 
-`api_replslots_list` line 251
+`api_replslots_list` line 253
 
 ```sql
 SELECT pg_is_in_recovery()
 ```
 
-`api_replslots_list` line 258
+`api_replslots_list` line 260
 
 ```sql
 SELECT {', '.join(sel)} FROM pg_replication_slots ORDER BY slot_name
 ```
 
-`api_replslots_peek` line 308
+`api_replslots_peek` line 310
 
 ```sql
 SELECT slot_type FROM pg_replication_slots WHERE slot_name = %s
 ```
 
-`api_replslots_peek` line 320
+`api_replslots_peek` line 322
 
 ```sql
 SELECT lsn::text, xid::text, data FROM pg_logical_slot_peek_changes(%s, NULL, %s)
 ```
 
-`_sees_all_sessions` line 397
+`_sees_all_sessions` line 399
 
 ```sql
 SELECT pg_has_role('pg_read_all_stats', 'USAGE')
 ```
 
-`_sees_all_sessions` line 399
+`_sees_all_sessions` line 401
 
 ```sql
 SELECT COALESCE(bool_or(rolsuper), false) FROM pg_roles WHERE pg_has_role(current_user, oid, 'USAGE')
 ```
 
-**sql** - `api_replslots_create` line 530
+**sql** - `api_replslots_create` line 533
 
 ```sql
 SELECT * FROM pg_create_physical_replication_slot({', '.join(args)})
 ```
 
-**sql** - `api_replslots_create` line 557
+**sql** - `api_replslots_create` line 560
 
 ```sql
 SELECT * FROM pg_create_logical_replication_slot({', '.join(args)})
 ```
 
-`api_replslots_create` line 561
+`api_replslots_create` line 564
 
 ```sql
 SELECT clock_timestamp()
 ```
 
-`api_replslots_drop` line 636
+`api_replslots_drop` line 640
 
 ```sql
 SELECT active{', active_pid' if has_pid else ', NULL'} FROM pg_replication_slots WHERE slot_name = %s
 ```
 
-`api_replslots_drop` line 659
-
-```sql
-SELECT pg_terminate_backend(%s)
-```
-
-`api_replslots_drop` line 660
+`api_replslots_drop` line 663
 
 ```sql
 SELECT pg_terminate_backend(%s)
@@ -2920,46 +2911,52 @@ SELECT pg_terminate_backend(%s)
 `api_replslots_drop` line 664
 
 ```sql
+SELECT pg_terminate_backend(%s)
+```
+
+`api_replslots_drop` line 668
+
+```sql
 SELECT pg_sleep(0.5)
 ```
 
-`api_replslots_drop` line 665
+`api_replslots_drop` line 669
 
 ```sql
 SELECT pg_drop_replication_slot(%s)
 ```
 
-`api_replslots_drop` line 667
+`api_replslots_drop` line 671
 
 ```sql
 SELECT pg_drop_replication_slot(%s)
 ```
 
-`api_replslots_advance` line 709
+`api_replslots_advance` line 714
 
 ```sql
 SELECT * FROM pg_replication_slot_advance(%s, %s::pg_lsn)
 ```
 
-`api_replslots_advance` line 711
+`api_replslots_advance` line 716
 
 ```sql
 SELECT * FROM pg_replication_slot_advance(%s, pg_current_wal_lsn())
 ```
 
-`api_replslots_copy` line 745
+`api_replslots_copy` line 751
 
 ```sql
 SELECT slot_type FROM pg_replication_slots WHERE slot_name = %s
 ```
 
-`api_replslots_copy` line 759
+`api_replslots_copy` line 765
 
 ```sql
 SELECT * FROM {fn}(%s, %s)
 ```
 
-`api_replslots_copy` line 760
+`api_replslots_copy` line 766
 
 ```sql
 SELECT * FROM {fn}(%s, %s)

@@ -3576,7 +3576,7 @@ JOIN pg_roles g ON g.oid = am.roleid
 ORDER BY m.rolname, g.rolname
 ```
 
-`run_roles_list_check` line 257
+`run_roles_list_check` line 304
 
 ```sql
 SELECT rolname FROM pg_roles
@@ -3585,7 +3585,7 @@ WHERE rolsuper = true AND rolcanlogin = true
 ORDER BY rolname
 ```
 
-`run_roles_list_check` line 279
+`run_roles_list_check` line 326
 
 ```sql
 SELECT rolname FROM pg_roles
@@ -3594,7 +3594,7 @@ WHERE rolbypassrls = true AND rolsuper = false
 ORDER BY rolname
 ```
 
-`run_roles_list_check` line 298
+`run_roles_list_check` line 345
 
 ```sql
 SELECT rolname FROM pg_roles
@@ -3603,7 +3603,7 @@ WHERE rolcreaterole = true AND rolsuper = false
 ORDER BY rolname
 ```
 
-`run_roles_list_check` line 316
+`run_roles_list_check` line 363
 
 ```sql
 SELECT rolname FROM pg_roles
@@ -3615,7 +3615,7 @@ WHERE rolcanlogin = true
 ORDER BY rolname
 ```
 
-`run_roles_list_check` line 337
+`run_roles_list_check` line 384
 
 ```sql
 SELECT rolname,
@@ -3628,14 +3628,14 @@ WHERE rolcanlogin = true
 ORDER BY rolvaliduntil
 ```
 
-`run_roles_list_check` line 360
+`run_roles_list_check` line 407
 
 ```sql
 SELECT coalesce((SELECT setting::bigint FROM pg_settings
                   WHERE name = 'password_expiration_warning_threshold'), 604800) AS s
 ```
 
-`run_roles_list_check` line 365
+`run_roles_list_check` line 412
 
 ```sql
 SELECT rolname, to_char(rolvaliduntil, 'YYYY-MM-DD HH24:MI') AS expires_at
@@ -3648,13 +3648,13 @@ WHERE rolcanlogin = true
 ORDER BY rolvaliduntil
 ```
 
-`run_roles_list_check` line 378
+`run_roles_list_check` line 425
 
 ```sql
 ALTER ROLE ... VALID UNTIL '...' (or set a new password) before it lapses and the login stops working
 ```
 
-`run_roles_list_check` line 397
+`run_roles_list_check` line 444
 
 ```sql
 SELECT rolname FROM pg_roles
@@ -3664,7 +3664,7 @@ WHERE rolreplication = true AND rolcanlogin = true
 ORDER BY rolname
 ```
 
-`run_roles_list_check` line 416
+`run_roles_list_check` line 463
 
 ```sql
 SELECT d.datname
@@ -3674,13 +3674,13 @@ WHERE d.datistemplate = false
 ORDER BY d.datname
 ```
 
-`run_roles_list_check` line 429
+`run_roles_list_check` line 476
 
 ```sql
 REVOKE CONNECT ON DATABASE x FROM PUBLIC; then GRANT to specific roles
 ```
 
-`run_roles_list_check` line 440
+`run_roles_list_check` line 487
 
 ```sql
 SELECT n.nspname
@@ -3691,13 +3691,13 @@ WHERE n.nspname NOT LIKE 'pg_%%'
 ORDER BY n.nspname
 ```
 
-`run_roles_list_check` line 453
+`run_roles_list_check` line 500
 
 ```sql
 REVOKE CREATE ON SCHEMA {s} FROM PUBLIC;
 ```
 
-`run_roles_list_check` line 462
+`run_roles_list_check` line 509
 
 ```sql
 SELECT n.nspname AS schema,
@@ -3715,7 +3715,7 @@ ORDER BY n.nspname, p.proname
 LIMIT 20
 ```
 
-`run_roles_list_check` line 481
+`run_roles_list_check` line 528
 
 ```sql
 REVOKE EXECUTE ... FROM PUBLIC and grant only to the roles that need it; pin search_path in the function body

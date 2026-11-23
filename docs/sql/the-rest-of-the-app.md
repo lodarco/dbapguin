@@ -1,6 +1,6 @@
 # The rest of the app
 
-[All parts](README.md) · 802 statements
+[All parts](README.md) · 805 statements
 
 ## app.py
 
@@ -755,6 +755,35 @@ SELECT n.nspname, c.relname, c.oid, c.relkind   FROM pg_class c JOIN pg_namespac
 
 ```sql
 SELECT extname FROM pg_extension
+```
+
+## managed_roles.py
+
+`present` line 33
+
+```sql
+SELECT rolname FROM pg_roles WHERE rolname = ANY(%s) ORDER BY rolname
+```
+
+`held_by_current_user` line 39
+
+```sql
+SELECT rolname FROM pg_roles
+                    WHERE rolname = ANY(%s) AND pg_has_role(current_user, oid, 'MEMBER')
+                    ORDER BY rolname
+```
+
+`held_by_each` line 48
+
+```sql
+SELECT r.rolname AS role, array_agg(p.rolname ORDER BY p.rolname) AS held
+                     FROM pg_roles r
+                     JOIN pg_roles p ON p.rolname = ANY(%s) AND p.oid <> r.oid
+                                    AND pg_has_role(r.oid, p.oid, 'MEMBER')
+                    -- A superuser counts as a member of every role; its own
+                    -- attribute already says what it is.
+                    WHERE NOT r.rolsuper
+                    GROUP BY r.rolname
 ```
 
 ## object_scope.py
@@ -2065,7 +2094,7 @@ ALTER SEQUENCE {ref} OWNER TO {_ident(owner)};
 COMMENT ON SEQUENCE {ref} IS {_lit(comment)};
 ```
 
-`_catalog_relation_defs` line 351
+`_catalog_relation_defs` line 354
 
 ```sql
 SELECT c.oid, c.relkind, pg_get_userbyid(c.relowner),
@@ -2075,7 +2104,7 @@ SELECT c.oid, c.relkind, pg_get_userbyid(c.relowner),
  WHERE n.nspname = %s AND c.relname = %s
 ```
 
-`_catalog_relation_defs` line 397
+`_catalog_relation_defs` line 400
 
 ```sql
 SELECT a.attname, pg_get_expr(d.adbin, d.adrelid), a.attnotnull, a.attstorage, {compression_col}
@@ -2083,13 +2112,13 @@ SELECT a.attname, pg_get_expr(d.adbin, d.adrelid), a.attnotnull, a.attstorage, {
  WHERE a.attrelid = %s AND a.attnum > 0 AND NOT a.attisdropped
 ```
 
-`_catalog_relation_defs` line 409
+`_catalog_relation_defs` line 412
 
 ```sql
 SELECT obj_description(%s, 'pg_class')
 ```
 
-`_catalog_relation_defs` line 412
+`_catalog_relation_defs` line 415
 
 ```sql
 SELECT a.attnum, a.attname, format_type(a.atttypid, a.atttypmod), a.attnotnull,
@@ -2105,85 +2134,85 @@ SELECT a.attnum, a.attname, format_type(a.atttypid, a.atttypmod), a.attnotnull,
  ORDER BY a.attnum
 ```
 
-`_catalog_relation_defs` line 457
+`_catalog_relation_defs` line 460
 
 ```sql
 ALTER {word} {cref} {f'SET DEFAULT {default};' if default else 'DROP DEFAULT;'}
 ```
 
-`_catalog_relation_defs` line 459
+`_catalog_relation_defs` line 462
 
 ```sql
 ALTER {word} {cref} SET NOT NULL;
 ```
 
-`_catalog_relation_defs` line 465
+`_catalog_relation_defs` line 468
 
 ```sql
 ALTER TABLE {cref} SET STORAGE {_STORAGE.get(storage, 'EXTENDED')};
 ```
 
-`_catalog_relation_defs` line 468
+`_catalog_relation_defs` line 471
 
 ```sql
 ALTER TABLE {cref} SET COMPRESSION {_COMPRESSION[compression]};
 ```
 
-`_catalog_relation_defs` line 470
+`_catalog_relation_defs` line 473
 
 ```sql
 ALTER {word} {cref} SET STATISTICS {stattarget};
 ```
 
-`_catalog_relation_defs` line 472
+`_catalog_relation_defs` line 480
 
 ```sql
 ALTER {word} {cref} SET ({', '.join(attoptions)});
 ```
 
-`_catalog_relation_defs` line 474
+`_catalog_relation_defs` line 482
 
 ```sql
 ALTER FOREIGN TABLE {cref} OPTIONS ({_fdw_options(fdwoptions)});
 ```
 
-`_catalog_relation_defs` line 476
+`_catalog_relation_defs` line 484
 
 ```sql
 COMMENT ON COLUMN {ref}.{_ident(cn)} IS {_lit(ccomment)};
 ```
 
-**head** - `_catalog_relation_defs` line 477
+**head** - `_catalog_relation_defs` line 485
 
 ```sql
 CREATE {'UNLOGGED ' if persistence == 'u' else ''}{'FOREIGN TABLE' if kind == 'f' else 'TABLE'} {ref}
 ```
 
-`_catalog_relation_defs` line 482
+`_catalog_relation_defs` line 490
 
 ```sql
 WITH ({', '.join(reloptions)})
 ```
 
-`_catalog_relation_defs` line 485
+`_catalog_relation_defs` line 493
 
 ```sql
 SELECT s.srvname, f.ftoptions FROM pg_foreign_table f JOIN pg_foreign_server s ON s.oid = f.ftserver WHERE f.ftrelid = %s
 ```
 
-`_catalog_relation_defs` line 498
+`_catalog_relation_defs` line 506
 
 ```sql
 SELECT conname, pg_get_constraintdef(oid, true), conislocal FROM pg_constraint WHERE conrelid = %s AND contype IN ('p','u','c','f','x') {own}ORDER BY contype DESC, conname
 ```
 
-**line** - `_catalog_relation_defs` line 503
+**line** - `_catalog_relation_defs` line 511
 
 ```sql
 ALTER {word} {ref} ADD CONSTRAINT {_ident(conname)} {condef};
 ```
 
-`_catalog_relation_defs` line 507
+`_catalog_relation_defs` line 515
 
 ```sql
 SELECT pg_get_indexdef(i.indexrelid), obj_description(i.indexrelid, 'pg_class')
@@ -2194,13 +2223,13 @@ SELECT pg_get_indexdef(i.indexrelid), obj_description(i.indexrelid, 'pg_class')
  ORDER BY 1
 ```
 
-`_catalog_relation_defs` line 519
+`_catalog_relation_defs` line 527
 
 ```sql
 COMMENT ON INDEX {_ident(schema)}.{iname} IS {_lit(icomment)};
 ```
 
-`_catalog_relation_defs` line 524
+`_catalog_relation_defs` line 532
 
 ```sql
 SELECT t.tgname, pg_get_triggerdef(t.oid, true), t.tgenabled, {tgparent_col},
@@ -2209,31 +2238,31 @@ SELECT t.tgname, pg_get_triggerdef(t.oid, true), t.tgenabled, {tgparent_col},
  ORDER BY t.tgname
 ```
 
-`_catalog_relation_defs` line 533
+`_catalog_relation_defs` line 541
 
 ```sql
 ALTER {word} {ref} {_TRIGGER_STATE.get(enabled, 'ENABLE TRIGGER')} {_ident(tgname)};
 ```
 
-`_catalog_relation_defs` line 537
+`_catalog_relation_defs` line 545
 
 ```sql
 SELECT relrowsecurity, relforcerowsecurity FROM pg_class WHERE oid = %s
 ```
 
-`_catalog_relation_defs` line 540
+`_catalog_relation_defs` line 548
 
 ```sql
 ALTER TABLE {ref} ENABLE ROW LEVEL SECURITY;
 ```
 
-`_catalog_relation_defs` line 542
+`_catalog_relation_defs` line 550
 
 ```sql
 ALTER TABLE {ref} FORCE ROW LEVEL SECURITY;
 ```
 
-`_catalog_relation_defs` line 546
+`_catalog_relation_defs` line 554
 
 ```sql
 SELECT polname, {permissive_col}, polcmd,
@@ -2242,61 +2271,61 @@ SELECT polname, {permissive_col}, polcmd,
   FROM pg_policy WHERE polrelid = %s ORDER BY polname
 ```
 
-**st** - `_catalog_relation_defs` line 554
+**st** - `_catalog_relation_defs` line 562
 
 ```sql
 CREATE POLICY {_ident(pname)} ON {ref}{'' if permissive else ' AS RESTRICTIVE'} FOR {cmd.get(pcmd, 'ALL')}
 ```
 
-`_catalog_relation_defs` line 560
+`_catalog_relation_defs` line 568
 
 ```sql
 WITH CHECK ({check})
 ```
 
-`_catalog_relation_defs` line 564
+`_catalog_relation_defs` line 572
 
 ```sql
 SELECT pg_get_ruledef(oid, true) FROM pg_rewrite WHERE ev_class = %s AND rulename <> '_RETURN' ORDER BY rulename
 ```
 
-`_catalog_relation_defs` line 573
+`_catalog_relation_defs` line 581
 
 ```sql
 ALTER {word} {ref} REPLICA IDENTITY FULL;
 ```
 
-`_catalog_relation_defs` line 575
+`_catalog_relation_defs` line 583
 
 ```sql
 ALTER {word} {ref} REPLICA IDENTITY NOTHING;
 ```
 
-`_catalog_relation_defs` line 577
+`_catalog_relation_defs` line 585
 
 ```sql
 SELECT ic.relname FROM pg_index i JOIN pg_class ic ON ic.oid = i.indexrelid WHERE i.indrelid = %s AND i.indisreplident
 ```
 
-`_catalog_relation_defs` line 581
+`_catalog_relation_defs` line 589
 
 ```sql
 ALTER TABLE {ref} REPLICA IDENTITY USING INDEX {_ident(ri[0])};
 ```
 
-`_catalog_relation_defs` line 585
+`_catalog_relation_defs` line 593
 
 ```sql
 SELECT t.spcname FROM pg_class c JOIN pg_tablespace t ON t.oid = c.reltablespace WHERE c.oid = %s
 ```
 
-`_catalog_relation_defs` line 588
+`_catalog_relation_defs` line 596
 
 ```sql
 ALTER TABLE {ref} SET TABLESPACE {_ident(spc[0])};
 ```
 
-`_catalog_relation_defs` line 589
+`_catalog_relation_defs` line 597
 
 ```sql
 SELECT ic.relname, t.spcname FROM pg_index i JOIN pg_class ic ON ic.oid = i.indexrelid
@@ -2304,74 +2333,74 @@ SELECT ic.relname, t.spcname FROM pg_index i JOIN pg_class ic ON ic.oid = i.inde
  WHERE i.indrelid = %s ORDER BY ic.relname
 ```
 
-`_catalog_relation_defs` line 594
+`_catalog_relation_defs` line 602
 
 ```sql
 ALTER INDEX {_ident(schema)}.{_ident(iname)} SET TABLESPACE {_ident(ispc)};
 ```
 
-`_catalog_relation_defs` line 595
+`_catalog_relation_defs` line 603
 
 ```sql
 ALTER {word} {ref} OWNER TO {_ident(owner)};
 ```
 
-`_catalog_relation_defs` line 597
+`_catalog_relation_defs` line 605
 
 ```sql
 COMMENT ON {word} {ref} IS {_lit(comment)};
 ```
 
-`_catalog_relation_defs` line 608
+`_catalog_relation_defs` line 616
 
 ```sql
 ALTER SEQUENCE {_ident(sschema)}.{_ident(sname)} OWNED BY {ref}.{_ident(col)};
 ```
 
-`_catalog_relation_defs` line 614
+`_catalog_relation_defs` line 622
 
 ```sql
 COMMENT ON SEQUENCE {sref} IS {_lit(scomment)};
 ```
 
-`_catalog_relation_defs` line 618
+`_catalog_relation_defs` line 626
 
 ```sql
 SELECT pg_get_viewdef(%s, true)
 ```
 
-`_catalog_relation_defs` line 621
+`_catalog_relation_defs` line 629
 
 ```sql
 WITH ({', '.join(reloptions)})
 ```
 
-`_catalog_relation_defs` line 622
+`_catalog_relation_defs` line 630
 
 ```sql
 SELECT t.spcname FROM pg_class c JOIN pg_tablespace t ON t.oid = c.reltablespace WHERE c.oid = %s
 ```
 
-`_catalog_relation_defs` line 624
+`_catalog_relation_defs` line 632
 
 ```sql
 CREATE {word} {ref}{vopts}{f' TABLESPACE {_ident(vspc[0])}' if vspc else ''} AS
 {body}{' WITH NO DATA' if kind == 'm' else ''};
 ```
 
-`_catalog_relation_defs` line 627
+`_catalog_relation_defs` line 635
 
 ```sql
 SELECT pg_get_indexdef(indexrelid) FROM pg_index WHERE indrelid = %s ORDER BY 1
 ```
 
-`_catalog_relation_defs` line 632
+`_catalog_relation_defs` line 640
 
 ```sql
 SELECT pg_get_ruledef(oid, true) FROM pg_rewrite WHERE ev_class = %s AND rulename <> '_RETURN' ORDER BY rulename
 ```
 
-`_catalog_relation_defs` line 640
+`_catalog_relation_defs` line 648
 
 ```sql
 SELECT a.attname, pg_get_expr(d.adbin, d.adrelid), col_description(a.attrelid, a.attnum)
@@ -2380,37 +2409,37 @@ SELECT a.attname, pg_get_expr(d.adbin, d.adrelid), col_description(a.attrelid, a
                             ORDER BY a.attnum
 ```
 
-`_catalog_relation_defs` line 647
+`_catalog_relation_defs` line 655
 
 ```sql
 ALTER VIEW {ref} ALTER COLUMN {_ident(cn)} SET DEFAULT {vdefault};
 ```
 
-`_catalog_relation_defs` line 649
+`_catalog_relation_defs` line 657
 
 ```sql
 COMMENT ON COLUMN {ref}.{_ident(cn)} IS {_lit(ccomment)};
 ```
 
-`_catalog_relation_defs` line 650
+`_catalog_relation_defs` line 658
 
 ```sql
 SELECT pg_get_triggerdef(oid, true) FROM pg_trigger WHERE tgrelid = %s AND NOT tgisinternal ORDER BY tgname
 ```
 
-`_catalog_relation_defs` line 654
+`_catalog_relation_defs` line 662
 
 ```sql
 ALTER {word} {ref} OWNER TO {_ident(owner)};
 ```
 
-`_catalog_relation_defs` line 656
+`_catalog_relation_defs` line 664
 
 ```sql
 COMMENT ON {word} {ref} IS {_lit(comment)};
 ```
 
-`_index_defs` line 692
+`_index_defs` line 700
 
 ```sql
 SELECT i.indexrelid, pg_get_indexdef(i.indexrelid), obj_description(i.indexrelid, 'pg_class'),
@@ -2422,19 +2451,19 @@ SELECT i.indexrelid, pg_get_indexdef(i.indexrelid), obj_description(i.indexrelid
  WHERE n.nspname = %s AND c.relname = %s
 ```
 
-`_index_defs` line 707
+`_index_defs` line 715
 
 ```sql
 ALTER TABLE {_ident(tschema)}.{_ident(tname)} ADD CONSTRAINT {_ident(conname)} {condef};
 ```
 
-`_index_defs` line 711
+`_index_defs` line 719
 
 ```sql
 COMMENT ON INDEX {_ident(schema)}.{_ident(name)} IS {_lit(comment)};
 ```
 
-`_type_defs` line 723
+`_type_defs` line 731
 
 ```sql
 SELECT t.oid, t.typtype, pg_get_userbyid(t.typowner), obj_description(t.oid, 'pg_type'),
@@ -2444,31 +2473,31 @@ SELECT t.oid, t.typtype, pg_get_userbyid(t.typowner), obj_description(t.oid, 'pg
  WHERE n.nspname = %s AND t.typname = %s
 ```
 
-`_type_defs` line 737
+`_type_defs` line 745
 
 ```sql
 SELECT enumlabel FROM pg_enum WHERE enumtypid = %s ORDER BY enumsortorder
 ```
 
-`_type_defs` line 739
+`_type_defs` line 747
 
 ```sql
 CREATE TYPE {ref} AS ENUM ({labels});
 ```
 
-**line** - `_type_defs` line 742
+**line** - `_type_defs` line 750
 
 ```sql
 CREATE DOMAIN {ref} AS {basetype}
 ```
 
-`_type_defs` line 751
+`_type_defs` line 759
 
 ```sql
 SELECT conname, pg_get_constraintdef(oid, true) FROM pg_constraint WHERE contypid = %s AND contype <> 'n' ORDER BY conname
 ```
 
-`_type_defs` line 757
+`_type_defs` line 765
 
 ```sql
 SELECT a.attname, format_type(a.atttypid, a.atttypmod),
@@ -2478,7 +2507,7 @@ SELECT a.attname, format_type(a.atttypid, a.atttypmod),
  WHERE a.attrelid = %s AND a.attnum > 0 AND NOT a.attisdropped ORDER BY a.attnum
 ```
 
-`_type_defs` line 765
+`_type_defs` line 773
 
 ```sql
 CREATE TYPE {ref} AS (
@@ -2486,7 +2515,7 @@ CREATE TYPE {ref} AS (
 );
 ```
 
-`_type_defs` line 774
+`_type_defs` line 782
 
 ```sql
 SELECT format_type(r.rngsubtype, NULL),
@@ -2499,25 +2528,25 @@ SELECT format_type(r.rngsubtype, NULL),
   FROM pg_range r WHERE r.rngtypid = %s
 ```
 
-`_type_defs` line 796
+`_type_defs` line 804
 
 ```sql
 CREATE TYPE {ref} AS RANGE ({', '.join(parts)});
 ```
 
-`_type_defs` line 800
+`_type_defs` line 808
 
 ```sql
 ALTER {word} {ref} OWNER TO {_ident(owner)};
 ```
 
-`_type_defs` line 804
+`_type_defs` line 812
 
 ```sql
 COMMENT ON {word} {ref} IS {_lit(comment)};
 ```
 
-`_multirange_owners` line 818
+`_multirange_owners` line 826
 
 ```sql
 SELECT quote_ident(n.nspname) || '.' || quote_ident(t.typname), pg_get_userbyid(t.typowner)
@@ -2525,19 +2554,19 @@ SELECT quote_ident(n.nspname) || '.' || quote_ident(t.typname), pg_get_userbyid(
  WHERE r.rngtypid = ANY(%s::oid[]) ORDER BY t.oid
 ```
 
-`_multirange_owners` line 822
+`_multirange_owners` line 830
 
 ```sql
 ALTER TYPE {mref} OWNER TO {_ident(owner)};
 ```
 
-`_schema_contents` line 831
+`_schema_contents` line 839
 
 ```sql
 SELECT oid, pg_get_userbyid(nspowner), obj_description(oid, 'pg_namespace') FROM pg_namespace WHERE nspname = %s
 ```
 
-`_schema_contents` line 852
+`_schema_contents` line 860
 
 ```sql
 SELECT DISTINCT d.objid FROM pg_depend d JOIN pg_type t ON t.oid = d.refobjid
@@ -2547,19 +2576,19 @@ SELECT DISTINCT d.objid FROM pg_depend d JOIN pg_type t ON t.oid = d.refobjid
    AND c.relkind <> 'c' AND c.relnamespace = %s
 ```
 
-`_schema_contents` line 868
+`_schema_contents` line 876
 
 ```sql
 CREATE SCHEMA {_ident(schema)} AUTHORIZATION {_ident(owner)};
 ```
 
-`_schema_contents` line 870
+`_schema_contents` line 878
 
 ```sql
 COMMENT ON SCHEMA {_ident(schema)} IS {_lit(comment)};
 ```
 
-`_collation_defs` line 888
+`_collation_defs` line 896
 
 ```sql
 SELECT c.collname, pg_get_userbyid(c.collowner), obj_description(c.oid, 'pg_collation'),
@@ -2568,31 +2597,31 @@ SELECT c.collname, pg_get_userbyid(c.collowner), obj_description(c.oid, 'pg_coll
  WHERE n.nspname = %s ORDER BY c.oid
 ```
 
-`_collation_defs` line 909
+`_collation_defs` line 917
 
 ```sql
 CREATE COLLATION {ref} ({', '.join(opts)});
 ```
 
-`_collation_defs` line 910
+`_collation_defs` line 918
 
 ```sql
 ALTER COLLATION {ref} OWNER TO {_ident(owner)};
 ```
 
-`_collation_defs` line 912
+`_collation_defs` line 920
 
 ```sql
 COMMENT ON COLLATION {ref} IS {_lit(comment)};
 ```
 
-**head** - `_default_acl_lines` line 926
+**head** - `_default_acl_lines` line 934
 
 ```sql
 ALTER DEFAULT PRIVILEGES FOR ROLE {_ident(d['role'])} IN SCHEMA {_ident(schema)}
 ```
 
-`_aggregate_def` line 943
+`_aggregate_def` line 951
 
 ```sql
 SELECT pg_get_function_arguments(a.aggfnoid), p.pronargs, a.aggkind,
@@ -2609,7 +2638,7 @@ SELECT pg_get_function_arguments(a.aggfnoid), p.pronargs, a.aggkind,
   FROM pg_aggregate a JOIN pg_proc p ON p.oid = a.aggfnoid WHERE a.aggfnoid = %s
 ```
 
-`_aggregate_def` line 998
+`_aggregate_def` line 1006
 
 ```sql
 CREATE AGGREGATE {ref}({'*' if nargs == 0 else args}) (
@@ -2617,7 +2646,7 @@ CREATE AGGREGATE {ref}({'*' if nargs == 0 else args}) (
 );
 ```
 
-`_routine_defs` line 1013
+`_routine_defs` line 1021
 
 ```sql
 SELECT p.oid, {kind_col}, pg_get_userbyid(p.proowner), obj_description(p.oid, 'pg_proc'),
@@ -2628,37 +2657,37 @@ SELECT p.oid, {kind_col}, pg_get_userbyid(p.proowner), obj_description(p.oid, 'p
  ORDER BY p.oid
 ```
 
-`_routine_defs` line 1037
+`_routine_defs` line 1045
 
 ```sql
 SELECT pg_get_functiondef(%s)
 ```
 
-`_routine_defs` line 1042
+`_routine_defs` line 1050
 
 ```sql
 ALTER {word} {rref} OWNER TO {_ident(owner)};
 ```
 
-`_routine_defs` line 1044
+`_routine_defs` line 1052
 
 ```sql
 COMMENT ON {word} {rref} IS {_lit(comment)};
 ```
 
-`_schema_defs` line 1055
+`_schema_defs` line 1063
 
 ```sql
 SELECT pg_get_userbyid(nspowner), nspacl::text FROM pg_namespace WHERE nspname = %s
 ```
 
-`_schema_defs` line 1060
+`_schema_defs` line 1068
 
 ```sql
 ALTER SCHEMA {_ident(name)} OWNER TO {_ident(row[0])};
 ```
 
-`_owner_defs` line 1077
+`_owner_defs` line 1085
 
 ```sql
 SELECT pg_get_userbyid(x.{ocol}) FROM {cat} x
@@ -2666,7 +2695,7 @@ SELECT pg_get_userbyid(x.{ocol}) FROM {cat} x
  WHERE n.nspname = %s AND x.{ncol} = %s
 ```
 
-`_inbound_fks` line 1099
+`_inbound_fks` line 1107
 
 ```sql
 SELECT DISTINCT tn.nspname, t.relname, k.conname, pg_get_constraintdef(k.oid, true)
@@ -2677,13 +2706,13 @@ SELECT DISTINCT tn.nspname, t.relname, k.conname, pg_get_constraintdef(k.oid, tr
  ORDER BY 1, 2, 3
 ```
 
-`_inbound_fks` line 1112
+`_inbound_fks` line 1120
 
 ```sql
 ALTER TABLE {_ident(tschema)}.{_ident(tname)} ADD CONSTRAINT {_ident(conname)} {condef};
 ```
 
-`_rel_oids` line 1121
+`_rel_oids` line 1129
 
 ```sql
 SELECT n.nspname, c.relname, c.oid, c.relkind::text
@@ -2692,98 +2721,98 @@ SELECT n.nspname, c.relname, c.oid, c.relkind::text
                      JOIN pg_class c ON c.relnamespace = n.oid AND c.relname = u.r
 ```
 
-`_written_after_all` line 1220
+`_written_after_all` line 1228
 
 ```sql
 SELECT refclassid::regclass::text, refobjid FROM pg_depend WHERE classid = %s::regclass AND objid = %s AND deptype = 'i'
 ```
 
-`_written_after_all` line 1226
+`_written_after_all` line 1234
 
 ```sql
 SELECT n.nspname FROM pg_default_acl d JOIN pg_namespace n ON n.oid = d.defaclnamespace WHERE d.oid = %s
 ```
 
-`_written_after_all` line 1229
+`_written_after_all` line 1237
 
 ```sql
 SELECT schema FROM pg_identify_object(%s::regclass, %s, %s)
 ```
 
-`server_identity` line 1255
+`server_identity` line 1263
 
 ```sql
 SELECT current_database()
 ```
 
-`server_identity` line 1259
+`server_identity` line 1267
 
 ```sql
 SHOW server_version_num
 ```
 
-`server_identity` line 1262
+`server_identity` line 1270
 
 ```sql
 SELECT system_identifier::text FROM pg_control_system()
 ```
 
-`capture` line 1413
+`capture` line 1421
 
 ```sql
 SHOW search_path
 ```
 
-`capture` line 1417
+`capture` line 1425
 
 ```sql
 SELECT pg_catalog.set_config('search_path', 'pg_catalog', false)
 ```
 
-`capture` line 1423
+`capture` line 1431
 
 ```sql
 SELECT to_regclass(%s)::oid
 ```
 
-`capture` line 1479
+`capture` line 1487
 
 ```sql
 SELECT r.rngtypid FROM pg_range r JOIN pg_type t ON t.oid = r.rngtypid JOIN pg_namespace n ON n.oid = t.typnamespace WHERE n.nspname = ANY(%s)
 ```
 
-`capture` line 1495
+`capture` line 1503
 
 ```sql
 SELECT s.oid FROM pg_statistic_ext s JOIN pg_namespace n ON n.oid = s.stxnamespace WHERE s.oid = ANY(%s) AND n.nspname = ANY(%s)
 ```
 
-`capture` line 1522
+`capture` line 1530
 
 ```sql
 SET check_function_bodies = false;
 {_routine_defs(cur, cascaded_routines)}
 ```
 
-`capture` line 1535
+`capture` line 1543
 
 ```sql
 SELECT relkind FROM pg_class WHERE oid = to_regclass(%s)
 ```
 
-`capture` line 1540
+`capture` line 1548
 
 ```sql
 REFRESH MATERIALIZED VIEW {_ident(schema)}.{_ident(name)};
 ```
 
-`capture` line 1560
+`capture` line 1568
 
 ```sql
 SELECT pg_catalog.set_config('search_path', %s, false)
 ```
 
-`capture` line 1578
+`capture` line 1586
 
 ```sql
 SET check_function_bodies = false;
