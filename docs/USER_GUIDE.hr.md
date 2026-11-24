@@ -1137,11 +1137,18 @@ SQL editor s isticanjem PostgreSQL sintakse i vlastitim dovršavanjem. Alatna tr
 - Spremi kao…: zapisuje rezultat koji gledate kao JSON, JSON Lines,
   SQL `INSERT`, Markdown tablicu ili poravnati tekst
 - Očisti povijest
+- Otvori datoteku… (`Ctrl/Cmd + O`): otvara skriptu s diska u novom tabu
+  editora, nazvanom po datoteci; ništa se ne pokreće
 
 Ispod editora je panel s ispisom:
 - Rešetka rezultata (vidi niže)
 - Povijest izvođenja i statistike (može se skupiti)
 - Vrijeme i broj redaka po izvođenju
+
+Crta između editora i panela s rezultatom mijenja njihovu veličinu kad se
+povuče. Desnim klikom na nju stavljaš ih **jedno pokraj drugoga** (editor
+lijevo, rezultat desno, za širi ekran) ili **jedno ispod drugoga**; izbor i
+veličina svakog rasporeda se pamte.
 
 **Spremljeni upiti.** **Save query** (Ctrl+S) sprema tekst editora pod
 imenom; popis **saved** pokraj njega otvara jedan u kartici. **SQL →

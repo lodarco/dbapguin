@@ -1205,11 +1205,18 @@ SQL-Editor mit PostgreSQL-Syntaxhervorhebung und eigener Vervollständigung. Wer
 - Speichern als…: schreibt das angezeigte Ergebnis als JSON, JSON Lines,
   SQL-`INSERT`, Markdown-Tabelle oder ausgerichteten Text
 - Verlauf leeren
+- Datei öffnen… (`Strg/Cmd + O`): öffnet ein Skript von der Festplatte in einem
+  neuen Editor-Tab mit dem Namen der Datei; nichts wird ausgeführt
 
 Unter dem Editor liegt der Ausgabebereich mit:
 - Ergebnisraster (siehe unten)
 - Live- und Statistikverlauf (einklappbar)
 - Zeit und Zeilenzahl je Ausführung
+
+Die Linie zwischen Editor und Ausgabebereich ändert beim Ziehen ihre Größe.
+Ein Rechtsklick darauf stellt sie **nebeneinander** (Editor links, Ergebnis
+rechts, für einen breiten Bildschirm) oder **untereinander**; die Wahl und die
+Größe jeder Anordnung werden gemerkt.
 
 **Gespeicherte Abfragen.** **Save query** (Strg+S) speichert den Text des
 Editors unter einem Namen; die Liste **saved** daneben öffnet eine in einem

@@ -1176,11 +1176,19 @@ Editor SQL con resaltado de sintaxis PostgreSQL y autocompletado propio. Barra d
 - Guardar como…: escribe el resultado que está viendo como JSON, JSON Lines,
   `INSERT` de SQL, tabla Markdown o texto alineado
 - Limpiar historial
+- Abrir archivo… (`Ctrl/Cmd + O`): abre un script del disco en una pestaña
+  nueva del editor con el nombre del archivo; no se ejecuta nada
 
 Bajo el editor está el panel de salida con:
 - Rejilla de resultados (ver más abajo)
 - Historial en vivo y de estadísticas (plegable)
 - Tiempo y número de filas por ejecución
+
+La línea entre el editor y el panel de resultados cambia su tamaño al
+arrastrarla. Con clic derecho sobre ella se colocan **uno al lado del otro**
+(editor a la izquierda, resultado a la derecha, para una pantalla ancha) o
+**uno encima del otro**; la elección y el tamaño de cada disposición se
+recuerdan.
 
 **Consultas guardadas.** **Save query** (Ctrl+S) guarda el texto del editor
 con un nombre; la lista **saved** de al lado abre una en una pestaña. **SQL

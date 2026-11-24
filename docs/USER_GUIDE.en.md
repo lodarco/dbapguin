@@ -1140,11 +1140,18 @@ SQL editor with PostgreSQL syntax highlighting and custom completion. Toolbar:
 - Save as…: writes the result you are looking at as JSON, JSON Lines,
   SQL `INSERT`, a Markdown table, or aligned text
 - Clear history
+- Open file… (`Ctrl/Cmd + O`): opens a script from disk in a new editor tab,
+  named after the file; nothing is run
 
 Below the editor, output panel with:
 - Result grid (see below)
 - Live + stat history (collapsible)
 - Per-execution timing + row count
+
+The line between the editor and the output panel resizes them when dragged.
+Right-click it to put them **side by side** (editor left, result right, for a
+wide screen) or **one above the other**; the choice and each layout's size
+are remembered.
 
 **Saved queries.** **Save query** (Ctrl+S) stores the editor's text under a
 name; the **saved** list beside it opens one in a tab. **SQL → Saved
