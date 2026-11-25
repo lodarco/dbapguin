@@ -1,6 +1,6 @@
 # DBApguin - Guía de usuario
 
-**Para DBApguin 1.0.9**
+**Para DBApguin 1.0.10**
 
 *Esta guía se ha traducido del inglés con ayuda de IA. Si algo no está claro o difiere, prevalece el original en inglés (Ayuda → Guía de usuario, con la interfaz en inglés).*
 
@@ -1893,6 +1893,16 @@ errores de análisis funcionan igual.
 `Resumen de roles y usuarios` lista usuarios con login y roles de grupo en dos
 tablas editables. Cada atributo booleano es un desplegable true/false;
 `conn_limit` y `valid_until` son campos de texto.
+
+`auth_method` dice cómo está guardada la contraseña de cada usuario:
+SCRAM-SHA-256, MD5 o ninguna. PostgreSQL solo deja leerlo a un superusuario. En
+Amazon RDS y Aurora, donde ningún usuario suyo lo es, el resumen lo lee con la
+extensión propia del servicio, `rds_tools`, y una contraseña MD5 se señala allí
+como en cualquier otro servidor. Si la extensión aún no está en la base de
+datos, la nota sobre la tabla lo dice y da la sentencia
+(`CREATE EXTENSION rds_tools;`). En un servicio que no ofrece nada parecido, y
+para un rol que no es superusuario en su propio servidor, la columna dice por
+qué está vacía; todo lo demás sobre los roles aparece en ambos casos.
 
 **Primero elige el rol, luego la acción.** Haz clic en la fila para
 seleccionarla, o marca su casilla; ctrl-clic y las casillas seleccionan varios.

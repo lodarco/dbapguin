@@ -1,6 +1,6 @@
 # The rest of the app
 
-[All parts](README.md) · 805 statements
+[All parts](README.md) · 810 statements
 
 ## app.py
 
@@ -359,8 +359,13 @@ SELECT
   EXISTS(SELECT 1 FROM pg_roles WHERE rolname = 'tsdbadmin')                AS is_ts,
   EXISTS(SELECT 1 FROM pg_proc p JOIN pg_namespace n ON n.oid = p.pronamespace
          WHERE p.proname = 'crunchy_pgbouncer_admin' AND n.nspname = 'pg_catalog') AS is_crunchy,
+  -- cluster_name through pg_settings, not current_setting(name, true):
+  -- the two-argument form is 9.6+, and on 9.4 and 9.5 the whole
+  -- fingerprint failed on it - an ERROR in the server's log at
+  -- every connect, and every other mark above unread.
   EXISTS(SELECT 1 FROM pg_roles WHERE rolname LIKE 'u%%' AND rolname ~ '^u[a-z0-9]{8,}$')
-    AND current_setting('cluster_name', true) LIKE 'heroku-postgresql-%%' AS is_heroku,
+    AND COALESCE((SELECT setting FROM pg_settings WHERE name = 'cluster_name'), '')
+        LIKE 'heroku-postgresql-%%' AS is_heroku,
   -- Not part of the fingerprint: whether the role of THIS session
   -- is a real superuser, from the catalogue. It lifts the refusals
   -- of the provider (see _capability_block), not the key.
@@ -368,37 +373,37 @@ SELECT
                                                                             AS session_superuser
 ```
 
-`_hba_write_copy` line 4437
+`_hba_write_copy` line 4442
 
 ```sql
 COPY (SELECT nullif(l, '') FROM unnest(%s::text[])         WITH ORDINALITY t(l, n) ORDER BY n) TO %s (FORMAT csv, DELIMITER E'\x01', QUOTE E'\x02', ESCAPE E'\x02')
 ```
 
-`_hba_write_file_lines` line 4476
+`_hba_write_file_lines` line 4481
 
 ```sql
 SELECT lo_export(%s, %s)
 ```
 
-`_hba_write_file_lines` line 4477
+`_hba_write_file_lines` line 4482
 
 ```sql
 SELECT lo_unlink(%s)
 ```
 
-`_hba_write_file_lines` line 4485
+`_hba_write_file_lines` line 4490
 
 ```sql
 SELECT lo_unlink(%s)
 ```
 
-`_hba_peers` line 4526
+`_hba_peers` line 4531
 
 ```sql
 SELECT pg_is_in_recovery() AS rec
 ```
 
-`_hba_peers` line 4532
+`_hba_peers` line 4537
 
 ```sql
 SELECT COALESCE(host(client_addr), 'local') AS client,
@@ -407,7 +412,7 @@ SELECT COALESCE(host(client_addr), 'local') AS client,
   FROM pg_stat_replication
 ```
 
-`_hba_peers` line 4543
+`_hba_peers` line 4548
 
 ```sql
 SELECT slot_name, slot_type, active
@@ -415,13 +420,13 @@ SELECT slot_name, slot_type, active
  WHERE slot_type = 'physical'
 ```
 
-`_hba_list_backups` line 4564
+`_hba_list_backups` line 4569
 
 ```sql
 SELECT n.name AS name, (pg_stat_file(%s || '/' || n.name)).size AS size FROM pg_ls_dir(%s) AS n(name)
 ```
 
-`_hba_list_backups` line 4575
+`_hba_list_backups` line 4580
 
 ```sql
 SELECT pg_ls_dir(%s) AS name
@@ -784,6 +789,36 @@ SELECT r.rolname AS role, array_agg(p.rolname ORDER BY p.rolname) AS held
                     -- attribute already says what it is.
                     WHERE NOT r.rolsuper
                     GROUP BY r.rolname
+```
+
+`password_types` line 118
+
+```sql
+SELECT to_regprocedure(%s) IS NOT NULL
+```
+
+`password_types` line 119
+
+```sql
+SELECT has_function_privilege(to_regprocedure(%s), 'EXECUTE')
+```
+
+`password_types` line 121
+
+```sql
+SELECT rolname, encryption_type FROM {RDS_PASSWORD_TYPES}
+```
+
+`password_types` line 128
+
+```sql
+SELECT EXISTS (SELECT 1 FROM pg_catalog.pg_extension WHERE extname = %s)
+```
+
+`password_types` line 131
+
+```sql
+SELECT EXISTS (SELECT 1 FROM pg_catalog.pg_available_extensions WHERE name = %s)
 ```
 
 ## object_scope.py

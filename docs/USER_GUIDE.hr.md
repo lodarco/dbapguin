@@ -1,6 +1,6 @@
 # DBApguin - korisničke upute
 
-**Za DBApguin 1.0.9**
+**Za DBApguin 1.0.10**
 
 *Ove su upute prevedene s engleskog uz pomoć AI-a. Ako je nešto nejasno ili se razlikuje, mjerodavan je engleski izvornik (Pomoć → Korisničke upute, uz engleski jezik sučelja).*
 
@@ -1804,6 +1804,15 @@ spremanja, reload nakon toga i prijava grešaka u parsiranju rade jednako.
 `Pregled rola i korisnika` popisuje korisnike s prijavom i grupne role u dvije
 uredive tablice. Svaki logički atribut je padajući izbornik true/false;
 `conn_limit` i `valid_until` su tekstualna polja.
+
+`auth_method` kaže kako je spremljena lozinka svakog korisnika: SCRAM-SHA-256,
+MD5 ili nikako. PostgreSQL to dopušta čitati samo superuseru. Na Amazon RDS-u i
+Aurori, gdje nijedan vaš korisnik to nije, pregled je čita kroz vlastitu
+ekstenziju usluge `rds_tools`, pa se MD5 lozinka i tamo označi kao na svakom
+drugom serveru. Ako ekstenzije još nema u bazi, napomena iznad tablice to kaže i
+daje naredbu (`CREATE EXTENSION rds_tools;`). Na usluzi koja ne nudi ništa
+takvo, i za rolu koja na vašem serveru nije superuser, stupac kaže zašto je
+prazan; sve ostalo o rolama prikazano je u oba slučaja.
 
 **Prvo odaberite rolu, onda radnju.** Klik na red odabire tu rolu, a isto radi
 i kvačica; ctrl-klik i kvačice odabiru više njih. Jedan red gumba stoji uz

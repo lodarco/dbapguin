@@ -1626,23 +1626,29 @@ CREATE TEXT SEARCH TEMPLATE {_qi(r['nspname'])}.{_qi(r['tmplname'])} (
 );
 ```
 
-`api_schema_ddl` line 888
+`api_schema_ddl` line 898
 
 ```sql
-SELECT um.umuser, pg_catalog.pg_get_userbyid(um.umuser) AS user_name,
-       s.srvname, um.umoptions
-  FROM pg_user_mapping um
-  JOIN pg_foreign_server s ON s.oid = um.umserver
- WHERE um.oid = %s::oid
+SELECT m.umuser, pg_catalog.pg_get_userbyid(m.umuser) AS user_name,
+       m.srvname, m.umoptions, current_user AS me,
+       ((m.umuser <> 0 AND m.usename = current_user
+             AND (pg_catalog.pg_has_role(s.srvowner, 'USAGE')
+                  OR pg_catalog.has_server_privilege(s.oid, 'USAGE')))
+        OR (m.umuser = 0 AND pg_catalog.pg_has_role(s.srvowner, 'USAGE'))
+        OR COALESCE((SELECT rolsuper FROM pg_catalog.pg_roles
+                      WHERE rolname = current_user), false)) AS options_visible
+  FROM pg_catalog.pg_user_mappings m
+  JOIN pg_catalog.pg_foreign_server s ON s.oid = m.srvid
+ WHERE m.umid = %s::oid
 ```
 
-`api_schema_ddl` line 910
+`api_schema_ddl` line 935
 
 ```sql
 CREATE USER MAPPING FOR {who} SERVER {_qi(r['srvname'])}{opts};
 ```
 
-`api_schema_ddl` line 922
+`api_schema_ddl` line 947
 
 ```sql
 SELECT DISTINCT s.relname AS seq_name,
@@ -1659,19 +1665,19 @@ SELECT DISTINCT s.relname AS seq_name,
  ORDER BY 1
 ```
 
-`api_schema_ddl` line 945
+`api_schema_ddl` line 970
 
 ```sql
 CREATE SEQUENCE IF NOT EXISTS {fq};
 ```
 
-`api_schema_ddl` line 948
+`api_schema_ddl` line 973
 
 ```sql
 ALTER SEQUENCE {fq} OWNED BY {qname}.{_qi(sq['col_name'])};
 ```
 
-**_DEPEND_OBJECTS_BASE** - `(module)` line 1071
+**_DEPEND_OBJECTS_BASE** - `(module)` line 1096
 
 ```sql
 SELECT 'pg_class'::regclass AS cls, c.oid AS id, c.relnamespace AS ns,
@@ -1705,7 +1711,7 @@ SELECT 'pg_trigger'::regclass, tg.oid, c.relnamespace,
   JOIN pg_catalog.pg_class c ON c.oid = tg.tgrelid
 ```
 
-`_depends_on_sql` line 1120
+`_depends_on_sql` line 1145
 
 ```sql
 WITH obj AS (%s)
@@ -1723,7 +1729,7 @@ SELECT DISTINCT
  ORDER BY 1, 2, 3, 4
 ```
 
-`(module)` line 1142
+`(module)` line 1167
 
 ```sql
 SELECT c.conname AS name,
@@ -1733,7 +1739,7 @@ SELECT c.conname AS name,
                        WHERE n.nspname = %s
 ```
 
-`(module)` line 1147
+`(module)` line 1172
 
 ```sql
 SELECT c.relname || '.' || a.attname AS name,
@@ -1746,7 +1752,7 @@ SELECT c.relname || '.' || a.attname AS name,
                            WHERE n.nspname = %s
 ```
 
-`(module)` line 1155
+`(module)` line 1180
 
 ```sql
 SELECT i.relname AS name,
@@ -1756,7 +1762,7 @@ SELECT i.relname AS name,
                   WHERE n.nspname = %s AND i.relkind IN ('i', 'I')
 ```
 
-`(module)` line 1160
+`(module)` line 1185
 
 ```sql
 SELECT c.relname AS name,
@@ -1766,7 +1772,7 @@ SELECT c.relname AS name,
                  WHERE n.nspname = %s AND c.relkind IN ('v', 'm')
 ```
 
-`(module)` line 1169
+`(module)` line 1194
 
 ```sql
 SELECT p.proname AS name,
@@ -1776,7 +1782,7 @@ SELECT p.proname AS name,
                      WHERE n.nspname = %s AND {prokind_where}
 ```
 
-`(module)` line 1174
+`(module)` line 1199
 
 ```sql
 SELECT t.tgname AS name,
@@ -1787,7 +1793,7 @@ SELECT t.tgname AS name,
                     WHERE n.nspname = %s AND NOT t.tgisinternal
 ```
 
-`(module)` line 1180
+`(module)` line 1205
 
 ```sql
 SELECT c.relname || '.' || a.attname AS name,
@@ -1799,7 +1805,7 @@ SELECT c.relname || '.' || a.attname AS name,
                           AND c.relkind IN ('r', 'p', 'v', 'm')
 ```
 
-`(module)` line 1187
+`(module)` line 1212
 
 ```sql
 SELECT t.typname AS name,
@@ -1809,7 +1815,7 @@ SELECT t.typname AS name,
                    WHERE n.nspname = %s AND t.typtype = 'd'
 ```
 
-**_CENSUS_SQL_BASE** - `(module)` line 1206
+**_CENSUS_SQL_BASE** - `(module)` line 1231
 
 ```sql
 SELECT kind, name FROM (
@@ -1851,7 +1857,7 @@ SELECT kind, name FROM (
    WHERE n.nspname = %s
 ```
 
-`_schema_sequences` line 1367
+`_schema_sequences` line 1392
 
 ```sql
 SELECT sequencename AS name, data_type::text AS data_type,
@@ -1861,7 +1867,7 @@ SELECT sequencename AS name, data_type::text AS data_type,
  WHERE schemaname = %s
 ```
 
-`_schema_sequences` line 1377
+`_schema_sequences` line 1402
 
 ```sql
 SELECT c.relname AS name
@@ -1870,13 +1876,13 @@ SELECT c.relname AS name
  WHERE n.nspname = %s AND c.relkind = 'S'
 ```
 
-`_schema_sequences` line 1384
+`_schema_sequences` line 1409
 
 ```sql
 SELECT increment_by, min_value, max_value, is_cycled AS cycle, cache_value AS cache_size, last_value FROM {fq}
 ```
 
-`_verify_schema_copy._not_valid` line 1555
+`_verify_schema_copy._not_valid` line 1580
 
 ```sql
 SELECT COALESCE(c.relname, t.typname)::text AS owner, co.conname::text AS con
@@ -1888,7 +1894,7 @@ SELECT COALESCE(c.relname, t.typname)::text AS owner, co.conname::text AS con
  ORDER BY 1, 2
 ```
 
-`_verify_schema_copy` line 1577
+`_verify_schema_copy` line 1602
 
 ```sql
 SELECT c.relname AS name FROM pg_catalog.pg_class c
@@ -1898,7 +1904,7 @@ SELECT t.typname FROM pg_catalog.pg_type t
   JOIN pg_catalog.pg_namespace n ON n.oid = t.typnamespace WHERE n.nspname = %s
 ```
 
-`_verify_schema_copy` line 1597
+`_verify_schema_copy` line 1622
 
 ```sql
 SELECT s.relname AS name
@@ -1914,7 +1920,7 @@ SELECT s.relname AS name
  ORDER BY 1
 ```
 
-`_verify_schema_copy` line 1616
+`_verify_schema_copy` line 1641
 
 ```sql
 SELECT i.relname AS name
@@ -1925,7 +1931,7 @@ SELECT i.relname AS name
  ORDER BY 1
 ```
 
-`_verify_schema_copy` line 1636
+`_verify_schema_copy` line 1661
 
 ```sql
 SELECT c.relname AS name
@@ -1936,13 +1942,13 @@ SELECT c.relname AS name
  ORDER BY c.relname
 ```
 
-`_verify_schema_copy` line 1650
+`_verify_schema_copy` line 1675
 
 ```sql
 SELECT (SELECT count(*) FROM %s.%s%s) AS a, (SELECT count(*) FROM %s.%s) AS b
 ```
 
-`_outside_partitions` line 1782
+`_outside_partitions` line 1807
 
 ```sql
 WITH RECURSIVE t(oid) AS (
@@ -1957,121 +1963,121 @@ SELECT c.oid::regclass::text AS rel FROM t
  ORDER BY 1
 ```
 
-`api_schema_clone` line 1918
+`api_schema_clone` line 1943
 
 ```sql
 SELECT 1 FROM pg_namespace WHERE nspname = %s
 ```
 
-`api_schema_clone` line 1921
+`api_schema_clone` line 1946
 
 ```sql
 SELECT 1 FROM pg_namespace WHERE nspname = %s
 ```
 
-`api_schema_clone` line 1955
+`api_schema_clone` line 1980
 
 ```sql
 SELECT usesuper FROM pg_user WHERE usename = current_user
 ```
 
-`api_schema_clone` line 2034
+`api_schema_clone` line 2059
 
 ```sql
 CREATE SCHEMA {qi(tgt)};
 ```
 
-**st** - `api_schema_clone` line 2123
+**st** - `api_schema_clone` line 2148
 
 ```sql
 INSERT INTO {qi(tgt)}.{qi(t)} ({collist}){override} SELECT {', '.join(sel)} FROM {only}{qi(src)}.{qi(t)}{where};
 ```
 
-`api_schema_clone` line 2137
+`api_schema_clone` line 2162
 
 ```sql
 SET LOCAL row_security = off;
 ```
 
-`api_schema_clone` line 2139
+`api_schema_clone` line 2164
 
 ```sql
 RESET row_security;
 ```
 
-`api_schema_clone` line 2147
+`api_schema_clone` line 2172
 
 ```sql
 SELECT setval({_literal_str(qi(tgt) + '.' + qi(s))}, (SELECT last_value FROM {qi(src)}.{qi(s)}), (SELECT is_called FROM {qi(src)}.{qi(s)}));
 ```
 
-`api_schema_clone` line 2168
+`api_schema_clone` line 2193
 
 ```sql
 SELECT setval({tgt_seq}, COALESCE({src_last}, 1), {src_last} IS NOT NULL);
 ```
 
-**st** - `api_schema_clone` line 2179
+**st** - `api_schema_clone` line 2204
 
 ```sql
 ALTER TABLE {qi(tgt)}.{qi(t)} ADD CONSTRAINT {qi(cn)} {cdef.replace('{SCHEMA}.', qi(tgt) + '.').rstrip().rstrip(';')};
 ```
 
-**st** - `api_schema_clone` line 2184
+**st** - `api_schema_clone` line 2209
 
 ```sql
 ALTER TABLE {qi(tgt)}.{qi(t)} ADD CONSTRAINT {qi(cn)} NOT NULL {qi(col)} NOT VALID;
 ```
 
-**st** - `api_schema_clone` line 2191
+**st** - `api_schema_clone` line 2216
 
 ```sql
 ALTER DOMAIN {qi(tgt)}.{qi(dn)} ADD CONSTRAINT {qi(cn)} {cdef.replace('{SCHEMA}.', qi(tgt) + '.').rstrip().rstrip(';')};
 ```
 
-`api_schema_clone` line 2235
+`api_schema_clone` line 2260
 
 ```sql
 COMMENT ON POLICY {qi(pn)} ON {qi(tgt)}.{qi(t)} IS {_literal_str(pc)};
 ```
 
-`api_schema_clone` line 2250
+`api_schema_clone` line 2275
 
 ```sql
 REFRESH MATERIALIZED VIEW {qi(tgt)}.{qi(n)};
 ```
 
-`api_schema_compare` line 2436
+`api_schema_compare` line 2461
 
 ```sql
 SELECT rolname FROM pg_catalog.pg_roles
 ```
 
-`api_schema_apply_sync` line 2692
+`api_schema_apply_sync` line 2717
 
 ```sql
 SELECT current_setting('server_version_num')::int, split_part(current_setting('server_version'), ' ', 1)
 ```
 
-`api_schema_apply_sync` line 2703
+`api_schema_apply_sync` line 2728
 
 ```sql
 SELECT pg_catalog.current_setting('search_path')
 ```
 
-`api_schema_apply_sync` line 2705
+`api_schema_apply_sync` line 2730
 
 ```sql
 SELECT pg_catalog.set_config('search_path', '', false)
 ```
 
-`api_schema_apply_sync` line 2716
+`api_schema_apply_sync` line 2741
 
 ```sql
 SELECT to_regclass(%s) IS NOT NULL
 ```
 
-`api_schema_apply_sync` line 2725
+`api_schema_apply_sync` line 2750
 
 ```sql
 SELECT pg_catalog.set_config('search_path', %s, false)

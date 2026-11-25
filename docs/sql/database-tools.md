@@ -3313,26 +3313,27 @@ SELECT DISTINCT d.datname FROM pg_shdepend s
                           AND d.datname <> current_database() ORDER BY 1
 ```
 
-`api_role_check_drop` line 1416
+`api_role_check_drop` line 1424
 
 ```sql
 SELECT coalesce(d.datname, '(shared)') AS database,
        count(*) AS deps
-  FROM pg_shdepend s
-  LEFT JOIN pg_database d ON d.oid = s.dbid
-  JOIN pg_authid a ON a.oid = s.refobjid
- WHERE a.rolname = %s
+  FROM pg_catalog.pg_shdepend s
+  LEFT JOIN pg_catalog.pg_database d ON d.oid = s.dbid
+  JOIN pg_catalog.pg_roles a ON a.oid = s.refobjid
+ WHERE s.refclassid = 'pg_catalog.pg_authid'::regclass
+   AND a.rolname = %s
  GROUP BY d.datname
  ORDER BY 2 DESC
 ```
 
-`api_role_check_drop` line 1436
+`api_role_check_drop` line 1445
 
 ```sql
 SELECT oid FROM pg_roles WHERE rolname = %s
 ```
 
-`api_role_check_drop` line 1476
+`api_role_check_drop` line 1485
 
 ```sql
 SELECT n.nspname AS nsp, c.relname AS rel, p.polname AS pol
@@ -3342,7 +3343,7 @@ SELECT n.nspname AS nsp, c.relname AS rel, p.polname AS pol
                             WHERE %s = ANY(p.polroles) ORDER BY 1, 2, 3
 ```
 
-`api_role_check_drop` line 1486
+`api_role_check_drop` line 1495
 
 ```sql
 SELECT pg_get_userbyid(am.roleid) AS grp, pg_get_userbyid(am.member) AS member
@@ -3351,7 +3352,7 @@ SELECT pg_get_userbyid(am.roleid) AS grp, pg_get_userbyid(am.member) AS member
                                 ORDER BY 1, 2
 ```
 
-`api_role_check_drop` line 1508
+`api_role_check_drop` line 1517
 
 ```sql
 SELECT m.rolname AS member, g.rolname AS granted_role,
@@ -3363,7 +3364,7 @@ SELECT m.rolname AS member, g.rolname AS granted_role,
  ORDER BY m.rolname, g.rolname
 ```
 
-`api_role_check_drop` line 1521
+`api_role_check_drop` line 1530
 
 ```sql
 SELECT rolname FROM pg_roles
@@ -3371,25 +3372,25 @@ SELECT rolname FROM pg_roles
  ORDER BY rolcanlogin DESC, rolname
 ```
 
-`api_role_check_drop` line 1530
+`api_role_check_drop` line 1539
 
 ```sql
 SELECT current_user AS me, current_database() AS db
 ```
 
-`api_role_drop` line 1712
+`api_role_drop` line 1721
 
 ```sql
 DROP ROLE {r}
 ```
 
-`api_role_drop` line 1713
+`api_role_drop` line 1722
 
 ```sql
 DROP ROLE {role}
 ```
 
-`api_role_memberships` line 1759
+`api_role_memberships` line 1768
 
 ```sql
 SELECT g.rolname, am.admin_option, am.inherit_option, am.set_option
@@ -3400,7 +3401,7 @@ SELECT g.rolname, am.admin_option, am.inherit_option, am.set_option
  ORDER BY g.rolname
 ```
 
-`api_role_memberships` line 1768
+`api_role_memberships` line 1777
 
 ```sql
 SELECT g.rolname, am.admin_option, m.rolinherit, TRUE
@@ -3411,7 +3412,7 @@ SELECT g.rolname, am.admin_option, m.rolinherit, TRUE
  ORDER BY g.rolname
 ```
 
-`api_role_template` line 1816
+`api_role_template` line 1825
 
 ```sql
 SELECT rolname, rolsuper, rolinherit, rolcreatedb, rolcreaterole,
@@ -3422,7 +3423,7 @@ SELECT rolname, rolsuper, rolinherit, rolcreatedb, rolcreaterole,
   FROM pg_roles WHERE rolname = %s
 ```
 
-`api_role_template` line 1829
+`api_role_template` line 1838
 
 ```sql
 SELECT g.rolname AS name
@@ -3433,7 +3434,7 @@ SELECT g.rolname AS name
  ORDER BY g.rolname
 ```
 
-`api_role_template` line 1843
+`api_role_template` line 1852
 
 ```sql
 SELECT count(*) AS n
@@ -3445,7 +3446,7 @@ SELECT count(*) AS n
    AND a.grantee = (SELECT oid FROM pg_roles WHERE rolname = %s)
 ```
 
-`api_role_template` line 1853
+`api_role_template` line 1862
 
 ```sql
 SELECT count(*) AS n
@@ -3455,49 +3456,49 @@ SELECT count(*) AS n
    AND a.grantee = (SELECT oid FROM pg_roles WHERE rolname = %s)
 ```
 
-`_grant_membership_sql` line 1907
+`_grant_membership_sql` line 1916
 
 ```sql
 GRANT {parent} TO {member}
 ```
 
-`api_role_membership_apply` line 1988
+`api_role_membership_apply` line 1997
 
 ```sql
 REVOKE {parent} FROM {member}
 ```
 
-`api_role_search_path` line 2045
+`api_role_search_path` line 2054
 
 ```sql
 ALTER ROLE {r}
 ```
 
-`api_role_search_path` line 2045
+`api_role_search_path` line 2054
 
 ```sql
 RESET search_path
 ```
 
-`api_role_search_path` line 2048
+`api_role_search_path` line 2057
 
 ```sql
 ALTER ROLE {r}
 ```
 
-`api_role_search_path` line 2050
+`api_role_search_path` line 2059
 
 ```sql
 SET search_path TO
 ```
 
-`api_role_timeouts` line 2115
+`api_role_timeouts` line 2124
 
 ```sql
 SELECT 1 FROM pg_roles WHERE rolname = %s
 ```
 
-`api_role_timeouts` line 2122
+`api_role_timeouts` line 2131
 
 ```sql
 SELECT COALESCE(d.datname, '') AS datname,
@@ -3508,33 +3509,33 @@ SELECT COALESCE(d.datname, '') AS datname,
   LEFT JOIN pg_roles    r ON r.oid = s.setrole
 ```
 
-`api_role_timeouts` line 2162
+`api_role_timeouts` line 2171
 
 ```sql
 SELECT name, setting FROM pg_file_settings
                             WHERE applied AND name = ANY(%s) ORDER BY seqno
 ```
 
-`api_role_timeouts` line 2172
+`api_role_timeouts` line 2181
 
 ```sql
 SELECT name, reset_val, boot_val, source, unit
                          FROM pg_settings WHERE name = ANY(%s)
 ```
 
-`api_role_timeouts` line 2187
+`api_role_timeouts` line 2196
 
 ```sql
 SELECT rolconnlimit FROM pg_roles WHERE rolname = %s
 ```
 
-`api_role_timeouts_apply` line 2264
+`api_role_timeouts_apply` line 2273
 
 ```sql
 ALTER ROLE {r}
 ```
 
-`api_role_ddl` line 2340
+`api_role_ddl` line 2349
 
 ```sql
 WITH RECURSIVE up(oid) AS (
@@ -3547,13 +3548,13 @@ SELECT r.rolname FROM pg_roles r JOIN up ON up.oid = r.oid
  ORDER BY 1
 ```
 
-`api_role_ddl` line 2365
+`api_role_ddl` line 2374
 
 ```sql
 SELECT rolpassword FROM pg_authid LIMIT 1
 ```
 
-`api_role_ddl` line 2383
+`api_role_ddl` line 2392
 
 ```sql
 SELECT r.rolname, r.rolsuper, r.rolinherit, r.rolcreaterole,
@@ -3565,19 +3566,19 @@ SELECT r.rolname, r.rolsuper, r.rolinherit, r.rolcreaterole,
  ORDER BY r.rolname
 ```
 
-`api_role_ddl` line 2442
+`api_role_ddl` line 2451
 
 ```sql
 CREATE ROLE {name} {' '.join(opts)};
 ```
 
-`api_role_ddl` line 2446
+`api_role_ddl` line 2455
 
 ```sql
 COMMENT ON ROLE {name} IS {_literal_str(r['comment'])};
 ```
 
-`api_role_ddl` line 2468
+`api_role_ddl` line 2477
 
 ```sql
 SELECT g.rolname AS grp, m.rolname AS member, am.admin_option, {opt16}, {by16}
@@ -3589,13 +3590,13 @@ SELECT g.rolname AS grp, m.rolname AS member, am.admin_option, {opt16}, {by16}
  ORDER BY g.rolname, m.rolname
 ```
 
-**stmt** - `api_role_ddl` line 2516
+**stmt** - `api_role_ddl` line 2525
 
 ```sql
 GRANT {_ident_str(grp)} TO {_ident_str(member)}{' WITH ' + ', '.join(opts) if opts else ''}{f' GRANTED BY {_ident_str(m['grantor'])}' if m.get('grantor') else ''};
 ```
 
-`api_role_ddl` line 2550
+`api_role_ddl` line 2559
 
 ```sql
 SELECT r.rolname, COALESCE(d.datname, '') AS dbname, s.setconfig
@@ -3607,7 +3608,7 @@ SELECT r.rolname, COALESCE(d.datname, '') AS dbname, s.setconfig
  ORDER BY r.rolname, 2
 ```
 
-`api_role_ddl` line 2569
+`api_role_ddl` line 2578
 
 ```sql
 ALTER ROLE %s%s SET %s = %s;

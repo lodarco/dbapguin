@@ -1,6 +1,6 @@
 # Checks
 
-[All parts](README.md) · 396 statements
+[All parts](README.md) · 397 statements
 
 ## checks/actual_plans.py
 
@@ -3395,7 +3395,7 @@ SELECT
     LIMIT 1) AS repl_via
 ```
 
-`_build_role_audit_ctx` line 615
+`_build_role_audit_ctx` line 616
 
 ```sql
 SELECT CASE
@@ -3407,31 +3407,31 @@ END AS m
 FROM pg_shadow WHERE usename = %s
 ```
 
-`_interp_db_priv` line 699
+`_interp_db_priv` line 705
 
 ```sql
 CREATE (can create schemas inside)
 ```
 
-`_collect_role_findings` line 903
+`_collect_role_findings` line 909
 
 ```sql
 REVOKE the membership, or grant with INHERIT FALSE (PG16+), or NOINHERIT on '{p0}'
 ```
 
-`_collect_role_findings` line 909
+`_collect_role_findings` line 915
 
 ```sql
 ALTER ROLE {p0} NOBYPASSRLS if not required
 ```
 
-`_collect_role_findings` line 931
+`_collect_role_findings` line 937
 
 ```sql
 SET password_encryption = 'scram-sha-256'; then \password {p0} (or ALTER ROLE)
 ```
 
-`_collect_role_findings` line 974
+`_collect_role_findings` line 980
 
 ```sql
 GRANT USAGE ON SCHEMA <schema> TO {p0} for each, or REVOKE the dangling table grants
@@ -3478,13 +3478,13 @@ WHERE r.rolcanlogin = true
 ORDER BY r.rolname
 ```
 
-`_sql_roles_login_no_shadow` line 64
+`_sql_roles_login_no_shadow` line 65
 
 ```sql
 SELECT
     r.rolname AS username,
     shobj_description(r.oid, 'pg_authid') AS comment,
-    '(restricted: pg_shadow not readable)' AS auth_method,
+    NULL::text AS auth_method,
     r.rolsuper      AS is_superuser,
     r.rolinherit    AS inherits,
     r.rolcreatedb   AS create_db,
@@ -3508,7 +3508,7 @@ WHERE r.rolcanlogin = true
 ORDER BY r.rolname
 ```
 
-`_sql_roles_group` line 94
+`_sql_roles_group` line 95
 
 ```sql
 SELECT
@@ -3546,7 +3546,7 @@ WHERE r.rolcanlogin = false
 ORDER BY r.rolname
 ```
 
-**_SQL_ROLES_MEMBERSHIPS** - `(module)` line 134
+**_SQL_ROLES_MEMBERSHIPS** - `(module)` line 135
 
 ```sql
 SELECT
@@ -3561,7 +3561,7 @@ JOIN pg_roles g ON g.oid = am.roleid
 ORDER BY m.rolname, g.rolname
 ```
 
-`_sql_roles_memberships` line 151
+`_sql_roles_memberships` line 152
 
 ```sql
 SELECT
@@ -3576,7 +3576,13 @@ JOIN pg_roles g ON g.oid = am.roleid
 ORDER BY m.rolname, g.rolname
 ```
 
-`run_roles_list_check` line 304
+`_auth_without_shadow` line 194
+
+```sql
+SELECT current_user, current_database()
+```
+
+`run_roles_list_check` line 384
 
 ```sql
 SELECT rolname FROM pg_roles
@@ -3585,7 +3591,7 @@ WHERE rolsuper = true AND rolcanlogin = true
 ORDER BY rolname
 ```
 
-`run_roles_list_check` line 326
+`run_roles_list_check` line 406
 
 ```sql
 SELECT rolname FROM pg_roles
@@ -3594,7 +3600,7 @@ WHERE rolbypassrls = true AND rolsuper = false
 ORDER BY rolname
 ```
 
-`run_roles_list_check` line 345
+`run_roles_list_check` line 425
 
 ```sql
 SELECT rolname FROM pg_roles
@@ -3603,7 +3609,7 @@ WHERE rolcreaterole = true AND rolsuper = false
 ORDER BY rolname
 ```
 
-`run_roles_list_check` line 363
+`run_roles_list_check` line 443
 
 ```sql
 SELECT rolname FROM pg_roles
@@ -3615,7 +3621,7 @@ WHERE rolcanlogin = true
 ORDER BY rolname
 ```
 
-`run_roles_list_check` line 384
+`run_roles_list_check` line 464
 
 ```sql
 SELECT rolname,
@@ -3628,14 +3634,14 @@ WHERE rolcanlogin = true
 ORDER BY rolvaliduntil
 ```
 
-`run_roles_list_check` line 407
+`run_roles_list_check` line 487
 
 ```sql
 SELECT coalesce((SELECT setting::bigint FROM pg_settings
                   WHERE name = 'password_expiration_warning_threshold'), 604800) AS s
 ```
 
-`run_roles_list_check` line 412
+`run_roles_list_check` line 492
 
 ```sql
 SELECT rolname, to_char(rolvaliduntil, 'YYYY-MM-DD HH24:MI') AS expires_at
@@ -3648,13 +3654,13 @@ WHERE rolcanlogin = true
 ORDER BY rolvaliduntil
 ```
 
-`run_roles_list_check` line 425
+`run_roles_list_check` line 505
 
 ```sql
 ALTER ROLE ... VALID UNTIL '...' (or set a new password) before it lapses and the login stops working
 ```
 
-`run_roles_list_check` line 444
+`run_roles_list_check` line 524
 
 ```sql
 SELECT rolname FROM pg_roles
@@ -3664,7 +3670,7 @@ WHERE rolreplication = true AND rolcanlogin = true
 ORDER BY rolname
 ```
 
-`run_roles_list_check` line 463
+`run_roles_list_check` line 543
 
 ```sql
 SELECT d.datname
@@ -3674,13 +3680,13 @@ WHERE d.datistemplate = false
 ORDER BY d.datname
 ```
 
-`run_roles_list_check` line 476
+`run_roles_list_check` line 556
 
 ```sql
 REVOKE CONNECT ON DATABASE x FROM PUBLIC; then GRANT to specific roles
 ```
 
-`run_roles_list_check` line 487
+`run_roles_list_check` line 567
 
 ```sql
 SELECT n.nspname
@@ -3691,13 +3697,13 @@ WHERE n.nspname NOT LIKE 'pg_%%'
 ORDER BY n.nspname
 ```
 
-`run_roles_list_check` line 500
+`run_roles_list_check` line 580
 
 ```sql
 REVOKE CREATE ON SCHEMA {s} FROM PUBLIC;
 ```
 
-`run_roles_list_check` line 509
+`run_roles_list_check` line 589
 
 ```sql
 SELECT n.nspname AS schema,
@@ -3715,7 +3721,7 @@ ORDER BY n.nspname, p.proname
 LIMIT 20
 ```
 
-`run_roles_list_check` line 528
+`run_roles_list_check` line 608
 
 ```sql
 REVOKE EXECUTE ... FROM PUBLIC and grant only to the roles that need it; pin search_path in the function body

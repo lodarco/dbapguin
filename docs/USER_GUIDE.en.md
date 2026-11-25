@@ -1,6 +1,6 @@
 # DBApguin User Guide
 
-**For DBApguin 1.0.9**
+**For DBApguin 1.0.10**
 
 DBApguin is a desktop PostgreSQL DBA console. This guide covers every feature
 from a user's point of view, and ships with the application, so it always
@@ -1825,6 +1825,16 @@ save, the reload afterwards and the parse-error report all work the same.
 `Roles and users overview` lists login users and group roles in two editable
 tables. Every boolean attribute is a true/false dropdown; `conn_limit` and
 `valid_until` are text fields.
+
+`auth_method` is how each login's password is stored: SCRAM-SHA-256, MD5 or
+none. PostgreSQL lets only a superuser read that. On Amazon RDS and Aurora,
+where no login of yours is one, the overview reads it through the service's own
+`rds_tools` extension, and an MD5 password is flagged there as on any other
+server. Where the extension is not in the database yet, the note above the
+table says so and gives the statement (`CREATE EXTENSION rds_tools;`). On a
+service that offers nothing of the kind, and for a role that is not a superuser
+on your own server, the column says why it is empty; everything else about the
+roles is listed either way.
 
 **Pick a role, then act.** Click a row to select it, or tick its box;
 ctrl-click and the boxes select several at once. One row of buttons sits next

@@ -1,6 +1,6 @@
 # DBApguin - Benutzerhandbuch
 
-**Für DBApguin 1.0.9**
+**Für DBApguin 1.0.10**
 
 *Dieses Handbuch wurde mit Hilfe von KI aus dem Englischen übersetzt. Wo etwas unklar ist oder abweicht, gilt das englische Original (Hilfe → Benutzerhandbuch mit Englisch als Oberflächensprache).*
 
@@ -1933,6 +1933,17 @@ Parse-Fehler arbeiten unverändert.
 `Übersicht über Rollen und Benutzer` listet Login-Benutzer und Gruppenrollen in
 zwei bearbeitbaren Tabellen. Jedes boolesche Attribut ist eine true/false-Auswahl;
 `conn_limit` und `valid_until` sind Textfelder.
+
+`auth_method` sagt, wie das Passwort jedes Logins gespeichert ist:
+SCRAM-SHA-256, MD5 oder gar nicht. PostgreSQL lässt das nur einen Superuser
+lesen. Auf Amazon RDS und Aurora, wo keiner Ihrer Logins einer ist, liest die
+Übersicht es über die eigene Erweiterung des Dienstes, `rds_tools`, und ein
+MD5-Passwort wird dort gemeldet wie auf jedem anderen Server. Ist die
+Erweiterung noch nicht in der Datenbank, sagt das der Hinweis über der Tabelle
+und nennt die Anweisung (`CREATE EXTENSION rds_tools;`). Bei einem Dienst, der
+nichts dergleichen anbietet, und für eine Rolle, die auf Ihrem eigenen Server
+kein Superuser ist, sagt die Spalte, warum sie leer ist; alles andere zu den
+Rollen steht in beiden Fällen da.
 
 **Erst die Rolle wählen, dann handeln.** Ein Klick auf die Zeile wählt sie aus,
 das Kästchen ebenso; Ctrl-Klick und die Kästchen wählen mehrere. Eine Reihe von
